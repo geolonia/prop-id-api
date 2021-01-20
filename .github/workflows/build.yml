@@ -28,14 +28,6 @@ jobs:
     - run: yarn
     - run: npm run build
     - run: npm test
-    - name: save the built
-      uses: actions/upload-artifact@v2
-      if: "!failure()"
-      with:
-        name: the-built
-        path: |
-          dist/
-          node_modules
 
   deploy:
     runs-on: ubuntu-latest
@@ -44,10 +36,7 @@ jobs:
     
     steps:
       - uses: actions/checkout@v2
-      - name: load the built
-        uses: actions/download-artifact@v2
-        with:
-          name: the-built
+      - run: yarn
       - run: npm run deploy:dev
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
