@@ -9,6 +9,12 @@ $ yarn # or npm install
 $ npm test
 ```
 
+### update Snapshot test
+
+```shell
+$ npm test -- -u
+```
+
 ## deploy
 
 ```shell
