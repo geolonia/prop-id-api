@@ -6,7 +6,7 @@
 $ git clone geolonia/estate-id-api
 $ cd estate-id-api
 $ yarn # or npm install
-$ npm start
+$ npm test
 ```
 
 ## deploy
