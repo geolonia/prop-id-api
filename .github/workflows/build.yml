@@ -34,7 +34,6 @@ jobs:
       with:
         name: the-built
         path: |
-          .serverless/
           dist/
           node_modules
 
