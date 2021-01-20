@@ -1,3 +1,3 @@
 test('Test template', () => {
-    expect(true).toBe(false)
+    expect(true).toBe(true)
 })
