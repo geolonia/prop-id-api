@@ -22,7 +22,7 @@ package:
    - serverless.yml
    - tsconfig.json
    - yarn.lock
-   - pXKf
+   - package-lock.json
 
 functions:
   public:
