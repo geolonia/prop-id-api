@@ -28,7 +28,7 @@ test('Should calculate tile indexes from coordinates(2)', () => {
 })
 
 test('Should verify address via API', async () => {
-    const address ="盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F;東京都文京区本駒込2-28-8 文京グリーンコートセンターオフィス22F"
+    const address ="盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F"
     const result = await verifyAddress(address)
     expect(result).toEqual({
         "type": "FeatureCollection",
@@ -60,9 +60,9 @@ test('Should verify address via API', async () => {
               "building": "マリオス",
               "building_number": "10F",
               "zipcode": "0200045",
-              "geocoding_level": "8",
+              "geocoding_level": 8,
               "geocoding_level_desc": "号レベルでマッチしました(8)",
-              "log": ""
+              "log": "FL001:都道府県名を補完しました(岩手県) | RM001:文字を除去しました(町)"
             }
           }
         ],

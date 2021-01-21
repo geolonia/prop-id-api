@@ -28,9 +28,8 @@ export const verifyAddress = async (address: string) => {
             if(res.status < 300) {
                 return res.json()
             } else {
-                throw new Error('API Request Error.')
+                throw new Error('API Request Error with status ${res.status}.')
             }
         })
-
     return result
 }
