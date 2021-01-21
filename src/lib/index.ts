@@ -13,4 +13,3 @@ export const coord2XY = (coord: [lat: number, lng: number], zoom: number): { x: 
 	const y = Math.floor((- Math.log(Math.tan((45 + lat / 2) * Math.PI / 180)) + Math.PI) * 2**zoom / (2 * Math.PI))
     return { x, y }
 }
- 
