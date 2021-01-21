@@ -1,5 +1,8 @@
 // @ts-ignore
 import fnv from 'fnv-plus'
+import fetch from 'node-fetch'
+
+const INCREMENTP_VERIFICATION_API_ENDPOINT = 'https://example.com'
 
 export const hashXY = (x: number, y: number): string => {
     const tileIdentifier = `${x}/${y}`
@@ -12,4 +15,25 @@ export const coord2XY = (coord: [lat: number, lng: number], zoom: number): { x: 
     const x = Math.floor((lng / 180 + 1) * 2**zoom / 2)
 	const y = Math.floor((- Math.log(Math.tan((45 + lat / 2) * Math.PI / 180)) + Math.PI) * 2**zoom / (2 * Math.PI))
     return { x, y }
+}
+
+export const verifyAddress = async (address: string): Promise<IncrementP.VerifiedAddress | IncrementP.APIError> => {
+    const endpoint = process.env.INCREMENTP_VERIFICATION_API_ENDPOINT
+    const apiKey = process.env.INCREMENTP_VERIFICATION_API_KEY
+
+    const result = await fetch(`${endpoint}/${encodeURIComponent(address)}.json?geocode=true`, {
+        headers: {
+            'x-api-key': apiKey
+        }
+    })
+        .then(res => {
+            if(res.status < 300) {
+                return res.json()
+            } else {
+                return {
+                    error: true,
+                    status: res.status,
+                }
+            }
+        })
 }
