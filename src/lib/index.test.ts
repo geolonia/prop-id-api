@@ -27,7 +27,7 @@ test('Should calculate tile indexes from coordinates(2)', () => {
     expect(y).toEqual(6606499)
 })
 
-test('Should verify address via API', async () => {
+test('Should verify an address via API', async () => {
     const address ="盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F"
     const result = await verifyAddress(address)
     expect(result).toEqual({

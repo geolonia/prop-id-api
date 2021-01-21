@@ -19,17 +19,16 @@ export const verifyAddress = async (address: string) => {
     const endpoint = process.env.INCREMENTP_VERIFICATION_API_ENDPOINT
     const apiKey = process.env.INCREMENTP_VERIFICATION_API_KEY
 
-    const result = await fetch(`${endpoint}/${encodeURIComponent(address)}.json?geocode=true`, {
+    return await fetch(`${endpoint}/${encodeURIComponent(address)}.json?geocode=true`, {
         headers: {
             'x-api-key': apiKey
         }
     })
         .then(res => {
-            if(res.status < 300) {
+            if(res.status < 400) {
                 return res.json()
             } else {
                 throw new Error('API Request Error with status ${res.status}.')
             }
         })
-    return result
 }
