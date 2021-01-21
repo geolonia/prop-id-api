@@ -1,7 +1,10 @@
-import { hash } from './index'
+import { hashXY } from './index'
 
-test('Should hash tileIndex', () => {
-    const indexX = 12345
+test('Should hash tile index as xxxx-xxxx-xxxx-xxxx', () => {
+    const indexX = 1234567
     const indexY = 54321
-    expect(hash(indexX, indexY)).toMatchSnapshot()
+    const digest = hashXY(indexX, indexY)
+    expect(digest).toHaveLength(16 + 3) // 16 digits + 3 hyphEns
+    expect(digest.split('-').every(section => section.length === 4)).toBe(true)
+    expect(digest).toMatchSnapshot()
 })

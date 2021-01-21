@@ -1,3 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Should hash tileIndex 1`] = `"2c73b225-0443-54c7-949f-7859d146bb2a"`;
+exports[`Should hash tile index as xxxx-xxxx-xxxx-xxxx 1`] = `"befb-b3dd-7c73-ab20"`;
