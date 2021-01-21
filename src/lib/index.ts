@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 
 export const hashXY = (x: number, y: number): string => {
-    const tileIdentifier = `${x.toString()}/${y.toString()}`
+    const tileIdentifier = `${x}/${y}`
     const hash = crypto.createHash('SHA256')
     hash.update(tileIdentifier)
     const digest16 = hash.copy().digest('hex').slice(0, 16)
