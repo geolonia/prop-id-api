@@ -1,9 +1,8 @@
-import crypto from 'crypto'
+// @ts-ignore
+import fnv from 'fnv-plus'
 
 export const hashXY = (x: number, y: number): string => {
     const tileIdentifier = `${x}/${y}`
-    const hash = crypto.createHash('SHA256')
-    hash.update(tileIdentifier)
-    const digest16 = hash.copy().digest('hex').slice(0, 16)
-    return (digest16.match(/.{4}/g) as string[]).join('-')
+    const ahash64 = fnv.hash(tileIdentifier, 64).hex();
+    return (ahash64.match(/.{4}/g) as string[]).join('-')
 }
