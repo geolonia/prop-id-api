@@ -2,8 +2,6 @@
 import fnv from 'fnv-plus'
 import fetch from 'node-fetch'
 
-const INCREMENTP_VERIFICATION_API_ENDPOINT = 'https://example.com'
-
 export const hashXY = (x: number, y: number): string => {
     const tileIdentifier = `${x}/${y}`
     const ahash64 = fnv.hash(tileIdentifier, 64).hex();
@@ -17,7 +15,7 @@ export const coord2XY = (coord: [lat: number, lng: number], zoom: number): { x: 
     return { x, y }
 }
 
-export const verifyAddress = async (address: string): Promise<IncrementP.VerifiedAddress | IncrementP.APIError> => {
+export const verifyAddress = async (address: string) => {
     const endpoint = process.env.INCREMENTP_VERIFICATION_API_ENDPOINT
     const apiKey = process.env.INCREMENTP_VERIFICATION_API_KEY
 
@@ -30,10 +28,9 @@ export const verifyAddress = async (address: string): Promise<IncrementP.Verifie
             if(res.status < 300) {
                 return res.json()
             } else {
-                return {
-                    error: true,
-                    status: res.status,
-                }
+                throw new Error('API Request Error.')
             }
         })
+
+    return result
 }

@@ -1,4 +1,4 @@
-import { hashXY, coord2XY } from './index'
+import { hashXY, coord2XY, verifyAddress } from './index'
 
 test('Should hash tile index as xxxx-xxxx-xxxx-xxxx', () => {
     const indexX = 1234567
@@ -25,4 +25,47 @@ test('Should calculate tile indexes from coordinates(2)', () => {
     // Those values are approximately x 2^(24 - 18) from the test above.
     expect(x).toEqual(14902247)
     expect(y).toEqual(6606499)
+})
+
+test('Should verify address via API', async () => {
+    const address ="盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F;東京都文京区本駒込2-28-8 文京グリーンコートセンターオフィス22F"
+    const result = await verifyAddress(address)
+    expect(result).toEqual({
+        "type": "FeatureCollection",
+        "query": [
+          "盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F"
+        ],
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                141.13366,
+                39.701281
+              ]
+            },
+            "properties": {
+              "query": "盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F",
+              "place_name": "岩手県盛岡市盛岡駅西通2丁目 9-1 マリオス10F",
+              "pref": "岩手県",
+              "pref_kana": "イワテケン",
+              "city": "盛岡市",
+              "city_kana": "モリオカシ",
+              "area": "盛岡駅西通",
+              "area_kana": "モリオカエキニシドオリ",
+              "koaza_chome": "2丁目",
+              "koaza_chome_kana": "2チョウメ",
+              "banchi_go": "9-1",
+              "building": "マリオス",
+              "building_number": "10F",
+              "zipcode": "0200045",
+              "geocoding_level": "8",
+              "geocoding_level_desc": "号レベルでマッチしました(8)",
+              "log": ""
+            }
+          }
+        ],
+        "attribution": "(c) INCREMENT P CORPORATION"
+      })
 })
