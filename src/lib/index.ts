@@ -19,7 +19,7 @@ export const verifyAddress = async (address: string) => {
     const endpoint = process.env.INCREMENTP_VERIFICATION_API_ENDPOINT
     const apiKey = process.env.INCREMENTP_VERIFICATION_API_KEY
     const url = `${endpoint}/${encodeURIComponent(address)}.json?geocode=true`
-    console.log(url[0], url[1], url[2])
+
     return await fetch(url, {
         headers: {
             'x-api-key': apiKey
