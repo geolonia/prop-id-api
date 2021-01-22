@@ -12,17 +12,26 @@ provider:
   region: ap-northeast-1
   apiGateway:
     shouldStartNameWithService: true
+  environment:
+    ZOOM: ${self:custom.zoomLevel}
+    INCREMENTP_VERIFICATION_API_ENDPOINT: ${env:INCREMENTP_VERIFICATION_API_ENDPOINT}
+    INCREMENTP_VERIFICATION_API_KEY: ${env:INCREMENTP_VERIFICATION_API_KEY}
+
+custom:
+  # ID will be changed If other zoom specified.
+  zoomLevel: 24
 
 package:
- exclude:
-   - .*
-   - src
-   - package.json
-   - README.md
-   - serverless.yml
-   - tsconfig.json
-   - yarn.lock
-   - package-lock.json
+  exclude:
+    - __tests__
+    - .*
+    - src
+    - package.json
+    - README.md
+    - serverless.yml
+    - tsconfig.json
+    - yarn.lock
+    - package-lock.json
 
 functions:
   public:

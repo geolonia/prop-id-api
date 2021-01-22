@@ -73,6 +73,43 @@ describe('IncrementP Verification API', () => {
       })
   })
 
+  test('should return `feature.geometry === null` if invalid address specified.', async () => {
+    const result = await verifyAddress('===Not exisiting address. This string should not be verified via API.===')
+    expect(result.status).toBe(200)
+    expect(result.body).toEqual({
+      type: 'FeatureCollection',
+      query: [
+        '===Not exisiting address. This string should not be verified via API.==='
+      ],
+      features: [
+        {
+          type: 'Feature',
+          geometry: null,
+          properties: {
+            query: '===Not exisiting address. This string should not be verified via API.===',
+            place_name: '',
+            pref: '',
+            pref_kana: '',
+            city: '',
+            city_kana: '',
+            area: '',
+            area_kana: '',
+            koaza_chome: '',
+            koaza_chome_kana: '',
+            banchi_go: '',
+            building: '',
+            building_number: '',
+            zipcode: '',
+            geocoding_level: -1,
+            geocoding_level_desc: 'マッチレベルが不明です(-1)',
+            log: 'NF001:都道府県情報を取得できませんでした | NF002:市区町村情報を取得できませんでした | ZJ005:郵便番号が存在しない住所情報です'
+          }
+        }
+      ],
+      attribution: '(c) INCREMENT P CORPORATION'
+    })
+  })
+
   test('should return 400 if no address specified.', async () => {
     const result = await verifyAddress('')
     expect(result.status).toBe(400)
