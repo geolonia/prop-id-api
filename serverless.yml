@@ -19,8 +19,9 @@ custom:
   # ID will be changed If other zoom specified.
   zoomLevel: 24
 
-package
+package:
  exclude:
+    - __tests__
    - .*
    - src
    - package.json
