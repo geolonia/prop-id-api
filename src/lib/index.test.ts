@@ -73,14 +73,14 @@ describe('IncrementP Verification API', () => {
       })
   })
 
-  test('should return 400 if address is absent.', async () => {
+  test('should return 400 if no address specified.', async () => {
     const result = await verifyAddress('')
     expect(result.status).toBe(400)
     expect(result.ok).toEqual(false)
     expect(result.body.message).toEqual("addr is not specified")
   })
 
-  test('shouls return 403 if api key is absent.', async () => {
+  test('shouls return 403 if no api key specified.', async () => {
     // @ts-ignore
     process.env.INCREMENTP_VERIFICATION_API_KEY = ''
     const address ="盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F"
