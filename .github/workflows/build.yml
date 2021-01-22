@@ -42,5 +42,7 @@ jobs:
       - run: yarn
       - run: npm run deploy:dev
         env:
+          INCREMENTP_VERIFICATION_API_ENDPOINT: ${{ secrets.INCREMENTP_VERIFICATION_API_ENDPOINT }}
+          INCREMENTP_VERIFICATION_API_KEY: ${{ secrets.INCREMENTP_VERIFICATION_API_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
