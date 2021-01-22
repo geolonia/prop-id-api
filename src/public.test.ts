@@ -4,7 +4,7 @@ import { handler } from './public'
 
 test('should specify the ZOOM environmental variable.', () => {
     const ZOOM = parseInt(process.env.ZOOM, 10)
-    expect(ZOOM).not.toBe(isNaN)
+    expect(ZOOM).not.toBe(NaN)
     expect(typeof ZOOM).toBe('number')
 })
 
@@ -21,7 +21,7 @@ test('should get estate ID', async () => {
 
     expect(body).toEqual([
         {
-            ID: "03-6b6d-f315-17a6-ba28"
+            ID: "03-5759-4a9a-6195-71a0"
         }
     ])
 })

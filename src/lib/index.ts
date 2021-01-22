@@ -11,6 +11,9 @@ export const hashXY = (x: number, y: number): string => {
 
 export const coord2XY = (coord: [lat: number, lng: number], zoom: number): { x: number, y: number } => {
     const [lat, lng] = coord
+    if(Number.isNaN(lat) || Number.isNaN(lng) || Number.isNaN(zoom)) {
+        throw new Error(`Invalid lat, lng or zoom: ${JSON.stringify({ lat, lng, zoom })}`)
+    }
     const x = Math.floor((lng / 180 + 1) * 2**zoom / 2)
 	const y = Math.floor((- Math.log(Math.tan((45 + lat / 2) * Math.PI / 180)) + Math.PI) * 2**zoom / (2 * Math.PI))
     return { x, y }

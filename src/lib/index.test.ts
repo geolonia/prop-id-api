@@ -27,6 +27,12 @@ test('Should calculate tile indexes from coordinates(2)', () => {
     expect(y).toEqual(6606499)
 })
 
+test('Should not calculate tile indexes with NaN', () => {
+  const lat = 35.68122
+  const lng = 139.76755
+  expect(() => coord2XY([lat, lng], NaN)).toThrow()
+})
+
 describe('IncrementP Verification API', () => {
   test('Should verify an address via API', async () => {
     const address ="盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F"
