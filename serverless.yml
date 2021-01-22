@@ -16,10 +16,38 @@ provider:
     ZOOM: ${self:custom.zoomLevel}
     INCREMENTP_VERIFICATION_API_ENDPOINT: ${env:INCREMENTP_VERIFICATION_API_ENDPOINT}
     INCREMENTP_VERIFICATION_API_KEY: ${env:INCREMENTP_VERIFICATION_API_KEY}
+    AWS_DYNAMODB_API_KEY_TABLE_NAME: ${self:custom.awsDynamodbApiKeyTableName}
+    AWS_DYNAMODB_ESTATE_ID_TABLE_NAME: ${self:custom.awsDynamodbEstateIdTableName}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+      Resource:
+        - Fn::Join:
+            - ":"
+            - - arn:aws:dynamodb
+              - ${self:provider.region}
+              - Ref: "AWS::AccountId"
+              - table/${self:custom.awsDynamodbApiKeyTableName}
+
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource:
+        - Fn::Join:
+            - ":"
+            - - arn:aws:dynamodb
+              - ${self:provider.region}
+              - Ref: "AWS::AccountId"
+              - table/${self:custom.awsDynamodbEstateIdTableName}
 
 custom:
   # ID will be changed If other zoom specified.
   zoomLevel: 24
+  awsDynamodbApiKeyTableName: estate-id-api-key-${self:provider.stage}
+  awsDynamodbEstateIdTableName: estate-id-${self:provider.stage}
 
 package:
   exclude:
@@ -33,6 +61,32 @@ package:
     - yarn.lock
     - package-lock.json
 
+resources:
+  Resources:
+    apiKeyTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.awsDynamodbApiKeyTableName}
+        AttributeDefinitions:
+          - AttributeName: apiKey
+            AttributeType: S
+        KeySchema:
+          - AttributeName: apiKey
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    estateIdTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.awsDynamodbEstateIdTableName}
+        AttributeDefinitions:
+          - AttributeName: estateId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: estateId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
 functions:
   public:
     handler: dist/public.handler
@@ -41,4 +95,3 @@ functions:
           path: '/'
           method: get
           integration: lambda-proxy
-
