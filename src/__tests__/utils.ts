@@ -8,4 +8,4 @@ export const promisify = (handler: EstateAPI.LambdaHandler) =>
         handler(event, context, (_0, result) => {
             resolve(result as any)
         })
-    }) 
+    })

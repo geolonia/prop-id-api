@@ -73,7 +73,7 @@ describe('IncrementP Verification API', () => {
       })
   })
 
-  test('should return feature.geometry === null if invalid address specified.', async () => {
+  test('should return `feature.geometry === null` if invalid address specified.', async () => {
     const result = await verifyAddress('===Not exisiting address. This string should not be verified via API.===')
     expect(result.status).toBe(200)
     expect(result.body).toEqual({
