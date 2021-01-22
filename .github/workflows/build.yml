@@ -28,6 +28,9 @@ jobs:
     - run: yarn
     - run: npm run build
     - run: npm test
+      env:
+        INCREMENTP_VERIFICATION_API_ENDPOINT: ${{ secrets.INCREMENTP_VERIFICATION_API_ENDPOINT }}
+        INCREMENTP_VERIFICATION_API_KEY: ${{ secrets.INCREMENTP_VERIFICATION_API_KEY }}
 
   deploy:
     runs-on: ubuntu-latest
