@@ -16,10 +16,12 @@ provider:
     ZOOM: ${self:custom.zoomLevel}
     INCREMENTP_VERIFICATION_API_ENDPOINT: ${env:INCREMENTP_VERIFICATION_API_ENDPOINT}
     INCREMENTP_VERIFICATION_API_KEY: ${env:INCREMENTP_VERIFICATION_API_KEY}
+    AWS_DYNAMODB_API_KEY_TABLE_NAME: ${self:custom.awsDynamodbApiKeyTableName}
 
 custom:
   # ID will be changed If other zoom specified.
   zoomLevel: 24
+  awsDynamodbApiKeyTableName: estate-id-api-key-${self:provider.stage}
 
 package:
   exclude:
@@ -33,6 +35,20 @@ package:
     - yarn.lock
     - package-lock.json
 
+resources:
+  Resources:
+    apiKeyTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.apiKeyTableName}
+        AttributeDefinitions:
+          - AttributeName: apiKey
+            AttributeType: S
+        KeySchema:
+          - AttributeName: apiKey
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
 functions:
   public:
     handler: dist/public.handler
@@ -42,3 +58,10 @@ functions:
           method: get
           integration: lambda-proxy
 
+  authenticated:
+    handler: dist/authenticated.handler
+    events:
+      - http:
+          path: '/'
+          method: get
+          integration: lambda-proxy
