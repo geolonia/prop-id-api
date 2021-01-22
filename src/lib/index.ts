@@ -15,22 +15,18 @@ export const coord2XY = (coord: [lat: number, lng: number], zoom: number): { x: 
     return { x, y }
 }
 
-export const verifyAddress = async (address: string) => {
+export const verifyAddress = (address: string) => {
     const endpoint = process.env.INCREMENTP_VERIFICATION_API_ENDPOINT
     const apiKey = process.env.INCREMENTP_VERIFICATION_API_KEY
+    const url = `${endpoint}/${encodeURIComponent(address)}.json?geocode=true`
+    const headers = { 'x-api-key': apiKey }
 
-    const result = await fetch(`${endpoint}/${encodeURIComponent(address)}.json?geocode=true`, {
-        headers: {
-            'x-api-key': apiKey
-        }
+    return fetch(url, { headers })
+    .catch(err => {
+        // Network Error and etc.
+        throw Error(err);
+     })
+    .then(res => {
+        return res.json().then(body => ({ body, status: res.status, ok: res.ok }))
     })
-        .then(res => {
-            if(res.status < 300) {
-                return res.json()
-            } else {
-                throw new Error('API Request Error.')
-            }
-        })
-
-    return result
 }
