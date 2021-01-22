@@ -1,24 +1,9 @@
-import Lambda from 'aws-lambda'
-import { verifyAddress, coord2XY, hashXY } from './lib/index'
+import { verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 
-type Handler = (event: Lambda.APIGatewayProxyEvent, context: any, callback: Lambda.Callback) => void
-
-export const handler: Handler = async (event, context, callback) => {
+export const handler: EstateAPI.LambdaHandler = async (event, context, callback) => {
 
     const address = event.queryStringParameters?.q
     const ZOOM = parseInt(process.env.ZOOM, 10)
-
-    if(Number.isNaN(ZOOM)) {
-        return callback(JSON.stringify({
-            statusCode: 500,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: 'Invalid Server Error.'
-            })
-        }))
-    }
 
     if(!address) {
         return callback(JSON.stringify({
@@ -36,7 +21,7 @@ export const handler: Handler = async (event, context, callback) => {
     try {
         result = await verifyAddress(address)
     } catch (error) {
-        // TODO: error handling for Increment P API
+        // API or Netowork Down Detected
         return callback(JSON.stringify({
             statusCode: 500,
             headers: {
@@ -48,9 +33,24 @@ export const handler: Handler = async (event, context, callback) => {
         }))
     }
 
-    const [lng, lat] = result.features[0] as [number, number]
+    const feature = result.body.features[0]
+    const [lng, lat] = feature.geometry.coordinates as [number, number]
+    const prefCode = getPrefCode(feature.properties.pref)
     const { x, y } = coord2XY([lat, lng], ZOOM)
     const hash = hashXY(x, y)
+
+    if(!prefCode) {
+        // Invalid `properties.pref` response from API
+        return callback(JSON.stringify({
+            statusCode: 500,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: 'Internal Server Error.'
+            })
+        }))
+    }
 
     const ID = `${prefCode}_${hash}`
 

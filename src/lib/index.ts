@@ -1,6 +1,7 @@
 // @ts-ignore
 import fnv from 'fnv-plus'
 import fetch from 'node-fetch'
+import prefs from './prefs.json'
 
 export const hashXY = (x: number, y: number): string => {
     const tileIdentifier = `${x}/${y}`
@@ -29,4 +30,8 @@ export const verifyAddress = (address: string) => {
     .then(res => {
         return res.json().then(body => ({ body, status: res.status, ok: res.ok }))
     })
+}
+
+export const getPrefCode = (prefName: string): string | null => {
+    return prefs[prefName as keyof typeof prefs] || null
 }
