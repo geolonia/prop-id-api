@@ -3,7 +3,7 @@ import { verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 export const handler: EstateAPI.LambdaHandler = async (event, context, callback) => {
 
     const address = event.queryStringParameters?.q
-    const debug =  !!event.queryStringParameters && 'debug' in event.queryStringParameters
+    const debug =  !!event.queryStringParameters && ('debug' in event.queryStringParameters)
     const ZOOM = parseInt(process.env.ZOOM, 10)
 
     if(!address) {
@@ -13,7 +13,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: 'Missing querystring parameter `q`.'
+                message: 'Missing querystring parameter `q`.',
+                debug: debug ? { address, zoom: ZOOM } : void 0,
             })
         })
     }
@@ -63,7 +64,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: `The address '${address}' is not verified.`
+                message: `The address '${address}' is not verified.`,
+                debug: debug ? { address, zoom: ZOOM, feature } : void 0,
             })
         })
     }
