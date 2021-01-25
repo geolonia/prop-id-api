@@ -3,7 +3,7 @@ import { verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 export const handler: EstateAPI.LambdaHandler = async (event, context, callback) => {
 
     const address = event.queryStringParameters?.q
-    const debug =  !!event.queryStringParameters && ('debug' in event.queryStringParameters)
+    const debug =  event.requestContext?.stage === 'dev' && !!event.queryStringParameters && ('debug' in event.queryStringParameters)
     const ZOOM = parseInt(process.env.ZOOM, 10)
 
     if(!address) {
