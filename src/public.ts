@@ -3,6 +3,7 @@ import { verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 export const handler: EstateAPI.LambdaHandler = async (event, context, callback) => {
 
     const address = event.queryStringParameters?.q
+    const debug =  !!event.queryStringParameters && 'debug' in event.queryStringParameters
     const ZOOM = parseInt(process.env.ZOOM, 10)
 
     if(!address) {
@@ -87,15 +88,30 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
 
     const ID = `${prefCode}-${hash}`
 
+    let body: object[] = [
+        {
+            ID: ID
+        }
+    ]
+
+    if(debug) {
+        body[0] = {
+            ...body[0],
+            debug: {
+                prefCode,
+                hash,
+                tileIndex: { x, y },
+                zoom: ZOOM,
+                feature
+            }
+        }
+    }
+
     return callback(null, {
         statusCode: 200,
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify([
-            {
-                ID: ID
-            }
-        ]),
+        body: JSON.stringify(body),
     });
 }
