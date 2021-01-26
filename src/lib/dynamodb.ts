@@ -13,7 +13,7 @@ export const authenticate = async (apiKey: string, accessToken: string) => {
         return false
     }
 
-    if(item && item.accessToken === hashToken(accessToken) {
+    if(item && item.accessToken === hashToken(accessToken)) {
         return true
     }
     return false
