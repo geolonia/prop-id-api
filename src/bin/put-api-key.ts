@@ -18,7 +18,7 @@ export const main = async (stage: 'dev' = 'dev') => {
         process.stderr.write('Access token will be automatically generated.\n')
     }
 
-    accessToken = crypto.scryptSync(accessToken, process.env.ACCESS_TOKEN_SALT, 10).toString()
+    accessToken = crypto.scryptSync(accessToken, process.env.ACCESS_TOKEN_SALT as string, 10).toString()
 
     process.stdout.write(`Creating api key at \`${stage}\` env..`)
     const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
