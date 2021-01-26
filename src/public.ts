@@ -13,14 +13,14 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
         return callback(null, error(400, 'Missing querystring parameter `q`.'))
     }
 
+    // Authenticate if q['api-key'] specified
     if(!apiKey) {
-        // Nothing
-    } else {
-        if(!accessToken || !await authenticate(apiKey, accessToken)) {
-            return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
-        }
+    // Nothing
+    } else if(!accessToken || !await authenticate(apiKey, accessToken)) {
+        return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
     }
- 
+    
+    // Request Increment P Address Verification API
     let result
     try {
         result = await verifyAddress(address)
@@ -30,6 +30,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
         return callback(null, error(500, 'Internal Server Error.'))
     }
 
+    // api key for Increment P should valid.
     if(!result.ok) {
         if(result.status === 403) {
             process.stderr.write("API Authentication failed.\n")
@@ -42,8 +43,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
 
     const feature = result.body.features[0]
 
+    // Features not found
     if(feature.geometry === null) {
-        // Features not found
         return callback(null, error(404, "The address '%s' is not verified.", address))
     }
 
@@ -62,6 +63,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
 
     let body 
     if(apiKey) {
+        // apiKey has been authenticated and return rich results
         body = {
             ID: ID,
             address: {
