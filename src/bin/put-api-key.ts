@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk'
 import crypto from 'crypto'
+import { hashToken } from '../lib/index'
 
 export const randomToken = (length: number) => {
     return crypto.randomBytes(length).reduce((p, i) => p + (i % 36).toString(36), '')
@@ -15,10 +16,9 @@ export const main = async (stage: 'dev' = 'dev') => {
 
     if(!accessToken) {
         accessToken = randomToken(32)
-        process.stderr.write('Access token will be automatically generated.\n')
+        process.stderr.write(`Access for ${apiKey} has been automatically generated.\n`)
+        process.stdout.write(accessToken)
     }
-
-    accessToken = crypto.scryptSync(accessToken, process.env.ACCESS_TOKEN_SALT as string, 10).toString()
 
     process.stdout.write(`Creating api key at \`${stage}\` env..`)
     const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
@@ -26,7 +26,7 @@ export const main = async (stage: 'dev' = 'dev') => {
         TableName: `estate-id-api-key-${stage}`,
         Item: {
             apiKey,
-            accessToken
+            accessToken: hashToken(accessToken)
         }
     }
 

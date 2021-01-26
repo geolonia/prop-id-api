@@ -1,6 +1,7 @@
 // @ts-ignore
 import fnv from 'fnv-plus'
 import fetch from 'node-fetch'
+import crypto from 'crypto'
 import prefs from './prefs.json'
 
 export const hashXY = (x: number, y: number): string => {
@@ -44,4 +45,8 @@ export const decapitalize = (headers: { [key : string]: string | undefined }) =>
         prev[key.toLowerCase()] = headers[key]
         return prev
     }, {})  
+}
+
+export const hashToken = (accessToken: string) => {
+    return crypto.scryptSync(accessToken, process.env.ACCESS_TOKEN_SALT, 10).toString()
 }
