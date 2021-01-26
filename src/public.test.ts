@@ -1,4 +1,3 @@
-import Lambda from 'aws-lambda'
 import { promisify } from './__tests__/utils'
 import { handler } from './public'
 
@@ -11,7 +10,7 @@ test('should specify the ZOOM environmental variable.', () => {
 test('should get estate ID', async () => {
     const event = {
         queryStringParameters: {
-            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F"'
+            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F'
         }
     }
     // @ts-ignore
@@ -26,6 +25,44 @@ test('should get estate ID', async () => {
     ])
 })
 
+test('should get estate ID with details if authenticated', async () => {
+    // mock
+    const dynamodb = require('./lib/dynamodb')
+    dynamodb.authenticate = async () => true
+    
+    const event = {
+        queryStringParameters: {
+            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F',
+            'api-key': 'geolonia'
+        },
+        headers: {
+            'X-Access-Token': 'test'
+        }
+    }
+    // @ts-ignore
+     const lambdaResult = await promisify(handler)(event, {})
+    // @ts-ignore
+    const body = JSON.parse(lambdaResult.body)
+    expect(body).toEqual([
+        {
+            ID: "03-5759-4a9a-6195-71a0",
+            "address": {
+                "ja": {
+                    "address1": "盛岡駅西通2丁目",
+                    "address2": "9-1",
+                    "city": "盛岡市",
+                    "other": "マリオス10F",
+                    "prefecture": "岩手県",
+                },
+                "location": {
+                    "lat": "39.701281",
+                    "lng": "141.13366",
+                },
+            },
+        }
+    ])
+})
+
 test('should return 400 with empty address', async () => {
     const event = {
         queryStringParameters: null
@@ -35,6 +72,27 @@ test('should return 400 with empty address', async () => {
     const { message } = JSON.parse(body)
     expect(statusCode).toEqual(400)
     expect(message).toEqual('Missing querystring parameter `q`.')
+})
+
+test('should return 403 if authenticated.', async () => {
+    // mock
+    const dynamodb = require('./lib/dynamodb')
+    dynamodb.authenticate = async () => false
+
+    const event = {
+        queryStringParameters: {
+            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F',
+            'api-key': 'geolonia'
+        },
+        headers: {
+            'X-Access-Token': 'test'
+        }
+    }
+    // @ts-ignore
+    const { statusCode, body } = await promisify(handler)(event, {})
+    const { message } = JSON.parse(body)
+    expect(statusCode).toEqual(403)
+    expect(message).toEqual('Incorrect querystring parameter `api-key` or `x-access-token` header value.')
 })
 
 test('should return 404 if address is not verified', async () => {

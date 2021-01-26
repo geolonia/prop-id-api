@@ -1,8 +1,18 @@
+import { authenticate } from './lib/dynamodb'
 import { verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
+
+export const decapitalize = (headers: { [key : string]: string | undefined }) => {
+    return Object.keys(headers || {}).reduce<{ [key: string]: string | undefined }>((prev, key) => {
+        prev[key.toLowerCase()] = headers[key]
+        return prev
+    }, {})  
+}
 
 export const handler: EstateAPI.LambdaHandler = async (event, context, callback) => {
 
     const address = event.queryStringParameters?.q
+    const apiKey = event.queryStringParameters ? event.queryStringParameters['api-key'] : void 0
+    const accessToken = decapitalize(event.headers)['x-access-token']
     const ZOOM = parseInt(process.env.ZOOM, 10)
 
     if(!address) {
@@ -16,7 +26,22 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
             })
         })
     }
-
+    if(!apiKey) {
+        // Nothing
+    } else {
+        if(!accessToken || !await authenticate(apiKey, accessToken)) {
+            return callback(null, {
+                statusCode: 403,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'
+                })
+            })
+        }
+    }
+ 
     let result
     try {
         result = await verifyAddress(address)
@@ -87,15 +112,34 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
 
     const ID = `${prefCode}-${hash}`
 
+    let body 
+    if(apiKey) {
+        body = {
+            ID: ID,
+            address: {
+                ja: {
+                    prefecture: feature.properties.pref,
+                    city: feature.properties.city,
+                    address1: feature.properties.area + feature.properties.koaza_chome,
+                    address2: feature.properties.banchi_go,
+                    other: feature.properties.building + feature.properties.building_number
+                },
+                location: {
+                    lat: lat.toString(),
+                    lng: lng.toString()
+                }
+            }
+        }
+    } else {
+        body = { ID: ID }
+    }
+
+
     return callback(null, {
         statusCode: 200,
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify([
-            {
-                ID: ID
-            }
-        ]),
+        body: JSON.stringify([ body ]),
     });
 }

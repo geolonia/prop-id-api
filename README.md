@@ -22,3 +22,10 @@ $ npm test -- -u
 ```shell
 $ npm run deploy:dev
 ```
+
+## Utilities
+
+```shell
+# put an api key
+$ npx ts-node ./src/bin/put-api-key.ts api-key accesss-token
+```
