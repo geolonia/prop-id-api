@@ -38,3 +38,10 @@ export const verifyAddress = (address: string) => {
 export const getPrefCode = (prefName: string): string | null => {
     return prefs[prefName as keyof typeof prefs] || null
 }
+
+export const decapitalize = (headers: { [key : string]: string | undefined }) => {
+    return Object.keys(headers || {}).reduce<{ [key: string]: string | undefined }>((prev, key) => {
+        prev[key.toLowerCase()] = headers[key]
+        return prev
+    }, {})  
+}

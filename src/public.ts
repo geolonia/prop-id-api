@@ -1,13 +1,6 @@
 import { authenticate } from './lib/dynamodb'
-import { verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
+import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 import { error, json } from './lib/proxy-response'
-
-export const decapitalize = (headers: { [key : string]: string | undefined }) => {
-    return Object.keys(headers || {}).reduce<{ [key: string]: string | undefined }>((prev, key) => {
-        prev[key.toLowerCase()] = headers[key]
-        return prev
-    }, {})  
-}
 
 export const handler: EstateAPI.LambdaHandler = async (event, context, callback) => {
 
