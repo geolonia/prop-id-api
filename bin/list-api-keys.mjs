@@ -1,9 +1,8 @@
 import AWS from 'aws-sdk'
-import { promises } from 'fs'
 
-export const main = async (stage: 'dev' = 'dev') => {
+export const main = async (stage = 'dev') => {
     const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
-    const scanInput: AWS.DynamoDB.DocumentClient.ScanInput = {
+    const scanInput = {
         TableName: `estate-id-api-key-${stage}`,
     }
 

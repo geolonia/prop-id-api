@@ -33,9 +33,9 @@ Create or update an access token with an API key.
 
 ```shell
 # put an api key with a access token.
-$ npx ts-node ./src/bin/put-api-key.ts <api-key> <accesss-token>
+$ node ./src/bin/put-api-key.mjs <api-key> <accesss-token>
 # or automatically generate an access token for an api key.
-$ npx ts-node ./src/bin/put-api-key.ts <api-key>
+$ node ./src/bin/put-api-key.mjs <api-key>
 ```
 
 #### List
@@ -43,5 +43,5 @@ $ npx ts-node ./src/bin/put-api-key.ts <api-key>
 List api keys
 
 ```shell
-$ npx ts-node ./src/bin/list-api-keys
+$ node ./src/bin/list-api-keys.mjs
 ```

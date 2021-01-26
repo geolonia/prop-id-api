@@ -1,7 +1,7 @@
 // @ts-ignore
 import fnv from 'fnv-plus'
 import fetch from 'node-fetch'
-import crypto from 'crypto'
+import * as crypto from 'crypto'
 import prefs from './prefs.json'
 
 export const hashXY = (x: number, y: number): string => {
