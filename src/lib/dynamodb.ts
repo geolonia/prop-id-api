@@ -18,3 +18,17 @@ export const authenticate = async (apiKey: string, accessToken: string) => {
     }
     return false
 }
+
+
+export const store = async (estateId: string, zoom: number, address: object) => {
+    const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
+    const putItemInput: AWS.DynamoDB.DocumentClient.PutItemInput = {
+        TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
+        Item: {
+            estateId,
+            zoom: process.env.ZOOM,
+            address: JSON.stringify(address)
+        }
+    }
+    return await docclient.put(putItemInput).promise()
+}

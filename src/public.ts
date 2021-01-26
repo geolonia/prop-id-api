@@ -1,4 +1,4 @@
-import { authenticate } from './lib/dynamodb'
+import { authenticate, store } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
@@ -60,28 +60,32 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
     }
 
     const ID = `${prefCode}-${hash}`
+    const addressObject = {
+        ja: {
+            prefecture: feature.properties.pref,
+            city: feature.properties.city,
+            address1: feature.properties.area + feature.properties.koaza_chome,
+            address2: feature.properties.banchi_go,
+            other: feature.properties.building + feature.properties.building_number
+        },
+        location: {
+            lat: lat.toString(),
+            lng: lng.toString()
+        }
+    }
 
     let body 
     if(apiKey) {
         // apiKey has been authenticated and return rich results
-        body = {
-            ID: ID,
-            address: {
-                ja: {
-                    prefecture: feature.properties.pref,
-                    city: feature.properties.city,
-                    address1: feature.properties.area + feature.properties.koaza_chome,
-                    address2: feature.properties.banchi_go,
-                    other: feature.properties.building + feature.properties.building_number
-                },
-                location: {
-                    lat: lat.toString(),
-                    lng: lng.toString()
-                }
-            }
-        }
+        body = { ID: ID, address: addressObject }
     } else {
         body = { ID: ID }
+    }
+
+    try {
+        await store(ID, ZOOM, addressObject)        
+    } catch (error) {
+        console.error('[FATAL] Something happend with DynamoDB connection.')
     }
 
     return callback(null, json([body]));
