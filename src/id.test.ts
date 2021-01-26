@@ -1,5 +1,5 @@
 import { promisify } from './__tests__/utils'
-import { handler } from './public'
+import { handler } from './id'
 
 test('should specify the ZOOM environmental variable.', () => {
     // mock

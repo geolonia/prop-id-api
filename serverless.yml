@@ -89,10 +89,18 @@ resources:
         BillingMode: PAY_PER_REQUEST
 
 functions:
-  public:
-    handler: dist/public.handler
+  id:
+    handler: dist/id.handler
     events:
       - http:
           path: '/'
+          method: get
+          integration: lambda-proxy
+
+  address:
+    handler: dist/address.handler
+    events:
+      - http:
+          path: '/{estateId}'
           method: get
           integration: lambda-proxy
