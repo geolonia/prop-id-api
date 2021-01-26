@@ -2,12 +2,20 @@ import { promisify } from './__tests__/utils'
 import { handler } from './public'
 
 test('should specify the ZOOM environmental variable.', () => {
+    // mock
+    const dynamodb = require('./lib/dynamodb')
+    dynamodb.store = async () => void 0
+
     const ZOOM = parseInt(process.env.ZOOM, 10)
     expect(ZOOM).not.toBe(NaN)
     expect(typeof ZOOM).toBe('number')
 })
 
 test('should get estate ID', async () => {
+    // mock
+    const dynamodb = require('./lib/dynamodb')
+    dynamodb.store = async () => void 0
+    
     const event = {
         queryStringParameters: {
             q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F'
@@ -29,6 +37,7 @@ test('should get estate ID with details if authenticated', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
     dynamodb.authenticate = async () => true
+    dynamodb.store = async () => void 0
     
     const event = {
         queryStringParameters: {
