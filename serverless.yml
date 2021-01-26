@@ -12,6 +12,7 @@ provider:
   region: ap-northeast-1
   apiGateway:
     shouldStartNameWithService: true
+  endpointType: REGIONAL
   environment:
     ZOOM: ${self:custom.zoomLevel}
     INCREMENTP_VERIFICATION_API_ENDPOINT: ${env:INCREMENTP_VERIFICATION_API_ENDPOINT}
