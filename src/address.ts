@@ -21,7 +21,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
         addressObject = await restore(estateId)
     } catch (error) {
         // estateId should be found.
-        return callback(null, error(404, `Estate ID ${estateId} is not found.`))
+        return callback(null, error(404, 'Estate ID %s is not found.', estateId))
     }
 
     // apiKey has been authenticated and return rich results

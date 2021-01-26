@@ -46,6 +46,6 @@ export const restore = async (estateId: string) => {
     if(item) {
         return JSON.parse(item.address) as object
     } else {
-        return void 0
+        throw new Error('ID not found.')
     }
 }
