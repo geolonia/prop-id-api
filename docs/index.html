@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html ng-app="myapp">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <style>
+      .wrap
+      {
+        width: 800px;
+        max-width: 90%;
+        margin: 10px auto;
+      }
+      .wrap div
+      {
+        margin: 2em 0;
+      }
+      .footer
+      {
+        margin-top: 40px;
+        padding-top: 1em;
+        border-top: 1px solid #dedede;
+        text-align: right;
+      }
+    </style>
+    <title>不動産ID API</title>
+  </head>
+  <body ng-controller="app">
+    <div class="wrap">
+      <h1>不動産 API Debugger</h1>
+      <form class="form-inline" action="#">
+      <span class="help-block" style="display: block;">API キーを入力してください。</span>
+      <input id="api-key" type="text" class="form-control">
+      <span class="help-block" style="display: block;">アクセストークンを入力してください。</span>
+      <input id="access-token" type="password" class="form-control">
+      <span class="help-block" style="display: block;">住所を入力してください。</span>
+      <input id="address" type="text" class="form-control" placeholder="例: 東京都千代田区千代田1-1">
+      <button id="button" class="btn btn-primary">住所IDを取得</button>
+      </form>
+
+      <div class="alert alert-danger">住所が見つかりませんでした。</div>
+
+      <script>
+          const LS_PREFIX = 'estate_id_debugger_'
+          const endpoint = "https://d2cs0t9ef9cmd3.cloudfront.net/dev/"
+          const apiKeyInput = document.getElementById('api-key')
+          const accessTokenInput = document.getElementById('access-token')
+          const addressInput = document.getElementById('address')
+          const button = document.getElementById('button')
+
+          // serialize authenticate information
+          const apiKey = localStorage.getItem(`${LS_PREFIX}_api-key`)
+          const accessToken = localStorage.getItem(`${LS_PREFIX}_access-token`)
+          if(apiKey) {
+              apiKeyInput.value = apiKey
+          }
+          if(accessToken) {
+              accessTokenInput.value = accessToken
+          }
+          apiKeyInput.addEventListener('change', (e) => {
+              localStorage.setItem(`${LS_PREFIX}_api-key`, e.target.value)
+          })
+          accessTokenInput.addEventListener('change', (e) => {
+              localStorage.setItem(`${LS_PREFIX}_access-token`, e.target.value)
+          })
+
+          button.addEventListener('click', () => {
+            const apiKey = encodeURIComponent(apiKeyInput.value)
+            const accessToken = encodeURIComponent(accessTokenInput.value)
+            const address = encodeURIComponent(addressInput.value)
+            const url = `${endpoint}?api-key=${apiKey}&q=${address}`
+            const options = {
+                method: 'GET',
+                headers: {
+                    'x-access-token': accessToken                    
+                }
+            }
+
+            fetch(url, options).then(res => {
+                console.log(res.status)
+                return res.json()
+            }).then(json => {
+                console.log(json)
+            })
+          })
+      </script>
+
+    <div>
+  </body>
+</html>
