@@ -13,10 +13,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
         return callback(null, error(400, 'Missing querystring parameter `q`.'))
     }
 
-    // Authenticate if q['api-key'] specified
-    if(!apiKey) {
-    // Nothing
-    } else if(!accessToken || !await authenticate(apiKey, accessToken)) {
+    // [Alfa feature] Authenticate even if q['api-key'] not specified
+    if(!apiKey || !accessToken || !await authenticate(apiKey, accessToken)) {
         return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
     }
     
