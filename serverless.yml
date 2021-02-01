@@ -105,4 +105,3 @@ functions:
           path: '/debug'
           method: get
           integration: lambda-proxy
-            
