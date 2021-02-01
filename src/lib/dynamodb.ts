@@ -35,19 +35,6 @@ export const updateTimestamp = async (apiKey:string, timestamp: number) => {
     return await docclient.update(updateItemInput).promise()
 }
 
-export const removeTimestamp = async (apiKey:string) => {
-    const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
-    const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
-        TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
-        Key: { apiKey },
-        UpdateExpression: 'remove #lastRequestAt',
-        ExpressionAttributeNames: {
-            '#lastRequestAt': 'lastRequestAt',
-        },
-    }
-    return await docclient.update(updateItemInput).promise()
-}
-
 export const store = async (estateId: string, zoom: number, address: object) => {
     const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
     const putItemInput: AWS.DynamoDB.DocumentClient.PutItemInput = {

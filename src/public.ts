@@ -1,5 +1,5 @@
-import { authenticate, store, updateTimestamp, removeTimestamp } from './lib/dynamodb'
-import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode, sleep } from './lib/index'
+import { authenticate, store, updateTimestamp } from './lib/dynamodb'
+import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
 export const handler: EstateAPI.LambdaHandler = async (event, context, callback, isDebug = false) => {
