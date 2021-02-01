@@ -11,7 +11,8 @@ test('should specify the ZOOM environmental variable.', () => {
     expect(typeof ZOOM).toBe('number')
 })
 
-test('should get estate ID', async () => {
+// [Alpha feature] Authentication required
+test.skip('should get estate ID', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
     dynamodb.store = async () => void 0
@@ -104,7 +105,8 @@ test('should return 403 if authenticated.', async () => {
     expect(message).toEqual('Incorrect querystring parameter `api-key` or `x-access-token` header value.')
 })
 
-test('should return 404 if address is not verified', async () => {
+// [Alpha feature] Authentication required
+test.skip('should return 404 if address is not verified', async () => {
     const event = {
         queryStringParameters: {
             q: '===Not exisiting address. This string should not be verified via API.==='
