@@ -96,7 +96,7 @@ functions:
       - http:
           path: '/'
           method: get
-          integration: lambda-proxy
+          integration: lambda-proxy       
 
   debug:
     handler: dist/debug.handler
@@ -105,3 +105,4 @@ functions:
           path: '/debug'
           method: get
           integration: lambda-proxy
+            

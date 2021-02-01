@@ -27,32 +27,35 @@
   </head>
   <body ng-controller="app">
     <div class="wrap">
-      <h1>不動産 API</h1>
-      <form class="form-inline" action="#">
+      <h1>不動産ID API</h1>
+      <form class="form-inline">
       <span class="help-block" style="display: block;">API キーを入力してください。</span>
       <input id="api-key" type="text" class="form-control">
       <span class="help-block" style="display: block;">アクセストークンを入力してください。</span>
       <input id="access-token" type="password" class="form-control">
       <span class="help-block" style="display: block;">住所を入力してください。</span>
       <input id="address" type="text" class="form-control" placeholder="例: 東京都千代田区千代田1-1">
-      <button id="button" class="btn btn-primary">不動産IDを取得</button>
+      <button id="button" type="button" class="btn btn-primary">不動産IDを取得</button>
       </form>
       <div id="not-found" class="alert alert-danger" style="display: none;">住所が見つかりませんでした。</div>
-      <textarea id="result" class="form-control" style="display: none;"></textarea>
+      <div class="wrap">
+        <textarea id="result" class="form-control" style="display: none;"></textarea>
+      </div>
       <div class="footer">不動産 API by <a href="https://geolonia.com">Geolonia</a></div>
 
       <script>
           const LS_PREFIX = 'estate_id_debugger_'
           const endpoint = "https://d2cs0t9ef9cmd3.cloudfront.net/dev/debug/"
+
           const apiKeyInput = document.getElementById('api-key')
           const accessTokenInput = document.getElementById('access-token')
           const addressInput = document.getElementById('address')
           const button = document.getElementById('button')
           const notFound = document.getElementById('not-found')
-          const result = document.getElementById('result')
+          const resultTextArea = document.getElementById('result')
 
           const showNotFound = (display) => notFound.style.display = display ? 'block' : 'none'
-          const showResult = (display) => result.style.display = display ? 'block' : 'none'
+          const showResult = (display) => resultTextArea.style.display = display ? 'block' : 'none'
 
           // serialize authenticate information
           const apiKey = localStorage.getItem(`${LS_PREFIX}_api-key`)
@@ -65,11 +68,12 @@
           }
           apiKeyInput.addEventListener('change', (e) => {
               localStorage.setItem(`${LS_PREFIX}_api-key`, e.target.value)
-              showNotFound(false)
           })
           accessTokenInput.addEventListener('change', (e) => {
               localStorage.setItem(`${LS_PREFIX}_access-token`, e.target.value)
-              showNotFound(false)
+          })
+          addressInput.addEventListener('change', () => {
+            showNotFound(false)
           })
 
           button.addEventListener('click', () => {
@@ -81,16 +85,24 @@
                 method: 'GET',
                 headers: {
                     'x-access-token': accessToken                    
-                }
+                },
             }
 
             fetch(url, options)
             .then(res => {
                 return res.json()
             })
-            .catch(() => 'ネットワークエラー')
-            .then(json => {
-              result.value = JSON.stringify(json, null, 2)
+            .catch(() => false)
+            .then(result => {
+              if(result) {
+                showNotFound(false)
+                showResult(true)
+                const content = JSON.stringify(result, null, 2)
+                resultTextArea.rows = content.split('\n').length
+                resultTextArea.value = content
+              } else {
+                showNotFound(true)
+              }
             })
           })
       </script>
