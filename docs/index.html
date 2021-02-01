@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html ng-app="myapp">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <style>
+      .wrap
+      {
+        width: 800px;
+        max-width: 90%;
+        margin: 10px auto;
+      }
+      .wrap div
+      {
+        margin: 2em 0;
+      }
+      .footer
+      {
+        margin-top: 40px;
+        padding-top: 1em;
+        border-top: 1px solid #dedede;
+        text-align: right;
+      }
+    </style>
+    <title>不動産ID API</title>
+  </head>
+  <body ng-controller="app">
+    <div class="wrap">
+      <h1>不動産ID API</h1>
+      <form class="form-inline">
+      <span class="help-block" style="display: block;">住所を入力してください。</span>
+      <input id="address" type="text" class="form-control" placeholder="例: 東京都千代田区千代田1-1">
+      <button id="button" type="button" class="btn btn-primary">不動産IDを取得</button>
+      </form>
+      <div id="not-found" class="alert alert-danger" style="display: none;">住所が見つかりませんでした。</div>
+      <div class="wrap">
+        <textarea id="result" class="form-control" style="display: none; width: 100%;"></textarea>
+      </div>
+      <div class="footer">不動産 API by <a href="https://geolonia.com">Geolonia</a></div>
+
+      <script>
+          const LS_PREFIX = 'estate_id_debugger_'
+          const endpoint = "https://d2cs0t9ef9cmd3.cloudfront.net/dev/debug/"
+
+          const addressInput = document.getElementById('address')
+          const button = document.getElementById('button')
+          const notFound = document.getElementById('not-found')
+          const resultTextArea = document.getElementById('result')
+
+          const showNotFound = (display) => notFound.style.display = display ? 'block' : 'none'
+          const showResult = (display) => resultTextArea.style.display = display ? 'block' : 'none'
+
+          addressInput.addEventListener('change', () => {
+            showNotFound(false)
+          })
+
+          button.addEventListener('click', () => {
+            const address = encodeURIComponent(addressInput.value)
+            const url = `${endpoint}?&q=${address}`
+
+            fetch(url)
+            .then(res => res.json())
+            .catch(() => false)
+            .then(result => {
+              if(result) {
+                showNotFound(false)
+                showResult(true)
+                const content = JSON.stringify(result, null, 2)
+                resultTextArea.rows = content.split('\n').length
+                resultTextArea.value = content
+              } else {
+                showNotFound(true)
+              }
+            })
+          })
+      </script>
+
+    <div>
+  </body>
+</html>

@@ -96,4 +96,12 @@ functions:
       - http:
           path: '/'
           method: get
+          integration: lambda-proxy       
+
+  debug:
+    handler: dist/debug.handler
+    events:
+      - http:
+          path: '/debug'
+          method: get
           integration: lambda-proxy
