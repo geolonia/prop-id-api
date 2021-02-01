@@ -15,7 +15,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
 
     const now = Date.now()
 
-    // [Alfa feature] Authenticate even if q['api-key'] not specified
+    // [Alfa feature] Authentication required anytime.
     if(!apiKey || !accessToken) {
         return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
     } else {
