@@ -2,7 +2,7 @@ import { authenticate, store } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
-export const handler: EstateAPI.LambdaHandler = async (event, context, callback) => {
+export const handler: EstateAPI.LambdaHandler = async (event, context, callback, isDebug = false) => {
 
     const address = event.queryStringParameters?.q
     const apiKey = event.queryStringParameters ? event.queryStringParameters['api-key'] : void 0
@@ -13,8 +13,16 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
         return callback(null, error(400, 'Missing querystring parameter `q`.'))
     }
 
-    // [Alfa feature] Authenticate even if q['api-key'] not specified
-    if(!apiKey || !accessToken || !await authenticate(apiKey, accessToken)) {
+    if(
+        // pass through with debug mode
+        !isDebug &&
+        (
+            // [Alfa feature] Authenticate even if q['api-key'] not specified
+            !apiKey ||
+            !accessToken ||
+            !await authenticate(apiKey, accessToken)
+        )
+    ) {
         return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
     }
     
@@ -73,7 +81,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
     }
 
     let body 
-    if(apiKey) {
+    if(apiKey || isDebug) {
         // apiKey has been authenticated and return rich results
         body = { ID: ID, address: addressObject }
     } else {

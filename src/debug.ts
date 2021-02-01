@@ -11,5 +11,5 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
         }
         // @ts-ignore
         return callback(_0, proxyResult)
-    })
+    }, true)
 }
