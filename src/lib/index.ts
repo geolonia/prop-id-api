@@ -51,8 +51,8 @@ export const hashToken = (accessToken: string) => {
     return crypto.scryptSync(accessToken, process.env.ACCESS_TOKEN_SALT, 10).toString()
 }
 
-export const sleep = (second: number) => {
+export const sleep = (milliseconds: number) => {
     return new Promise(resolve => {
-        setTimeout(resolve, second * 1000)
+        setTimeout(resolve, milliseconds)
     })
 }  

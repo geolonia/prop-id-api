@@ -1,4 +1,4 @@
-import { authenticate, store, update } from './lib/dynamodb'
+import { authenticate, store, updateTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode, sleep } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
@@ -14,21 +14,29 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
     }
 
     const now = Date.now()
+    let authentication : {  authenticated: boolean, lastRequestAt?: number }
 
-    // Authenticate if q['api-key'] specified
-    if(!apiKey) {
-    // Nothing
-    } else if(!accessToken) {
+    // [Alfa feature] Authenticate even if q['api-key'] not specified
+    if(!apiKey || !accessToken) {
         return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
     } else {
-        const { authenticated, lastRequest } = await authenticate(apiKey, accessToken)
-        if(lastRequest && now - lastRequest > 1000) {
-            await sleep(1)
+        authentication = await authenticate(apiKey, accessToken);
+        if(!authentication.authenticated) {
+            return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
         }
-    }
-
-    if(apiKey) {
-        await update(apiKey, now)
+        
+        if(authentication.lastRequestAt) {
+            const diff = now - authentication.lastRequestAt
+            if(diff < 1000) {
+                // delay the process and limt access rate
+                await sleep(1000)
+            } else if(diff > 2000) {
+                // Perhaps error ?
+                updateTimestamp(apiKey, now)
+            }
+        } else {
+            updateTimestamp(apiKey, now)
+        }
     }
     
     // Request Increment P Address Verification API
@@ -94,8 +102,12 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
     }
 
     try {
-        await store(ID, ZOOM, addressObject)        
+        await Promise.all([
+            store(ID, ZOOM, addressObject),
+            updateTimestamp(apiKey, false),
+        ])
     } catch (error) {
+        console.error({ ID, ZOOM, addressObject, apiKey, error })
         console.error('[FATAL] Something happend with DynamoDB connection.')
     }
 

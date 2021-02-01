@@ -33,9 +33,7 @@ Create or update an access token with an API key.
 
 ```shell
 # put an api key with a access token.
-$ node ./src/bin/put-api-key.mjs <api-key> <accesss-token>
-# or automatically generate an access token for an api key.
-$ node ./src/bin/put-api-key.mjs <api-key>
+$ node ./src/bin/put-api-key.mjs <description>
 ```
 
 #### List
