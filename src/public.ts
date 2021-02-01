@@ -22,8 +22,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
         const { authenticated, lastRequestAt } = await authenticate(apiKey, accessToken);
         if(!authenticated) {
             return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
-        }
-        if(lastRequestAt) {
+        } else if(lastRequestAt) {
             const diff = now - lastRequestAt
             if(diff < 1000) {
                 // Delay and limit access.
@@ -42,19 +41,19 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
     try {
         result = await verifyAddress(address)
     } catch (error) {
-        process.stderr.write("API or Netowork Down Detected.\n")
-        process.stderr.write(JSON.stringify(error))
+        console.error({ error })
+        console.error('[FATAL] API or Netowork Down Detected.')
         return callback(null, error(500, 'Internal Server Error.'))
     }
 
     // API key for Increment P should valid.
     if(!result.ok) {
         if(result.status === 403) {
-            process.stderr.write("API Authentication failed.\n")
+            console.error('[FATAL] API Authentication failed.')
         } else {
-            process.stderr.write("not documented status code detected.\n")
+            console.error('[FATAL] Unknown status code detected.')
         }
-        process.stderr.write(JSON.stringify({ result }))
+        console.error(error)
         return callback(null, error(500, 'Internal Server Error.'))
     }
 
@@ -62,7 +61,12 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
 
     // Features not found
     if(feature.geometry === null) {
-        await removeTimestamp(apiKey)
+        try {
+            await removeTimestamp(apiKey)            
+        } catch (error) {
+            console.error({ ZOOM, apiKey, error })
+            console.error('[FATAL] Something happend with DynamoDB connection.')
+        }
         return callback(null, error(404, "The address '%s' is not verified.", address))
     }
 
