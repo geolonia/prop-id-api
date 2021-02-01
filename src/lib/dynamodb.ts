@@ -19,31 +19,33 @@ export const authenticate = async (apiKey: string, accessToken: string) => {
     return { authenticated: false }
 }
 
-export const updateTimestamp = async (apiKey:string, timestamp: number | false) => {
+export const updateTimestamp = async (apiKey:string, timestamp: number) => {
     const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
-    let updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput
-    if(timestamp == false) {
-        updateItemInput = {
-            TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
-            Key: { apiKey },
-            UpdateExpression: 'remove #lastRequestAt',
-            ExpressionAttributeNames: {
-                '#lastRequestAt': 'lastRequestAt',
-            },
+    const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
+        TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
+        Key: { apiKey },
+        UpdateExpression: 'set #lastRequestAt = :timestamp',
+        ExpressionAttributeNames: {
+            '#lastRequestAt': 'lastRequestAt',
+        },
+        ExpressionAttributeValues: {
+            ':timestamp': timestamp
         }
-    } else {
-        updateItemInput = {
-            TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
-            Key: { apiKey },
-            UpdateExpression: 'set #lastRequestAt = :timstamp',
-            ExpressionAttributeNames: {
-                '#lastRequestAt': 'lastRequestAt',
-            },
-            ExpressionAttributeValues: {
-                ':timestamp': timestamp || null
-            }
-        } 
+    } 
+    return await docclient.update(updateItemInput).promise()
+}
+
+export const removeTimestamp = async (apiKey:string) => {
+    const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
+    const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
+        TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
+        Key: { apiKey },
+        UpdateExpression: 'remove #lastRequestAt',
+        ExpressionAttributeNames: {
+            '#lastRequestAt': 'lastRequestAt',
+        },
     }
+    return await docclient.update(updateItemInput).promise()
 }
 
 export const store = async (estateId: string, zoom: number, address: object) => {

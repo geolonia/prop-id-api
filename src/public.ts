@@ -1,4 +1,4 @@
-import { authenticate, store, updateTimestamp } from './lib/dynamodb'
+import { authenticate, store, updateTimestamp, removeTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode, sleep } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
@@ -14,28 +14,26 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
     }
 
     const now = Date.now()
-    let authentication : {  authenticated: boolean, lastRequestAt?: number }
 
     // [Alfa feature] Authenticate even if q['api-key'] not specified
     if(!apiKey || !accessToken) {
         return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
     } else {
-        authentication = await authenticate(apiKey, accessToken);
-        if(!authentication.authenticated) {
+        const { authenticated, lastRequestAt } = await authenticate(apiKey, accessToken);
+        if(!authenticated) {
             return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
         }
-        
-        if(authentication.lastRequestAt) {
-            const diff = now - authentication.lastRequestAt
+        if(lastRequestAt) {
+            const diff = now - lastRequestAt
             if(diff < 1000) {
                 // delay the process and limt access rate
                 await sleep(1000)
             } else if(diff > 2000) {
-                // Perhaps error ?
-                updateTimestamp(apiKey, now)
+                // Uncontroled timestamp. An error may have occurred.
+                await updateTimestamp(apiKey, now)
             }
         } else {
-            updateTimestamp(apiKey, now)
+            await updateTimestamp(apiKey, now)
         }
     }
     
@@ -64,6 +62,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
 
     // Features not found
     if(feature.geometry === null) {
+        await removeTimestamp(apiKey)
         return callback(null, error(404, "The address '%s' is not verified.", address))
     }
 
@@ -104,7 +103,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
     try {
         await Promise.all([
             store(ID, ZOOM, addressObject),
-            updateTimestamp(apiKey, false),
+            removeTimestamp(apiKey),
         ])
     } catch (error) {
         console.error({ ID, ZOOM, addressObject, apiKey, error })

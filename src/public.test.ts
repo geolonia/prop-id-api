@@ -16,7 +16,9 @@ test.skip('should get estate ID', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
     dynamodb.store = async () => void 0
-    
+    dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
+    dynamodb.removeTimestamp = async (apiKey: string) => void 0
+
     const event = {
         queryStringParameters: {
             q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F'
@@ -37,7 +39,9 @@ test.skip('should get estate ID', async () => {
 test('should get estate ID with details if authenticated', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
-    dynamodb.authenticate = async () => { authenticated: true }
+    dynamodb.authenticate = async () => ({ authenticated: true })
+    dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
+    dynamodb.removeTimestamp = async (apiKey: string) => void 0
     dynamodb.store = async () => void 0
     
     const event = {
@@ -73,6 +77,29 @@ test('should get estate ID with details if authenticated', async () => {
     ])
 })
 
+test('should get estate ID after 1sec.', async () => {
+    // mock
+    const dynamodb = require('./lib/dynamodb')
+    const now = Date.now()
+    dynamodb.authenticate = async () => ({ authenticated: true, lastRequestAt: now })
+    dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
+    dynamodb.removeTimestamp = async (apiKey: string) => void 0
+    dynamodb.store = async () => void 0
+    
+    const event = {
+        queryStringParameters: {
+            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F',
+            'api-key': 'geolonia'
+        },
+        headers: {
+            'X-Access-Token': 'test'
+        }
+    }
+    // @ts-ignore
+     const lambdaResult = await promisify(handler)(event, {})
+    expect(Date.now() - now >= 1000).toBe(true)
+})
+
 test('should return 400 with empty address', async () => {
     const event = {
         queryStringParameters: null
@@ -87,7 +114,9 @@ test('should return 400 with empty address', async () => {
 test('should return 403 if authenticated.', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
-    dynamodb.authenticate = async () => { authenticated: false }
+    dynamodb.authenticate = async () => ({ authenticated: false })
+    dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
+    dynamodb.removeTimestamp = async (apiKey: string) => void 0
 
     const event = {
         queryStringParameters: {
