@@ -77,7 +77,7 @@ test('should get estate ID with details if authenticated', async () => {
     ])
 })
 
-test('should get estate ID after 1sec.', async () => {
+test('should return 429 with too frequest request.', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
     const now = Date.now()
@@ -97,7 +97,8 @@ test('should get estate ID after 1sec.', async () => {
     }
     // @ts-ignore
      const lambdaResult = await promisify(handler)(event, {})
-    expect(Date.now() - now >= 1000).toBe(true)
+    // @ts-ignore
+    expect(lambdaResult.statusCode).toBe(429)
 })
 
 test('should return 400 with empty address', async () => {

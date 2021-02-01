@@ -2,7 +2,7 @@ import { authenticate, store, updateTimestamp, removeTimestamp } from './lib/dyn
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode, sleep } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
-export const handler: EstateAPI.LambdaHandler = async (event, context, callback) => {
+export const handler: EstateAPI.LambdaHandler = async (event, context, callback, isDebug = false) => {
 
     const address = event.queryStringParameters?.q
     const apiKey = event.queryStringParameters ? event.queryStringParameters['api-key'] : void 0
@@ -13,27 +13,27 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
         return callback(null, error(400, 'Missing querystring parameter `q`.'))
     }
 
-    const now = Date.now()
 
-    // [Alfa feature] Authentication required anytime.
-    if(!apiKey || !accessToken) {
+    if(isDebug) {
+        // pass through with debug mode
+    } else if(
+        // [Alfa feature] Authenticate even if q['api-key'] not specified
+        !apiKey ||
+        !accessToken ||
+        !await authenticate(apiKey, accessToken)
+    ) {
         return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
     } else {
         const { authenticated, lastRequestAt } = await authenticate(apiKey, accessToken);
         if(!authenticated) {
             return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
         } else if(lastRequestAt) {
-            const diff = now - lastRequestAt
-            if(diff < 1000) {
-                // Delay and limit access.
-                await sleep(1000)
-            } else if(diff > 2000) {
-                // Uncontroled timestamp. An error may have occurred.
-                await updateTimestamp(apiKey, now)
+            const diff = Date.now() - lastRequestAt
+            if(diff < 3000) {
+                return callback(null, error(429, 'Please request after a few second.'))
             }
-        } else {
-            await updateTimestamp(apiKey, now)
         }
+        await updateTimestamp(apiKey, Date.now())
     }
     
     // Request Increment P Address Verification API
@@ -61,12 +61,6 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
 
     // Features not found
     if(feature.geometry === null) {
-        try {
-            await removeTimestamp(apiKey)            
-        } catch (error) {
-            console.error({ ZOOM, apiKey, error })
-            console.error('[FATAL] Something happend with DynamoDB connection.')
-        }
         return callback(null, error(404, "The address '%s' is not verified.", address))
     }
 
@@ -97,7 +91,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
     }
 
     let body 
-    if(apiKey) {
+    if(apiKey || isDebug) {
         // apiKey has been authenticated and return rich results
         body = { ID: ID, address: addressObject }
     } else {
@@ -105,10 +99,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
     }
 
     try {
-        await Promise.all([
-            store(ID, ZOOM, addressObject),
-            removeTimestamp(apiKey),
-        ])
+        await store(ID, ZOOM, addressObject)
     } catch (error) {
         console.error({ ID, ZOOM, addressObject, apiKey, error })
         console.error('[FATAL] Something happend with DynamoDB connection.')

@@ -10,5 +10,10 @@ declare namespace NodeJS {
 }
 
 declare namespace EstateAPI {
-    export type LambdaHandler = (event: import('aws-lambda').APIGatewayProxyEvent, context: any, callback: import('aws-lambda').APIGatewayProxyCallback) => void
+    export type LambdaHandler = (
+        event: import('aws-lambda').APIGatewayProxyEvent,
+        context: any,
+        callback: import('aws-lambda').APIGatewayProxyCallback,
+        isDebug?: boolean
+    ) => void
 }
