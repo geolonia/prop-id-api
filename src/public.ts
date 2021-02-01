@@ -1,5 +1,5 @@
-import { authenticate, store } from './lib/dynamodb'
-import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
+import { authenticate, store, update } from './lib/dynamodb'
+import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode, sleep } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
 export const handler: EstateAPI.LambdaHandler = async (event, context, callback) => {
@@ -13,11 +13,22 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
         return callback(null, error(400, 'Missing querystring parameter `q`.'))
     }
 
+    const now = Date.now()
+
     // Authenticate if q['api-key'] specified
     if(!apiKey) {
     // Nothing
-    } else if(!accessToken || !await authenticate(apiKey, accessToken)) {
+    } else if(!accessToken) {
         return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
+    } else {
+        const { authenticated, lastRequest } = await authenticate(apiKey, accessToken)
+        if(lastRequest && now - lastRequest > 1000) {
+            await sleep(1)
+        }
+    }
+
+    if(apiKey) {
+        await update(apiKey, now)
     }
     
     // Request Increment P Address Verification API

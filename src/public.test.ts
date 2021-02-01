@@ -36,7 +36,7 @@ test('should get estate ID', async () => {
 test('should get estate ID with details if authenticated', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
-    dynamodb.authenticate = async () => true
+    dynamodb.authenticate = async () => { authenticated: true }
     dynamodb.store = async () => void 0
     
     const event = {
@@ -86,7 +86,7 @@ test('should return 400 with empty address', async () => {
 test('should return 403 if authenticated.', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
-    dynamodb.authenticate = async () => false
+    dynamodb.authenticate = async () => { authenticated: false }
 
     const event = {
         queryStringParameters: {
