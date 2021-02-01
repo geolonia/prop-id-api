@@ -26,7 +26,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
         if(lastRequestAt) {
             const diff = now - lastRequestAt
             if(diff < 1000) {
-                // delay the process and limt access rate
+                // Delay and limit access.
                 await sleep(1000)
             } else if(diff > 2000) {
                 // Uncontroled timestamp. An error may have occurred.
@@ -47,7 +47,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
         return callback(null, error(500, 'Internal Server Error.'))
     }
 
-    // api key for Increment P should valid.
+    // API key for Increment P should valid.
     if(!result.ok) {
         if(result.status === 403) {
             process.stderr.write("API Authentication failed.\n")
