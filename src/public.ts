@@ -1,4 +1,4 @@
-import { authenticate, store } from './lib/dynamodb'
+import { authenticate, store, updateTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
@@ -13,17 +13,27 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         return callback(null, error(400, 'Missing querystring parameter `q`.'))
     }
 
-    if(
+
+    if(isDebug) {
         // pass through with debug mode
-        !isDebug &&
-        (
-            // [Alfa feature] Authenticate even if q['api-key'] not specified
-            !apiKey ||
-            !accessToken ||
-            !await authenticate(apiKey, accessToken)
-        )
+    } else if(
+        // [Alfa feature] Authenticate even if q['api-key'] not specified
+        !apiKey ||
+        !accessToken ||
+        !await authenticate(apiKey, accessToken)
     ) {
         return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
+    } else {
+        const { authenticated, lastRequestAt } = await authenticate(apiKey, accessToken);
+        if(!authenticated) {
+            return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
+        } else if(lastRequestAt) {
+            const diff = Date.now() - lastRequestAt
+            if(diff < 3000) {
+                return callback(null, error(429, 'Please request after a few second.'))
+            }
+        }
+        await updateTimestamp(apiKey, Date.now())
     }
     
     // Request Increment P Address Verification API
@@ -31,19 +41,19 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     try {
         result = await verifyAddress(address)
     } catch (error) {
-        process.stderr.write("API or Netowork Down Detected.\n")
-        process.stderr.write(JSON.stringify(error))
+        console.error({ error })
+        console.error('[FATAL] API or Netowork Down Detected.')
         return callback(null, error(500, 'Internal Server Error.'))
     }
 
-    // api key for Increment P should valid.
+    // API key for Increment P should valid.
     if(!result.ok) {
         if(result.status === 403) {
-            process.stderr.write("API Authentication failed.\n")
+            console.error('[FATAL] API Authentication failed.')
         } else {
-            process.stderr.write("not documented status code detected.\n")
+            console.error('[FATAL] Unknown status code detected.')
         }
-        process.stderr.write(JSON.stringify({ result }))
+        console.error(error)
         return callback(null, error(500, 'Internal Server Error.'))
     }
 
@@ -89,8 +99,9 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     }
 
     try {
-        await store(ID, ZOOM, addressObject)        
+        await store(ID, ZOOM, addressObject)
     } catch (error) {
+        console.error({ ID, ZOOM, addressObject, apiKey, error })
         console.error('[FATAL] Something happend with DynamoDB connection.')
     }
 

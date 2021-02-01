@@ -10,15 +10,30 @@ export const authenticate = async (apiKey: string, accessToken: string) => {
     const { Item: item } = await docclient.get(getItemInput).promise()
 
     if(!item) {
-        return false
+        return { authenticated: false }
     }
 
     if(item && item.accessToken === hashToken(accessToken)) {
-        return true
+        return { authenticated: true, lastRequestAt: item.lastRequestAt }
     }
-    return false
+    return { authenticated: false }
 }
 
+export const updateTimestamp = async (apiKey:string, timestamp: number) => {
+    const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
+    const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
+        TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
+        Key: { apiKey },
+        UpdateExpression: 'set #lastRequestAt = :timestamp',
+        ExpressionAttributeNames: {
+            '#lastRequestAt': 'lastRequestAt',
+        },
+        ExpressionAttributeValues: {
+            ':timestamp': timestamp
+        }
+    } 
+    return await docclient.update(updateItemInput).promise()
+}
 
 export const store = async (estateId: string, zoom: number, address: object) => {
     const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
