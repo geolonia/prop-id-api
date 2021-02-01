@@ -6,7 +6,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
             ...arguedProxyResult,
             headers: {
                 ...arguedProxyResult?.headers,
-                'Access-Control-Allow-Origin': '*', //'https://geolonia.github.io'
+                'Access-Control-Allow-Origin': 'https://geolonia.github.io'
             }
         }
         // @ts-ignore
