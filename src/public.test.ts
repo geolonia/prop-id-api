@@ -68,10 +68,10 @@ test('should get estate ID with details if authenticated', async () => {
                     "other": "マリオス10F",
                     "prefecture": "岩手県",
                 },
-                "location": {
-                    "lat": "39.701281",
-                    "lng": "141.13366",
-                },
+            },
+            "location": {
+                "lat": "39.701281",
+                "lng": "141.13366",
             },
         }
     ])
