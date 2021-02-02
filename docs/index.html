@@ -101,7 +101,11 @@
               showResult(true)
               if(Array.isArray(result)) {
                 for (const item of result) {
-                  map.moveTo(item.location)
+                  map.flyTo({
+                    center: [item.location.lng, item.location.lat],
+                    zoom: 14,
+                    essential: true,
+                  })
                   delete item.location
                 }
               }
