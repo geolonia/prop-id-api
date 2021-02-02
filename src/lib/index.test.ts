@@ -33,7 +33,7 @@ test('Should not calculate tile indexes with NaN', () => {
   expect(() => coord2XY([lat, lng], NaN)).toThrow()
 })
 
-describe('IncrementP Verification API', () => {
+describe.only('IncrementP Verification API', () => {
   test('Should verify an address via API', async () => {
     const address ="盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F"
     const result = await verifyAddress(address)
@@ -114,6 +114,12 @@ describe('IncrementP Verification API', () => {
       ],
       attribution: '(c) INCREMENT P CORPORATION'
     })
+  })
+
+  test('should verify the first address.', async () => {
+    const address ="盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F;aaaa"
+    const results = await verifyAddress(address)
+    expect(results.body.features).toHaveLength(1)
   })
 
   test('should return 400 if no address specified.', async () => {

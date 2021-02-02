@@ -20,7 +20,10 @@ export const coord2XY = (coord: [lat: number, lng: number], zoom: number): { x: 
     return { x, y }
 }
 
-export const verifyAddress = (address: string) => {
+export const verifyAddress = (addressListString: string) => {
+    // Use first address
+    const addresses = addressListString.split(';')
+    const address = addresses[0] || ''
     const endpoint = process.env.INCREMENTP_VERIFICATION_API_ENDPOINT
     const apiKey = process.env.INCREMENTP_VERIFICATION_API_KEY
     const url = `${endpoint}/${encodeURIComponent(address)}.json?geocode=true`
@@ -44,7 +47,7 @@ export const decapitalize = (headers: { [key : string]: string | undefined }) =>
     return Object.keys(headers || {}).reduce<{ [key: string]: string | undefined }>((prev, key) => {
         prev[key.toLowerCase()] = headers[key]
         return prev
-    }, {})  
+    }, {})
 }
 
 export const hashToken = (accessToken: string) => {
