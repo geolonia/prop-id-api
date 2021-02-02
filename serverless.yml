@@ -15,7 +15,8 @@ provider:
   endpointType: REGIONAL
   environment:
     ZOOM: ${self:custom.zoomLevel}
-    INCREMENTP_VERIFICATION_API_ENDPOINT: ${env:INCREMENTP_VERIFICATION_API_ENDPOINT}
+    # INCREMENTP_VERIFICATION_API_ENDPOINT: ${env:INCREMENTP_VERIFICATION_API_ENDPOINT}
+    INCREMENTP_VERIFICATION_API_ENDPOINT: ${cf:estate-id-api-cdn-${self:provider.stage}.BackendCDNEndpoint}
     INCREMENTP_VERIFICATION_API_KEY: ${env:INCREMENTP_VERIFICATION_API_KEY}
     ACCESS_TOKEN_SALT: ${env:ACCESS_TOKEN_SALT}
     AWS_DYNAMODB_API_KEY_TABLE_NAME: ${self:custom.awsDynamodbApiKeyTableName}
@@ -96,7 +97,7 @@ functions:
       - http:
           path: '/'
           method: get
-          integration: lambda-proxy       
+          integration: lambda-proxy
 
   debug:
     handler: dist/debug.handler

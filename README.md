@@ -20,6 +20,7 @@ $ npm test -- -u
 ## deploy
 
 ```shell
+$ npm run deploy:cdn:dev
 $ npm run deploy:dev
 ```
 
