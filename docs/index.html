@@ -5,13 +5,13 @@
     <meta charset="utf-8">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <style>
-      .wrap
+      .container
       {
         width: 800px;
         max-width: 90%;
         margin: 10px auto;
       }
-      .wrap div
+      .wrap > div
       {
         margin: 2em 0;
       }
@@ -25,12 +25,17 @@
       #button, #address {
         margin-top: .5em;
       }
+      #map {
+        width: 100%;
+        height: 200px;
+        border: 1px solid #eeeeee;
+      }
     </style>
     <title>不動産ID α版 API テストツール</title>
   </head>
 
   <body>
-    <div class="wrap">
+    <div class="container">
       <h1>不動産ID α版 API テストツール</h1>
       <form class="form-inline">
         <span class="help-block" style="display: block;">住所を入力してください。</span>
@@ -41,6 +46,14 @@
       
       <div class="wrap">
         <textarea id="result" class="form-control" style="display: none;"></textarea>
+
+        <div 
+          id="map"
+          data-zoom="4"
+          data-lat="35.6762" 
+          data-lng="139.6503"
+          data-style="geolonia/gsi"
+        ></div>
       </div>
 
       <div class="footer">
@@ -48,7 +61,11 @@
       </div>
     </div>
 
+    <script type="text/javascript" src="https://cdn.geolonia.com/v1/embed?geolonia-api-key=YOUR-API-KEY"></script>
+
     <script>
+        const map = new geolonia.Map('#map')
+
         const endpoint = "https://d2cs0t9ef9cmd3.cloudfront.net/dev/debug/"
 
         const addressInput = document.getElementById('address')
@@ -84,6 +101,7 @@
               showResult(true)
               if(Array.isArray(result)) {
                 for (const item of result) {
+                  map.moveTo(item.location)
                   delete item.location
                 }
               }
