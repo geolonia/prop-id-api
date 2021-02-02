@@ -3,5 +3,6 @@ export AWS_ACCESS_KEY_ID=xxxx
 export AWS_SECRET_ACCESS_KEY=xxxx
 export ACCESS_TOKEN_SALT=yyyy
 
+export INCREMENTP_VERIFICATION_API_HOST="example.com"
 export INCREMENTP_VERIFICATION_API_ENDPOINT="https://example.com/"
 export INCREMENTP_VERIFICATION_API_KEY=zzzz

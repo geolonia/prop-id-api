@@ -1,0 +1,52 @@
+service: estate-id-api-cdn
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  stage: dev
+  region: ap-northeast-1
+  apiGateway:
+    shouldStartNameWithService: true
+
+resources:
+  Outputs:
+    BackendCDNEndpoint:
+      Value:
+        Fn::Join:
+          - ''
+          - - 'https://'
+            - Fn::GetAtt: [ BackendCDNDistribution, DomainName ]
+            - '/v1'
+  Resources:
+    BackendCDNDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Origins:
+            - Id: ipc-verification-api
+              DomainName: ${env:INCREMENTP_VERIFICATION_API_HOST}
+              CustomOriginConfig:
+                HTTPSPort: 443
+                OriginProtocolPolicy: "https-only"
+                OriginReadTimeout: 30
+                OriginKeepaliveTimeout: 5
+
+          DefaultCacheBehavior:
+            TargetOriginId: ipc-verification-api
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: none
+              Headers:
+                - 'x-api-key'
+              QueryStringCacheKeys:
+                - 'geocode'
+            MinTTL: 0
+            DefaultTTL: 86400
+            MaxTTL: 31536000
+            ViewerProtocolPolicy: redirect-to-https
+          # END DefaultCacheBehavior
+          Comment: 'estate id CDN. ipc backend api request cache'
+          Enabled: true

@@ -15,7 +15,8 @@ provider:
   endpointType: REGIONAL
   environment:
     ZOOM: ${self:custom.zoomLevel}
-    INCREMENTP_VERIFICATION_API_ENDPOINT: ${env:INCREMENTP_VERIFICATION_API_ENDPOINT}
+    # INCREMENTP_VERIFICATION_API_ENDPOINT: ${env:INCREMENTP_VERIFICATION_API_ENDPOINT}
+    INCREMENTP_VERIFICATION_API_ENDPOINT: ${cf:estate-id-api-cdn-${self:custom.stage}.BackendCDNEndpoint}
     INCREMENTP_VERIFICATION_API_KEY: ${env:INCREMENTP_VERIFICATION_API_KEY}
     ACCESS_TOKEN_SALT: ${env:ACCESS_TOKEN_SALT}
     AWS_DYNAMODB_API_KEY_TABLE_NAME: ${self:custom.awsDynamodbApiKeyTableName}
@@ -25,6 +26,7 @@ provider:
     - Effect: Allow
       Action:
         - dynamodb:GetItem
+        - dynamodb:UpdateItem
       Resource:
         - Fn::Join:
             - ":"
@@ -37,6 +39,7 @@ provider:
       Action:
         - dynamodb:GetItem
         - dynamodb:PutItem
+        - dynamodb:UpdateItem
       Resource:
         - Fn::Join:
             - ":"
@@ -46,10 +49,11 @@ provider:
               - table/${self:custom.awsDynamodbEstateIdTableName}
 
 custom:
+  stage: ${opt:stage, self:provider.stage}
   # ID will be changed If other zoom specified.
   zoomLevel: 24
-  awsDynamodbApiKeyTableName: estate-id-api-key-${self:provider.stage}
-  awsDynamodbEstateIdTableName: estate-id-${self:provider.stage}
+  awsDynamodbApiKeyTableName: estate-id-api-key-${self:custom.stage}
+  awsDynamodbEstateIdTableName: estate-id-${self:custom.stage}
 
 package:
   exclude:
@@ -96,7 +100,7 @@ functions:
       - http:
           path: '/'
           method: get
-          integration: lambda-proxy       
+          integration: lambda-proxy
 
   debug:
     handler: dist/debug.handler
