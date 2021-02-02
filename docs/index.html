@@ -79,7 +79,6 @@
         const resultTextArea = document.getElementById('result')
 
         const showNotFound = (display) => notFound.style.display = display ? 'block' : 'none'
-        const showResult = (display) => resultTextArea.style.display = display ? 'block' : 'none'
 
         // No submit with Enter
         addressInput.addEventListener('keypress', (e) => {
@@ -103,7 +102,6 @@
           .then(result => {
             if(result) {
               showNotFound(false)
-              showResult(true)
 
               const center = [result[0].location.lng, result[0].location.lat]
               map.flyTo({
