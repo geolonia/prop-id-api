@@ -30,6 +30,9 @@
         height: 200px;
         border: 1px solid #eeeeee;
       }
+      #result {
+        height: 280px;
+      }
     </style>
     <title>不動産ID α版 API テストツール</title>
   </head>
@@ -54,7 +57,7 @@
       ></div>
 
       <div>
-        <textarea id="result" class="form-control" style="display: none;"></textarea>
+        <textarea id="result" class="form-control"></textarea>
       </div>
 
       <div class="footer">
@@ -116,7 +119,6 @@
                 }
               }
               const content = JSON.stringify(result, null, 2)
-              resultTextArea.rows = content.split('\n').length
               resultTextArea.value = content
             } else {
               showNotFound(true)
