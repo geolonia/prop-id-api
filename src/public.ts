@@ -84,16 +84,16 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
             address2: feature.properties.banchi_go,
             other: feature.properties.building + feature.properties.building_number
         },
-        location: {
-            lat: lat.toString(),
-            lng: lng.toString()
-        }
+    }
+    const location = {
+        lat: lat.toString(),
+        lng: lng.toString()
     }
 
     let body 
     if(apiKey || isDebug) {
         // apiKey has been authenticated and return rich results
-        body = { ID: ID, address: addressObject }
+        body = { ID: ID, address: addressObject, location }
     } else {
         body = { ID: ID }
     }

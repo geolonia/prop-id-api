@@ -82,7 +82,7 @@
             if(result) {
               showNotFound(false)
               showResult(true)
-              delete result.address.location
+              delete result.location
               const content = JSON.stringify(result, null, 2)
               resultTextArea.rows = content.split('\n').length
               resultTextArea.value = content
