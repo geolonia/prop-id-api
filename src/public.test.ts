@@ -43,7 +43,7 @@ test('should get estate ID with details if authenticated', async () => {
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
     dynamodb.store = async () => void 0
-    
+
     const event = {
         queryStringParameters: {
             q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F',
@@ -85,7 +85,7 @@ test('should return 429 with too frequest request.', async () => {
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
     dynamodb.store = async () => void 0
-    
+
     const event = {
         queryStringParameters: {
             q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F',
@@ -112,7 +112,7 @@ test('should return 400 with empty address', async () => {
     expect(message).toEqual('Missing querystring parameter `q`.')
 })
 
-test('should return 403 if authenticated.', async () => {
+test('should return 403 if not authenticated.', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
     dynamodb.authenticate = async () => ({ authenticated: false })
