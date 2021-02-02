@@ -20,7 +20,12 @@ $ npm test -- -u
 ## deploy
 
 ```shell
+# Deploy CDN
 $ npm run deploy:cdn:dev
+```
+
+```shell
+# Deploy API
 $ npm run deploy:dev
 ```
 

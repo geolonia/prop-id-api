@@ -20,7 +20,7 @@ export const main = async (stage = 'dev') => {
     process.stderr.write(`API key: ${apiKey}\n`)
     process.stderr.write(`Access Token: ${accessToken}\n`)
     process.stderr.write(`Description: ${description}\n`)
-    
+
     const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
     const putItemInput = {
         TableName: `estate-id-api-key-${stage}`,
