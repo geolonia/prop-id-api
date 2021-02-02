@@ -82,7 +82,11 @@
             if(result) {
               showNotFound(false)
               showResult(true)
-              delete result.location
+              if(Array.isArray(result)) {
+                for (const item of result) {
+                  delete item.location
+                }
+              }
               const content = JSON.stringify(result, null, 2)
               resultTextArea.rows = content.split('\n').length
               resultTextArea.value = content
