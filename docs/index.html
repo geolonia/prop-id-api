@@ -59,6 +59,13 @@
         const showNotFound = (display) => notFound.style.display = display ? 'block' : 'none'
         const showResult = (display) => resultTextArea.style.display = display ? 'block' : 'none'
 
+        // No submit with Enter
+        addressInput.addEventListener('keypress', (e) => {
+          if(e.keyCode === 13) {
+            e.preventDefault()
+          }
+        })
+
         addressInput.addEventListener('change', () => {
           showNotFound(false)
         })
