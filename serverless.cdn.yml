@@ -48,5 +48,5 @@ resources:
             MaxTTL: 31536000
             ViewerProtocolPolicy: redirect-to-https
           # END DefaultCacheBehavior
-          Comment: 'This is a test'
+          Comment: 'estate id CDN. ipc backend api request cache'
           Enabled: true
