@@ -3,12 +3,16 @@ frameworkVersion: '2'
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  # runtime: nodejs12.x
   lambdaHashingVersion: 20201221
   stage: dev
   region: ap-northeast-1
-  apiGateway:
-    shouldStartNameWithService: true
+  # apiGateway:
+    # shouldStartNameWithService: true
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  commentStackLabel: '[cf:${self:service}-${self:custom.stage}]'
 
 resources:
   Outputs:
@@ -32,7 +36,7 @@ resources:
                 OriginProtocolPolicy: "https-only"
                 OriginReadTimeout: 30
                 OriginKeepaliveTimeout: 5
-
+          # --- End Origins ---
           DefaultCacheBehavior:
             TargetOriginId: ipc-verification-api
             ForwardedValues:
@@ -47,6 +51,10 @@ resources:
             DefaultTTL: 86400
             MaxTTL: 86400
             ViewerProtocolPolicy: redirect-to-https
-          # END DefaultCacheBehavior
-          Comment: 'estate id CDN. ipc backend api request cache'
+          # --- END DefaultCacheBehavior ---
+          Comment:
+            Fn::Join:
+              - ''
+              - - ${self:custom.commentStackLabel}
+                - 'Estate ID Backend CDN to cache ipc request.'
           Enabled: true

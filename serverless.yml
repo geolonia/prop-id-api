@@ -14,11 +14,13 @@ provider:
     shouldStartNameWithService: true
   endpointType: REGIONAL
   environment:
+    # App configs
     ZOOM: ${self:custom.zoomLevel}
-    # INCREMENTP_VERIFICATION_API_ENDPOINT: ${env:INCREMENTP_VERIFICATION_API_ENDPOINT}
+    ACCESS_TOKEN_SALT: ${env:ACCESS_TOKEN_SALT}
+    # IPC configs
     INCREMENTP_VERIFICATION_API_ENDPOINT: ${cf:estate-id-api-cdn-${self:custom.stage}.BackendCDNEndpoint}
     INCREMENTP_VERIFICATION_API_KEY: ${env:INCREMENTP_VERIFICATION_API_KEY}
-    ACCESS_TOKEN_SALT: ${env:ACCESS_TOKEN_SALT}
+    # Internal Stack Refs
     AWS_DYNAMODB_API_KEY_TABLE_NAME: ${self:custom.awsDynamodbApiKeyTableName}
     AWS_DYNAMODB_ESTATE_ID_TABLE_NAME: ${self:custom.awsDynamodbEstateIdTableName}
 
@@ -102,10 +104,10 @@ functions:
           method: get
           integration: lambda-proxy
 
-  debug:
-    handler: dist/debug.handler
+  demo:
+    handler: dist/demo.handler
     events:
       - http:
-          path: '/debug'
+          path: '/demo'
           method: get
           integration: lambda-proxy

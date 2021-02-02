@@ -2,7 +2,7 @@ import { authenticate, store, updateTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
-export const handler: EstateAPI.LambdaHandler = async (event, context, callback, isDebug = false) => {
+export const handler: EstateAPI.LambdaHandler = async (event, context, callback, isDemoMode = false) => {
 
     const address = event.queryStringParameters?.q
     const apiKey = event.queryStringParameters ? event.queryStringParameters['api-key'] : void 0
@@ -14,7 +14,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     }
 
 
-    if(isDebug) {
+    if(isDemoMode) {
         // pass through with debug mode
     } else if(
         // [Alfa feature] Authenticate even if q['api-key'] not specified
@@ -35,7 +35,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         }
         await updateTimestamp(apiKey, Date.now())
     }
-    
+
     // Request Increment P Address Verification API
     let result
     try {
@@ -90,8 +90,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         lng: lng.toString()
     }
 
-    let body 
-    if(apiKey || isDebug) {
+    let body
+    if(apiKey || isDemoMode) {
         // apiKey has been authenticated and return rich results
         body = { ID: ID, address: addressObject, location }
     } else {
