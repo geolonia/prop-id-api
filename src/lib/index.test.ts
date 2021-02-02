@@ -116,6 +116,12 @@ describe('IncrementP Verification API', () => {
     })
   })
 
+  test('should verify the first address.', async () => {
+    const address ="盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F;aaaa"
+    const results = await verifyAddress(address)
+    expect(results.body.features).toHaveLength(1)
+  })
+
   test('should return 400 if no address specified.', async () => {
     const result = await verifyAddress('')
     expect(result.status).toBe(400)
