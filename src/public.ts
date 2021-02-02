@@ -60,8 +60,15 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     const feature = result.body.features[0]
 
     // Features not found
-    if(feature.geometry === null) {
+    if(!feature || feature.geometry === null) {
         return callback(null, error(404, "The address '%s' is not verified.", address))
+    }
+
+    // not enough match level
+    // TODO: adjust geocoding_level
+    if(feature.properties.geocoding_level < 4) {
+      console.log(feature.properties.geocoding_level)
+      return callback(null, error(400, "The address '%s' is not verified sufficiently.", address))
     }
 
     const [lng, lat] = feature.geometry.coordinates as [number, number]
