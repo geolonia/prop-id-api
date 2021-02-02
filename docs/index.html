@@ -109,15 +109,15 @@
             if(result) {
               showNotFound(false)
 
-              const center = [result[0].location.lng, result[0].location.lat]
-              map.flyTo({
-                center: center,
-                zoom: 17,
-                essential: true,
-              })
-              marker.setLngLat(center).addTo(map)
-
               if(Array.isArray(result)) {
+                const center = [result[0].location.lng, result[0].location.lat]
+                map.flyTo({
+                  center: center,
+                  zoom: 17,
+                  essential: true,
+                })
+                marker.setLngLat(center).addTo(map)
+
                 for (const item of result) {
                   delete item.location
                 }
