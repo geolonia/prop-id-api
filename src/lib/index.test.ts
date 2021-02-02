@@ -33,7 +33,7 @@ test('Should not calculate tile indexes with NaN', () => {
   expect(() => coord2XY([lat, lng], NaN)).toThrow()
 })
 
-describe.only('IncrementP Verification API', () => {
+describe('IncrementP Verification API', () => {
   test('Should verify an address via API', async () => {
     const address ="盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F"
     const result = await verifyAddress(address)
