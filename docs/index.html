@@ -53,6 +53,7 @@
           data-lat="35.6762" 
           data-lng="139.6503"
           data-style="geolonia/gsi"
+          data-marker="off"
         ></div>
       </div>
 
@@ -103,7 +104,7 @@
                 for (const item of result) {
                   map.flyTo({
                     center: [item.location.lng, item.location.lat],
-                    zoom: 14,
+                    zoom: 16,
                     essential: true,
                   })
                   delete item.location
