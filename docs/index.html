@@ -35,7 +35,7 @@
       <form class="form-inline">
         <span class="help-block" style="display: block;">住所を入力してください。</span>
         <input id="address" type="text" class="form-control" placeholder="例: 東京都千代田区千代田1-1">
-        <button id="button" type="button" class="btn btn-primary">不動産IDを取得</button>
+        <button id="button" type="button" class="btn btn-primary" disabled="disabled">不動産IDを取得</button>
       </form>
       <div id="not-found" class="alert alert-danger" style="display: none;">住所が見つかりませんでした。</div>
       
@@ -58,18 +58,32 @@
 
         const showNotFound = (display) => notFound.style.display = display ? 'block' : 'none'
         const showResult = (display) => resultTextArea.style.display = display ? 'block' : 'none'
+        const toggleButtonState = (state) => {
+          if(state) {
+            button.removeAttribute('disabled')
+          } else {
+            button.setAttribute('disabled', 'disabled')
+          }
+        }
 
         // No submit with Enter
         addressInput.addEventListener('keypress', (e) => {
           if(e.keyCode === 13) {
             e.preventDefault()
+            button.click()
           }
         })
 
-        addressInput.addEventListener('change', () => {
+        addressInput.addEventListener('keyup', (e) => {
+          toggleButtonState(e.target.value !== "")
           showNotFound(false)
         })
 
+        addressInput.addEventListener('change', (e) => {
+          toggleButtonState(e.target.value !== "")
+          showNotFound(false)
+        })
+  
         button.addEventListener('click', () => {
           const address = encodeURIComponent(addressInput.value)
           const url = `${endpoint}?&q=${address}`
