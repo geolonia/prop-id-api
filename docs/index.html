@@ -43,18 +43,18 @@
         <button id="button" type="button" class="btn btn-primary">不動産IDを取得</button>
       </form>
       <div id="not-found" class="alert alert-danger" style="display: none;">住所が見つかりませんでした。</div>
-      
-      <div class="wrap">
-        <textarea id="result" class="form-control" style="display: none;"></textarea>
 
-        <div 
-          id="map"
-          data-zoom="4"
-          data-lat="35.6762" 
-          data-lng="139.6503"
-          data-style="geolonia/gsi"
-          data-marker="off"
-        ></div>
+      <div
+        id="map"
+        data-zoom="4"
+        data-lat="35.6762"
+        data-lng="139.6503"
+        data-style="geolonia/gsi"
+        data-marker="off"
+      ></div>
+
+      <div>
+        <textarea id="result" class="form-control" style="display: none;"></textarea>
       </div>
 
       <div class="footer">
@@ -89,7 +89,7 @@
         addressInput.addEventListener('change', (e) => {
           showNotFound(false)
         })
-  
+
         button.addEventListener('click', () => {
           const address = encodeURIComponent(addressInput.value)
           const url = `${endpoint}?&q=${address}`
