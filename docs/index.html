@@ -92,9 +92,15 @@
           showNotFound(false)
         })
 
+        if (location.hash.length) {
+          addressInput.value = decodeURI(location.hash.slice(1));
+        }
+
         button.addEventListener('click', () => {
-          const address = encodeURIComponent(addressInput.value)
+          const address = addressInput.value
           const url = `${endpoint}?&q=${address}`
+
+          location.hash = encodeURI(address)
 
           fetch(url)
           .then(res => res.json())
