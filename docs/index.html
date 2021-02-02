@@ -66,6 +66,7 @@
 
     <script>
         const map = new geolonia.Map('#map')
+        const marker = new geolonia.Marker()
 
         const endpoint = "https://d2cs0t9ef9cmd3.cloudfront.net/dev/debug/"
 
@@ -100,13 +101,17 @@
             if(result) {
               showNotFound(false)
               showResult(true)
+
+              const center = [result[0].location.lng, result[0].location.lat]
+              map.flyTo({
+                center: center,
+                zoom: 17,
+                essential: true,
+              })
+              marker.setLngLat(center).addTo(map)
+
               if(Array.isArray(result)) {
                 for (const item of result) {
-                  map.flyTo({
-                    center: [item.location.lng, item.location.lat],
-                    zoom: 16,
-                    essential: true,
-                  })
                   delete item.location
                 }
               }
