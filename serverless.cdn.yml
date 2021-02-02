@@ -43,9 +43,9 @@ resources:
                 - 'x-api-key'
               QueryStringCacheKeys:
                 - 'geocode'
-            MinTTL: 0
+            MinTTL: 86400
             DefaultTTL: 86400
-            MaxTTL: 31536000
+            MaxTTL: 86400
             ViewerProtocolPolicy: redirect-to-https
           # END DefaultCacheBehavior
           Comment: 'estate id CDN. ipc backend api request cache'
