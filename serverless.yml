@@ -50,7 +50,7 @@ provider:
 
 custom:
   stage: ${opt:stage, self:provider.stage}
-  # ID will be changed If other zoom specified.
+  # [ATTENTION] All Estate IDs will be changed If zoom altered.
   zoomLevel: 24
   awsDynamodbApiKeyTableName: estate-id-api-key-${self:custom.stage}
   awsDynamodbEstateIdTableName: estate-id-${self:custom.stage}

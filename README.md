@@ -3,7 +3,7 @@
 ## development
 
 ```shell
-$ git clone geolonia/estate-id-api
+$ git clone git@github.com:geolonia/estate-id-api.git
 $ cd estate-id-api
 $ cp .envrc.sample .envrc
 $ vim .envrc # fill the values
@@ -11,7 +11,7 @@ $ yarn # or `npm install`
 $ npm test
 ```
 
-### update Snapshot test
+### update Snapshot tests
 
 ```shell
 $ npm test -- -u
@@ -19,33 +19,23 @@ $ npm test -- -u
 
 ## deploy
 
+### Deploy CDN
+
 ```shell
-# Deploy CDN
 $ npm run deploy:cdn:dev
 ```
 
+### Deploy API
+
 ```shell
-# Deploy API
 $ npm run deploy:dev
 ```
 
 ## Utilities
 
-### API Key
-
-#### create and update
-
-Create or update an access token with an API key.
-
 ```shell
-# put an api key with a access token.
+# Put an API key with a randomized access token.
 $ node ./src/bin/put-api-key.mjs <description>
-```
-
-#### List
-
-List api keys
-
-```shell
+# List all API Keys.
 $ node ./src/bin/list-api-keys.mjs
 ```
