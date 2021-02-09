@@ -52,7 +52,7 @@ provider:
 
     - Effect: Allow
       Action:
-        - dynamodb:queryItem
+        - dynamodb:Query
       Resource:
         - Fn::Join:
             - ":"
@@ -63,7 +63,7 @@ provider:
 
     - Effect: Allow
       Action:
-        - dynamodb:queryItem
+        - dynamodb:Query
       Resource:
         - Fn::Join:
             - ":"
