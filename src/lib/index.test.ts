@@ -22,10 +22,10 @@ test('Should calculate tile indexes from coordinates(1)', () => {
 test('Should calculate tile indexes from coordinates(2)', () => {
     const lat = 35.68122
     const lng = 139.76755
-    const { x, y } = coord2XY([lat, lng], 24)
-    // Those values are approximately x 2^(24 - 18) from the test above.
-    expect(x).toEqual(14902247)
-    expect(y).toEqual(6606499)
+    const { x, y } = coord2XY([lat, lng], 22)
+    // Those values are approximately x 2^(22 - 18) from the test above.
+    expect(x).toEqual(3725561)
+    expect(y).toEqual(1651624)
 })
 
 test('Should not calculate tile indexes with NaN', () => {
