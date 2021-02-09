@@ -63,7 +63,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     if(feature.geometry === null) {
         return callback(null, error(404, "The address '%s' is not verified.", address))
     }
-    // TODO: 正規化後のaddress 文字列を作る
+
     const normalizedAddress = feature.properties.place_name
 
     const [lng, lat] = feature.geometry.coordinates as [number, number]
@@ -96,13 +96,12 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     let body
     if(apiKey || isDemoMode) {
         // apiKey has been authenticated and return rich results
-        body = { ID: ID, address: addressObject, location }
+        body = { ID, address: addressObject, location }
     } else {
-        body = { ID: ID }
+        body = { ID }
     }
 
     try {
-      // 正規化後のaddress 文字列を渡す
         await store(ID,`${x}/${y}`, nextSerial, ZOOM, normalizedAddress)
     } catch (error) {
         console.error({ ID, ZOOM, addressObject, apiKey, error })
