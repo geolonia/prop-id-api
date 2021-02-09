@@ -66,7 +66,7 @@ export const issueSerial = async (x: number, y:number, address: string): Promise
 
   const { Items: serializedItems = [] } = await docclient.query(queryInputForSerial).promise()
   if(serializedItems.length === 0) {
-    throw new Error('Unexpected error')
+    return 0
   } else {
     return serializedItems[0].serial + 1 // next serial number
   }
