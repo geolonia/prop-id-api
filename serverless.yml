@@ -90,10 +90,19 @@ resources:
         AttributeDefinitions:
           - AttributeName: estateId
             AttributeType: S
+          - AttributeName: tile-xy
+            AttributeType: S
         KeySchema:
           - AttributeName: estateId
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+        GlobalSecondaryIndexes:
+          - IndexName: tile-xy
+            KeySchema:
+              - AttributeName: tile-xy
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
 
 functions:
   public:
