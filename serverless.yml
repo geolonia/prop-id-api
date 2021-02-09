@@ -18,8 +18,7 @@ provider:
     ZOOM: ${self:custom.zoomLevel}
     ACCESS_TOKEN_SALT: ${env:ACCESS_TOKEN_SALT}
     # IPC configs
-    INCREMENTP_VERIFICATION_API_ENDPOINT: "https://api-anorm.mapfan.com/v1"
-    # INCREMENTP_VERIFICATION_API_ENDPOINT: ${cf:estate-id-api-cdn-${self:custom.stage}.BackendCDNEndpoint}
+    INCREMENTP_VERIFICATION_API_ENDPOINT: ${cf:estate-id-api-cdn-${self:custom.stage}.BackendCDNEndpoint}
     INCREMENTP_VERIFICATION_API_KEY: ${env:INCREMENTP_VERIFICATION_API_KEY}
     # Internal Stack Refs
     AWS_DYNAMODB_API_KEY_TABLE_NAME: ${self:custom.awsDynamodbApiKeyTableName}
