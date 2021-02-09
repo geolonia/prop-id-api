@@ -1,4 +1,4 @@
-import { authenticate, getNextSerial, store, updateTimestamp } from './lib/dynamodb'
+import { authenticate, issueSerial, store, updateTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
@@ -63,11 +63,13 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     if(feature.geometry === null) {
         return callback(null, error(404, "The address '%s' is not verified.", address))
     }
+    // TODO: 正規化後のaddress 文字列を作る
+    const normalizedAddress = feature.properties.place_name
 
     const [lng, lat] = feature.geometry.coordinates as [number, number]
     const prefCode = getPrefCode(feature.properties.pref)
     const { x, y } = coord2XY([lat, lng], ZOOM)
-    const nextSerial = await getNextSerial(x, y)
+    const nextSerial = await issueSerial(x, y, normalizedAddress)
     const hash = hashXY(x, y, nextSerial)
 
     if(!prefCode) {
@@ -100,7 +102,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     }
 
     try {
-        await store(ID,`${x}/${y}`,nextSerial, ZOOM, addressObject)
+      // 正規化後のaddress 文字列を渡す
+        await store(ID,`${x}/${y}`, nextSerial, ZOOM, normalizedAddress)
     } catch (error) {
         console.error({ ID, ZOOM, addressObject, apiKey, error })
         console.error('[FATAL] Something happend with DynamoDB connection.')

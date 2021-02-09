@@ -50,6 +50,28 @@ provider:
               - Ref: "AWS::AccountId"
               - table/${self:custom.awsDynamodbEstateIdTableName}
 
+    - Effect: Allow
+      Action:
+        - dynamodb:queryItem
+      Resource:
+        - Fn::Join:
+            - ":"
+            - - arn:aws:dynamodb
+              - ${self:provider.region}
+              - Ref: "AWS::AccountId"
+              - table/${self:custom.awsDynamodbEstateIdTableName}/index/address-index
+
+    - Effect: Allow
+      Action:
+        - dynamodb:queryItem
+      Resource:
+        - Fn::Join:
+            - ":"
+            - - arn:aws:dynamodb
+              - ${self:provider.region}
+              - Ref: "AWS::AccountId"
+              - table/${self:custom.awsDynamodbEstateIdTableName}/index/tileXY-index
+
 custom:
   stage: ${opt:stage, self:provider.stage}
   # [ATTENTION] All Estate IDs will be changed If zoom altered.
@@ -61,7 +83,9 @@ package:
   exclude:
     - __tests__
     - .*
-    - src
+    - bin/
+    - docs/
+    - src/
     - package.json
     - README.md
     - serverless.yml
@@ -90,7 +114,9 @@ resources:
         AttributeDefinitions:
           - AttributeName: estateId
             AttributeType: S
-          - AttributeName: tile-xy
+          - AttributeName: address
+            AttributeType: S
+          - AttributeName: tileXY
             AttributeType: S
           - AttributeName: serial
             AttributeType: N
@@ -98,9 +124,15 @@ resources:
           - AttributeName: estateId
             KeyType: HASH
         GlobalSecondaryIndexes:
-          - IndexName: tile-xy
+          - IndexName: address-index
             KeySchema:
-              - AttributeName: tile-xy
+              - AttributeName: address
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: tileXY-index
+            KeySchema:
+              - AttributeName: tileXY
                 KeyType: HASH
               - AttributeName: serial
                 KeyType: RANGE

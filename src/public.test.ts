@@ -15,7 +15,7 @@ test('should specify the ZOOM environmental variable.', () => {
 test.skip('should get estate ID', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
-    dynamodb.getNextSerial = async () => 100
+    dynamodb.issueSerial = async () => 100
     dynamodb.store = async () => void 0
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
@@ -40,7 +40,7 @@ test.skip('should get estate ID', async () => {
 test('should get estate ID with details if authenticated', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
-    dynamodb.getNextSerial = async () => 100
+    dynamodb.issueSerial = async () => 100
     dynamodb.authenticate = async () => ({ authenticated: true })
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
@@ -83,7 +83,7 @@ test('should return 429 with too frequest request.', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
     const now = Date.now()
-    dynamodb.getNextSerial = async () => 100
+    dynamodb.issueSerial = async () => 100
     dynamodb.authenticate = async () => ({ authenticated: true, lastRequestAt: now })
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
@@ -121,7 +121,7 @@ test('should return 403 if not authenticated.', async () => {
     dynamodb.authenticate = async () => ({ authenticated: false })
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
-    dynamodb.getNextSerial = async () => 100
+    dynamodb.issueSerial = async () => 100
 
     const event = {
         queryStringParameters: {
