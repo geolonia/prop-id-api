@@ -1,4 +1,4 @@
-import { authenticate, store, updateTimestamp } from './lib/dynamodb'
+import { authenticate, getNextSerial, store, updateTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
@@ -67,7 +67,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     const [lng, lat] = feature.geometry.coordinates as [number, number]
     const prefCode = getPrefCode(feature.properties.pref)
     const { x, y } = coord2XY([lat, lng], ZOOM)
-    const hash = hashXY(x, y)
+    const nextSerial = await getNextSerial(x, y)
+    const hash = hashXY(x, y, nextSerial)
 
     if(!prefCode) {
         process.stderr.write("Invalid `properties.pref` response from API: '${feature.properties.pref}'.\n")
@@ -99,7 +100,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     }
 
     try {
-        await store(ID, ZOOM, addressObject)
+        await store(ID,`${x}/${y}`,nextSerial, ZOOM, addressObject)
     } catch (error) {
         console.error({ ID, ZOOM, addressObject, apiKey, error })
         console.error('[FATAL] Something happend with DynamoDB connection.')

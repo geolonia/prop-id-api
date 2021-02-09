@@ -92,17 +92,21 @@ resources:
             AttributeType: S
           - AttributeName: tile-xy
             AttributeType: S
+          - AttributeName: serial
+            AttributeType: N
         KeySchema:
           - AttributeName: estateId
             KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
         GlobalSecondaryIndexes:
           - IndexName: tile-xy
             KeySchema:
               - AttributeName: tile-xy
                 KeyType: HASH
+              - AttributeName: serial
+                KeyType: RANGE
             Projection:
               ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
 
 functions:
   public:
