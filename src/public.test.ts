@@ -61,7 +61,7 @@ test('should get estate ID with details if authenticated', async () => {
     const body = JSON.parse(lambdaResult.body)
     expect(body).toEqual([
         {
-            ID: "03-de11-8ea8-a10f-1324",
+            ID: "03-dd50-37a7-6daa-feea",
             "address": {
                 "ja": {
                     "address1": "盛岡駅西通2丁目",

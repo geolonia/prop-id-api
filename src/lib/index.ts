@@ -1,13 +1,12 @@
 // @ts-ignore
-import fnv from 'fnv-plus'
 import fetch from 'node-fetch'
 import * as crypto from 'crypto'
 import prefs from './prefs.json'
 
 export const hashXY = (x: number, y: number, serial: number): string => {
     const tileIdentifier = `${x}/${y}/${serial}`
-    const ahash64 = fnv.hash(tileIdentifier, 64).hex();
-    return (ahash64.match(/.{4}/g) as string[]).join('-')
+    const sha256 = crypto.createHash('sha256').update(tileIdentifier).digest('hex')
+    return (sha256.slice(0, 16).match(/.{4}/g) as string[]).join('-')
 }
 
 export const coord2XY = (coord: [lat: number, lng: number], zoom: number): { x: number, y: number } => {
