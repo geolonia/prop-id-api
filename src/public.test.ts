@@ -15,6 +15,7 @@ test('should specify the ZOOM environmental variable.', () => {
 test.skip('should get estate ID', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
+    dynamodb.getNextSerial = async () => 100
     dynamodb.store = async () => void 0
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
@@ -39,6 +40,7 @@ test.skip('should get estate ID', async () => {
 test('should get estate ID with details if authenticated', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
+    dynamodb.getNextSerial = async () => 100
     dynamodb.authenticate = async () => ({ authenticated: true })
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
@@ -59,7 +61,7 @@ test('should get estate ID with details if authenticated', async () => {
     const body = JSON.parse(lambdaResult.body)
     expect(body).toEqual([
         {
-            ID: "03-5759-4a9a-6195-71a0",
+            ID: "03-de11-8ea8-a10f-1324",
             "address": {
                 "ja": {
                     "address1": "盛岡駅西通2丁目",
@@ -81,6 +83,7 @@ test('should return 429 with too frequest request.', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
     const now = Date.now()
+    dynamodb.getNextSerial = async () => 100
     dynamodb.authenticate = async () => ({ authenticated: true, lastRequestAt: now })
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
@@ -118,6 +121,7 @@ test('should return 403 if not authenticated.', async () => {
     dynamodb.authenticate = async () => ({ authenticated: false })
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
+    dynamodb.getNextSerial = async () => 100
 
     const event = {
         queryStringParameters: {
