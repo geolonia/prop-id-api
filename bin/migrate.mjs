@@ -17,4 +17,4 @@ export const main = async (origin = 'dev', dest = 'dev2') => {
       }
 }
 
-main()
+// main()
