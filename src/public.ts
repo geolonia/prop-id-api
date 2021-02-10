@@ -1,4 +1,4 @@
-import { authenticate, store, updateTimestamp } from './lib/dynamodb'
+import { authenticate, issueSerial, store, updateTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
@@ -64,10 +64,13 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         return callback(null, error(404, "The address '%s' is not verified.", address))
     }
 
+    const normalizedAddress = feature.properties.place_name
+
     const [lng, lat] = feature.geometry.coordinates as [number, number]
     const prefCode = getPrefCode(feature.properties.pref)
     const { x, y } = coord2XY([lat, lng], ZOOM)
-    const hash = hashXY(x, y)
+    const nextSerial = await issueSerial(x, y, normalizedAddress)
+    const hash = hashXY(x, y, nextSerial)
 
     if(!prefCode) {
         process.stderr.write("Invalid `properties.pref` response from API: '${feature.properties.pref}'.\n")
@@ -93,13 +96,13 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     let body
     if(apiKey || isDemoMode) {
         // apiKey has been authenticated and return rich results
-        body = { ID: ID, address: addressObject, location }
+        body = { ID, address: addressObject, location }
     } else {
-        body = { ID: ID }
+        body = { ID }
     }
 
     try {
-        await store(ID, ZOOM, addressObject)
+        await store(ID,`${x}/${y}`, nextSerial, ZOOM, normalizedAddress)
     } catch (error) {
         console.error({ ID, ZOOM, addressObject, apiKey, error })
         console.error('[FATAL] Something happend with DynamoDB connection.')
