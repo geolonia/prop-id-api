@@ -23,10 +23,14 @@
   height: 200px;
   border: 1px solid #eeeeee;
 }
-#result {
+#result,
+#externally-normalized-result,
+#api-response-result {
   height: 280px;
 }
-
+#tile-info-result {
+  height: 150px;
+}
 i.stepper {
   display: block;
   text-align: center;

@@ -38,7 +38,7 @@
 
       <div class="form-group">
         <label for="internally-normalized-result" class="help-block" style="display: block;">内部正規化結果</label>
-        <textarea id="internally-normalized-result" class="form-control"></textarea>
+        <input id="internally-normalized-result" class="form-control">
       </div>
 
       <i class="stepper"></i>
@@ -52,14 +52,14 @@
 
       <div class="form-group">
         <label for="tile-info-result" class="help-block" style="display: block;">タイル情報</label>
-        <textarea id="tile-info-result" class="form-control"></textarea>
+        <textarea id="tile-info-result" class="result form-control"></textarea>
       </div>
 
       <i class="stepper"></i>
 
       <div class="form-group">
         <label for="api-response-result" class="help-block" style="display: block;">API レスポンス</label>
-        <textarea id="api-response-result" class="form-control"></textarea>
+        <textarea id="api-response-result" class="result form-control"></textarea>
       </div>
 
       <div class="footer">
@@ -78,8 +78,8 @@
       main({ debug: true }, (result) => {
         if(result) {
           const { inputAddress, internallyNormalized, externallyNormalized, tileInfo, apiResponse } = result
-          addressInputResult.value = JSON.stringify(inputAddress, null, 2)
-          internallyNormalizedResult.value = JSON.stringify(internallyNormalized, null, 2)
+          addressInputResult.value = inputAddress
+          internallyNormalizedResult.value = internallyNormalized
           externallyNormalizedResult.value = JSON.stringify(externallyNormalized, null, 2)
           tileInfoResult.value = JSON.stringify(tileInfo, null, 2)
           apiResponseResult.value = JSON.stringify(apiResponse, null, 2)
