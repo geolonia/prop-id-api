@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="./style.css">
+    <title>不動産ID α版 API テストツール</title>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>不動産ID α版 API テストツール</h1>
+      <form>
+        <div class="form-group">
+            <label for="address" class="help-block" style="display: block;">住所を入力してください。</label>
+            <input id="address" type="text" class="form-control" placeholder="例: 東京都文京区千石4丁目15-7 YNビル4階">
+            <button id="button" type="button" class="btn btn-primary">不動産IDを取得</button>
+          </div>
+      </form>
+      <div id="not-found" class="alert alert-danger" style="display: none;">住所が見つかりませんでした。</div>
+
+      <div
+        id="map"
+        data-zoom="4"
+        data-lat="35.6762"
+        data-lng="139.6503"
+        data-style="geolonia/gsi"
+        data-marker="off"
+      ></div>
+
+      <div class="form-group">
+        <label for="address-input-result" class="help-block" style="display: block;">入力住所</label>
+        <input id="address-input-result" type="text" class="form-control">
+      </div>
+
+      <i class="stepper"></i>
+
+      <div class="form-group">
+        <label for="internally-normalized-result" class="help-block" style="display: block;">内部正規化結果</label>
+        <textarea id="internally-normalized-result" class="form-control"></textarea>
+      </div>
+
+      <i class="stepper"></i>
+
+      <div class="form-group">
+        <label for="externally-normalized-result" class="help-block" style="display: block;">外部正規化結果</label>
+        <textarea id="externally-normalized-result" class="form-control"></textarea>
+      </div>
+
+      <i class="stepper"></i>
+
+      <div class="form-group">
+        <label for="tile-info-result" class="help-block" style="display: block;">タイル情報</label>
+        <textarea id="tile-info-result" class="form-control"></textarea>
+      </div>
+
+      <i class="stepper"></i>
+
+      <div class="form-group">
+        <label for="api-response-result" class="help-block" style="display: block;">API レスポンス</label>
+        <textarea id="api-response-result" class="form-control"></textarea>
+      </div>
+
+      <div class="footer">
+        <a href="https://retechjapan.org/">不動産テック協会</a> 不動産ID APIテストツール powered by <a href="https://geolonia.com">Geolonia</a>
+      </div>
+    </div>
+
+    <script type="text/javascript" src="https://cdn.geolonia.com/v1/embed?geolonia-api-key=YOUR-API-KEY"></script>
+    <script type="text/javascript" src="./main.js"></script>
+    <script>
+      const addressInputResult = document.getElementById('address-input-result')
+      const internallyNormalizedResult = document.getElementById('internally-normalized-result')
+      const externallyNormalizedResult = document.getElementById('externally-normalized-result')
+      const tileInfoResult = document.getElementById('tile-info-result')
+      const apiResponseResult = document.getElementById('api-response-result')
+      main({ debug: true }, (result) => {
+        if(result) {
+          const { inputAddress, internallyNormalized, externallyNormalized, tileInfo, apiResponse } = result
+          addressInputResult.value = JSON.stringify(inputAddress, null, 2)
+          internallyNormalizedResult.value = JSON.stringify(internallyNormalized, null, 2)
+          externallyNormalizedResult.value = JSON.stringify(externallyNormalized, null, 2)
+          tileInfoResult.value = JSON.stringify(tileInfo, null, 2)
+          apiResponseResult.value = JSON.stringify(apiResponse, null, 2)
+        }
+      })
+    </script>
+  </body>
+</html>

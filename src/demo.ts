@@ -1,7 +1,10 @@
 import { handler as publicHandler } from './public'
 
 export const handler: EstateAPI.LambdaHandler = async (event, context, callback) => {
-    return await publicHandler(event, context, (_0, arguedProxyResult) => {
+    return await publicHandler(
+      event,
+      context,
+      (_0, arguedProxyResult) => {
         const proxyResult = {
             ...arguedProxyResult,
             headers: {
@@ -11,5 +14,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback)
         }
         // @ts-ignore
         return callback(_0, proxyResult)
-    }, true)
+      },
+      true, // demo mode
+      event.queryStringParameters?.debug === 'true'
+    )
 }

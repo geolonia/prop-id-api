@@ -2,7 +2,7 @@ import { authenticate, issueSerial, store, updateTimestamp } from './lib/dynamod
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 import { error, json } from './lib/proxy-response'
 
-export const handler: EstateAPI.LambdaHandler = async (event, context, callback, isDemoMode = false) => {
+export const handler: EstateAPI.LambdaHandler = async (event, context, callback, isDemoMode = false, isDebugMode = false) => {
 
     const address = event.queryStringParameters?.q
     const apiKey = event.queryStringParameters ? event.queryStringParameters['api-key'] : void 0
@@ -94,7 +94,15 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     }
 
     let body
-    if(apiKey || isDemoMode) {
+    if(isDebugMode && isDemoMode) {
+      body = {
+        inputAddress: address,
+        internallyNormalized: address, // TODO: should be replace with own normalized result
+        externallyNormalized: feature,
+        tileInfo: { xy: `${x}/${y}`, serial:nextSerial, ZOOM },
+        apiResponse: { ID, address: addressObject, location },
+      }
+    } else if(apiKey || isDemoMode) {
         // apiKey has been authenticated and return rich results
         body = { ID, address: addressObject, location }
     } else {
