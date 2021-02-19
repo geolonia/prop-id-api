@@ -110,7 +110,6 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
 
     if(isDebugMode && isDemoMode) {
       return callback(null, json({
-        inputAddress: address,
         internallyNormalized: address, // TODO: should be replace with own normalized result
         externallyNormalized: feature,
         tileInfo: { xy: `${x}/${y}`, serial:nextSerial, ZOOM },

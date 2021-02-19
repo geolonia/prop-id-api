@@ -30,13 +30,6 @@
       ></div>
 
       <div class="form-group">
-        <label for="address-input-result" class="help-block" style="display: block;">入力住所</label>
-        <input id="address-input-result" type="text" class="form-control">
-      </div>
-
-      <i class="stepper"></i>
-
-      <div class="form-group">
         <label for="internally-normalized-result" class="help-block" style="display: block;">内部正規化結果</label>
         <input id="internally-normalized-result" class="form-control">
       </div>
@@ -70,15 +63,13 @@
     <script type="text/javascript" src="https://cdn.geolonia.com/v1/embed?geolonia-api-key=YOUR-API-KEY"></script>
     <script type="text/javascript" src="./main.js"></script>
     <script>
-      const addressInputResult = document.getElementById('address-input-result')
       const internallyNormalizedResult = document.getElementById('internally-normalized-result')
       const externallyNormalizedResult = document.getElementById('externally-normalized-result')
       const tileInfoResult = document.getElementById('tile-info-result')
       const apiResponseResult = document.getElementById('api-response-result')
       main({ debug: true }, (result) => {
         if(result) {
-          const { inputAddress, internallyNormalized, externallyNormalized, tileInfo, apiResponse } = result
-          addressInputResult.value = inputAddress
+          const { internallyNormalized, externallyNormalized, tileInfo, apiResponse } = result
           internallyNormalizedResult.value = internallyNormalized
           externallyNormalizedResult.value = JSON.stringify(externallyNormalized, null, 2)
           tileInfoResult.value = JSON.stringify(tileInfo, null, 2)
