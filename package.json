@@ -24,9 +24,7 @@
     "build": "rimraf ./dist && tsc",
     "start": "npm run build && sls offline",
     "deploy:dev": "npm run build && sls deploy --stage=dev",
-    "remove:dev": "sls remove --stage=dev",
-    "deploy:cdn:dev": "sls deploy -c serverless.cdn.yml --stage=dev",
-    "remove:cdn:dev": "sls remove -c serverless.cdn.yml --stage=dev"
+    "deploy:cdn:dev": "sls deploy -c serverless.cdn.yml --stage=dev"
   },
   "jest": {
     "preset": "ts-jest",
