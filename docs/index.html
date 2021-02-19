@@ -40,10 +40,12 @@
   <body>
     <div class="container">
       <h1>不動産ID α版 API テストツール</h1>
-      <form class="form-inline">
-        <span class="help-block" style="display: block;">住所を入力してください。</span>
-        <input id="address" type="text" class="form-control" placeholder="例: 東京都文京区千石4丁目15-7 YNビル4階">
-        <button id="button" type="button" class="btn btn-primary">不動産IDを取得</button>
+      <form>
+        <div class="form-group">
+            <labl for="address" class="help-block" style="display: block;">住所を入力してください。</label>
+            <input id="address" type="text" class="form-control" placeholder="例: 東京都文京区千石4丁目15-7 YNビル4階">
+            <button id="button" type="button" class="btn btn-primary">不動産IDを取得</button>
+          </div>
       </form>
       <div id="not-found" class="alert alert-danger" style="display: none;">住所が見つかりませんでした。</div>
 
