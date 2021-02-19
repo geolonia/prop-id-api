@@ -47,7 +47,8 @@ const main = ({ debug }, callback) => {
         showNotFound(false)
 
         if(Array.isArray(result)) {
-          const center = [result[0].location.lng, result[0].location.lat]
+          const apiResponse = debug ? result.apiResponse : result
+          const center = [apiResponse[0].location.lng, apiResponse[0].location.lat]
           map.flyTo({
             center: center,
             zoom: 17,
@@ -55,11 +56,11 @@ const main = ({ debug }, callback) => {
           })
           marker.setLngLat(center).addTo(map)
 
-          for (const item of result) {
+          for (const item of apiResponse) {
             delete item.location
           }
         }
-        callback(result)
+        callback(apiResponse)
       } else {
         showNotFound(true)
         callback(false)
