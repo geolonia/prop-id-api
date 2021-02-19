@@ -59,7 +59,7 @@ const main = ({ debug }, callback) => {
           delete item.location
         }
 
-        callback(apiResponse)
+        callback(result)
       } else {
         showNotFound(true)
         callback(false)
