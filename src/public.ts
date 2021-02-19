@@ -94,15 +94,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     }
 
     let body
-    if(isDebugMode && isDemoMode) {
-      body = {
-        inputAddress: address,
-        internallyNormalized: address, // TODO: should be replace with own normalized result
-        externallyNormalized: feature,
-        tileInfo: { xy: `${x}/${y}`, serial:nextSerial, ZOOM },
-        apiResponse: { ID, address: addressObject, location },
-      }
-    } else if(apiKey || isDemoMode) {
+    if(apiKey || isDemoMode) {
         // apiKey has been authenticated and return rich results
         body = { ID, address: addressObject, location }
     } else {
@@ -116,5 +108,15 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         console.error('[FATAL] Something happend with DynamoDB connection.')
     }
 
-    return callback(null, json([body]));
+    if(isDebugMode && isDemoMode) {
+      return callback(null, json({
+        inputAddress: address,
+        internallyNormalized: address, // TODO: should be replace with own normalized result
+        externallyNormalized: feature,
+        tileInfo: { xy: `${x}/${y}`, serial:nextSerial, ZOOM },
+        apiResponse: [body]
+      }));
+    } else {
+      return callback(null, json([body]));
+    }
 }
