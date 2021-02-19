@@ -70,8 +70,9 @@
       main({ debug: true }, (result) => {
         if(result) {
           const { internallyNormalized, externallyNormalized, tileInfo, apiResponse } = result
+
           internallyNormalizedResult.value = internallyNormalized
-          externallyNormalizedResult.value = JSON.stringify(externallyNormalized, null, 2)
+          externallyNormalizedResult.value = JSON.stringify(externallyNormalized.properties, null, 2)
           tileInfoResult.value = JSON.stringify(tileInfo, null, 2)
           apiResponseResult.value = JSON.stringify(apiResponse, null, 2)
         }
