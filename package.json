@@ -33,7 +33,7 @@
     ]
   },
   "dependencies": {
-    "@geolonia/normalize-japanese-addresses": "git+ssh://git@github.com:naogify/normalize-japanese-addresses.git#remove-dist-from-gitignore",
+    "@geolonia/normalize-japanese-addresses": "git+ssh://git@github.com:naogify/normalize-japanese-addresses.git#master",
     "node-fetch": "^2.6.1"
   }
 }
