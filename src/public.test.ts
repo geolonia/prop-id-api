@@ -22,7 +22,7 @@ test.skip('should get estate ID', async () => {
 
     const event = {
         queryStringParameters: {
-            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F'
+            q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F'
         }
     }
     // @ts-ignore
@@ -48,7 +48,7 @@ test('should get estate ID with details if authenticated', async () => {
 
     const event = {
         queryStringParameters: {
-            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F',
+            q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
             'api-key': 'geolonia'
         },
         headers: {
@@ -91,7 +91,7 @@ test('should return 429 with too frequest request.', async () => {
 
     const event = {
         queryStringParameters: {
-            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F',
+            q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
             'api-key': 'geolonia'
         },
         headers: {
@@ -125,7 +125,7 @@ test('should return 403 if not authenticated.', async () => {
 
     const event = {
         queryStringParameters: {
-            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F',
+            q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
             'api-key': 'geolonia'
         },
         headers: {

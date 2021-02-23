@@ -283,8 +283,8 @@
   "resolved" "https://registry.npmjs.org/@geolonia/japanese-numeral/-/japanese-numeral-0.1.9.tgz"
   "version" "0.1.9"
 
-"@geolonia/normalize-japanese-addresses@git+ssh://git@github.com:geolonia/normalize-japanese-addresses.git#master":
-  "resolved" "git+ssh://git@github.com/geolonia/normalize-japanese-addresses.git#f77a12017c4b99480fd2589f49b37dc866f3871e"
+"@geolonia/normalize-japanese-addresses@git+ssh://git@github.com:naogify/normalize-japanese-addresses.git#remove-dist-from-gitignore":
+  "resolved" "git+ssh://git@github.com/naogify/normalize-japanese-addresses.git#da99c4d672006408505d5b3437a1819511bb2636"
   "version" "0.0.8"
   dependencies:
     "@geolonia/japanese-numeral" "^0.1.9"
