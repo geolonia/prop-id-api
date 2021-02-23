@@ -20,7 +20,7 @@
     "aws-sdk": "^2"
   },
   "scripts": {
-    "postinstall": "pushd node_modules/@geolonia/normalize-japanese-addresses/ && npm install && npm run build && rm -rf node_modules && npm install --only=production && popd",
+    "postinstall": "cd node_modules/@geolonia/normalize-japanese-addresses/ && npm install && npm run build && rm -rf node_modules && npm install --only=production",
     "test": "ZOOM=22 jest",
     "build": "rimraf ./dist && tsc",
     "start": "npm run build && sls offline",
