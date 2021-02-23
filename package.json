@@ -33,6 +33,7 @@
     ]
   },
   "dependencies": {
+    "@geolonia/normalize-japanese-addresses": "git+ssh://git@github.com:geolonia/normalize-japanese-addresses.git#master",
     "node-fetch": "^2.6.1"
   }
 }

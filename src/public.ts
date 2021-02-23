@@ -1,9 +1,10 @@
 import { authenticate, issueSerial, store, updateTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 import { error, json } from './lib/proxy-response'
+// @ts-ignore
+import { normalize } from '@geolonia/normalize-japanese-addresses'
 
 export const handler: EstateAPI.LambdaHandler = async (event, context, callback, isDemoMode = false, isDebugMode = false) => {
-
     const address = event.queryStringParameters?.q
     const apiKey = event.queryStringParameters ? event.queryStringParameters['api-key'] : void 0
     const accessToken = decapitalize(event.headers)['x-access-token']
@@ -12,7 +13,6 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     if(!address) {
         return callback(null, error(400, 'Missing querystring parameter `q`.'))
     }
-
 
     if(isDemoMode) {
         // pass through with debug mode
@@ -39,7 +39,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     // Request Increment P Address Verification API
     let result
     try {
-        result = await verifyAddress(address)
+        const normalizedAddress = await normalize(address)
+        result = await verifyAddress(normalizedAddress)
     } catch (error) {
         console.error({ error })
         console.error('[FATAL] API or Netowork Down Detected.')
