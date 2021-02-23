@@ -5,6 +5,7 @@ import { error, json } from './lib/proxy-response'
 import { normalize } from '@geolonia/normalize-japanese-addresses'
 
 export const handler: EstateAPI.LambdaHandler = async (event, context, callback, isDemoMode = false, isDebugMode = false) => {
+
     const address = event.queryStringParameters?.q
     const apiKey = event.queryStringParameters ? event.queryStringParameters['api-key'] : void 0
     const accessToken = decapitalize(event.headers)['x-access-token']
@@ -13,6 +14,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     if(!address) {
         return callback(null, error(400, 'Missing querystring parameter `q`.'))
     }
+
 
     if(isDemoMode) {
         // pass through with debug mode
