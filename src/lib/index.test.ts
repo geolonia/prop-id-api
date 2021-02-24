@@ -3,7 +3,8 @@ import { hashXY, coord2XY, verifyAddress } from './index'
 test('Should hash tile index as xxxx-xxxx-xxxx-xxxx', () => {
     const indexX = 1234567
     const indexY = 54321
-    const digest = hashXY(indexX, indexY)
+    const serial = 100
+    const digest = hashXY(indexX, indexY, serial)
     expect(digest).toHaveLength(16 + 3) // 16 digits + 3 hyphens
     expect(digest.split('-').every(section => section.length === 4)).toBe(true)
     expect(digest).toMatchSnapshot()
@@ -21,10 +22,10 @@ test('Should calculate tile indexes from coordinates(1)', () => {
 test('Should calculate tile indexes from coordinates(2)', () => {
     const lat = 35.68122
     const lng = 139.76755
-    const { x, y } = coord2XY([lat, lng], 24)
-    // Those values are approximately x 2^(24 - 18) from the test above.
-    expect(x).toEqual(14902247)
-    expect(y).toEqual(6606499)
+    const { x, y } = coord2XY([lat, lng], 22)
+    // Those values are approximately x 2^(22 - 18) from the test above.
+    expect(x).toEqual(3725561)
+    expect(y).toEqual(1651624)
 })
 
 test('Should not calculate tile indexes with NaN', () => {

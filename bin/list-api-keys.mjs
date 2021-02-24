@@ -7,7 +7,11 @@ export const main = async (stage = 'dev') => {
     }
 
     const { Items: items = [] } = await docclient.scan(scanInput).promise()
-    const apiKeys = items.map(item => ({ ...item, accessToken: '****' }))
+    const apiKeys = items.map(item => ({
+      ...item,
+      accessToken: '****',
+      lastRequestAt: item.lastRequestAt ? new Date(item.lastRequestAt).toString() : null
+     }))
     process.stdout.write(JSON.stringify(apiKeys, null, 2) + '\n')
 }
 

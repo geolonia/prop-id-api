@@ -14,6 +14,7 @@ declare namespace EstateAPI {
         event: import('aws-lambda').APIGatewayProxyEvent,
         context: any,
         callback: import('aws-lambda').APIGatewayProxyCallback,
-        isDebug?: boolean
+        isDemoMode?: boolean,
+        isDebugMode?: boolean,
     ) => void
 }

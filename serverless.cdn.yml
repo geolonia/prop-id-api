@@ -10,6 +10,7 @@ provider:
 custom:
   stage: ${opt:stage, self:provider.stage}
   commentStackLabel: '[cf:${self:service}-${self:custom.stage}]'
+  LogBucketNamePrefix: etate-id-distribution-logs-${self:custom.stage}
 
 resources:
   Outputs:
@@ -20,9 +21,18 @@ resources:
           - - 'https://'
             - Fn::GetAtt: [ BackendCDNDistribution, DomainName ]
             - '/v1'
+    FrontendDistributionLogBucket:
+      Value:
+        Fn::GetAtt: [ FrontendDistributionLogBucket, DomainName ]
+    BackendDistributionLogBucket:
+      Value:
+        Fn::GetAtt: [ BackendDistributionLogBucket, DomainName ]
+
   Resources:
     BackendCDNDistribution:
       Type: AWS::CloudFront::Distribution
+      DependsOn:
+        - BackendDistributionLogBucket
       Properties:
         DistributionConfig:
           Origins:
@@ -55,3 +65,19 @@ resources:
               - - ${self:custom.commentStackLabel}
                 - 'Estate ID Backend CDN to cache ipc request.'
           Enabled: true
+          Logging:
+            Bucket: !GetAtt BackendDistributionLogBucket.DomainName
+            IncludeCookies: false
+
+    FrontendDistributionLogBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.LogBucketNamePrefix}-frontend
+        AccessControl: Private
+
+    BackendDistributionLogBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.LogBucketNamePrefix}-backend
+        AccessControl: Private
+
