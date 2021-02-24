@@ -1,6 +1,8 @@
 import { authenticate, issueSerial, store, updateTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
 import { error, json } from './lib/proxy-response'
+// @ts-ignore
+import { normalize } from '@geolonia/normalize-japanese-addresses'
 
 export const handler: EstateAPI.LambdaHandler = async (event, context, callback, isDemoMode = false, isDebugMode = false) => {
 
@@ -36,10 +38,20 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         await updateTimestamp(apiKey, Date.now())
     }
 
-    // Request Increment P Address Verification API
-    let result
+    // Internal normalization
+    let prenormalizedAddress: string
     try {
-        result = await verifyAddress(address)
+      prenormalizedAddress = await normalize(address)
+    } catch (error) {
+      console.error({ error })
+      return callback(null, error(400, `address ${address} can not be normalized.`))
+    }
+
+
+    // Request Increment P Address Verification API
+    let verifiedResult
+    try {
+        verifiedResult = await verifyAddress(prenormalizedAddress)
     } catch (error) {
         console.error({ error })
         console.error('[FATAL] API or Netowork Down Detected.')
@@ -47,8 +59,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     }
 
     // API key for Increment P should valid.
-    if(!result.ok) {
-        if(result.status === 403) {
+    if(!verifiedResult.ok) {
+        if(verifiedResult.status === 403) {
             console.error('[FATAL] API Authentication failed.')
         } else {
             console.error('[FATAL] Unknown status code detected.')
@@ -57,7 +69,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         return callback(null, error(500, 'Internal Server Error.'))
     }
 
-    const feature = result.body.features[0]
+    const feature = verifiedResult.body.features[0]
 
     // Features not found
     if(feature.geometry === null) {
@@ -110,7 +122,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
 
     if(isDebugMode && isDemoMode) {
       return callback(null, json({
-        internallyNormalized: address, // TODO: should be replace with own normalized result
+        internallyNormalized: prenormalizedAddress,
         externallyNormalized: feature,
         tileInfo: { xy: `${x}/${y}`, serial:nextSerial, ZOOM },
         apiResponse: [body]
