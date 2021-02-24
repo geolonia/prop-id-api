@@ -64,9 +64,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         return callback(null, error(404, "The address '%s' is not verified.", address))
     }
 
-    // not enough match level
-    // TODO: adjust geocoding_level
-    if(feature.properties.geocoding_level < 4) {
+    if(feature.properties.geocoding_level >= 7) {
       console.log(feature.properties.geocoding_level)
       return callback(null, error(400, "The address '%s' is not verified sufficiently.", address))
     }
