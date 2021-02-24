@@ -79,6 +79,48 @@ test('should get estate ID with details if authenticated', async () => {
     ])
 })
 
+test('should get estate ID with details if authenticated, and geocodeing-level is 7 (番地でマッチ：号情報が存在しない地域）', async () => {
+  // mock
+  const dynamodb = require('./lib/dynamodb')
+  dynamodb.issueSerial = async () => 100
+  dynamodb.authenticate = async () => ({ authenticated: true })
+  dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
+  dynamodb.removeTimestamp = async (apiKey: string) => void 0
+  dynamodb.store = async () => void 0
+
+  const event = {
+      queryStringParameters: {
+          q: '兵庫県姫路市玉手2丁目465',
+          'api-key': 'geolonia'
+      },
+      headers: {
+          'X-Access-Token': 'test'
+      }
+  }
+  // @ts-ignore
+   const lambdaResult = await promisify(handler)(event, {})
+  // @ts-ignore
+  const body = JSON.parse(lambdaResult.body)
+  expect(body).toEqual([
+      {
+          ID: "28-9b53-d701-04f0-2af3",
+          "address": {
+              "ja": {
+                  "address1": "玉手2丁目",
+                  "address2": "465",
+                  "city": "姫路市",
+                  "other": "",
+                  "prefecture": "兵庫県",
+              },
+          },
+          "location": {
+              "lat": "34.813927",
+              "lng": "134.659955",
+          },
+      }
+  ])
+})
+
 test('should get return 400 with insufficient address.', async () => {
   // mock
   const dynamodb = require('./lib/dynamodb')
