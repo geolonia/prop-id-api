@@ -103,7 +103,7 @@ test('should get estate ID with details if authenticated, and geocodeing-level i
   const body = JSON.parse(lambdaResult.body)
   expect(body).toEqual([
       {
-          ID: "28-917e-43e1-941e-83f7",
+          ID: "28-9b53-d701-04f0-2af3",
           "address": {
               "ja": {
                   "address1": "玉手2丁目",
