@@ -312,9 +312,10 @@
   resolved "https://registry.yarnpkg.com/@geolonia/japanese-numeral/-/japanese-numeral-0.1.9.tgz#d4867a7640a4fb64d2ac888e5bccd83dfc6ae1f5"
   integrity sha512-6DREdE72EBa3qy8DDOEMtylZttQb/HoJ/eA7FbMDDpuA4T8tk9+7lOX+BqdjrNnWoKOFr/Irid7RMXpPWDtNdA==
 
-"@geolonia/normalize-japanese-addresses@https://git@github.com/geolonia/normalize-japanese-addresses.git#master":
-  version "0.0.8"
-  resolved "https://git@github.com/geolonia/normalize-japanese-addresses.git#f77a12017c4b99480fd2589f49b37dc866f3871e"
+"@geolonia/normalize-japanese-addresses@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-0.0.9.tgz#2e0b6b174daa104e463bffed98824ad6cb678c43"
+  integrity sha512-R9lNA/MSUPXdIMQDqqZRSPo06s5+Ogg+ZUTj+iaCUxMNS82cOcPu8oAGtKXyuoFz43XkP3XwpPyNn3kWefSQ9Q==
   dependencies:
     "@geolonia/japanese-numeral" "^0.1.9"
     node-fetch "^2.6.1"

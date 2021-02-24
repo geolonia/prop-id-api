@@ -20,7 +20,6 @@
     "aws-sdk": "^2"
   },
   "scripts": {
-    "postinstall": "cd node_modules/@geolonia/normalize-japanese-addresses/ && npm install && npm run build && rm -rf node_modules && npm install --only=production",
     "test": "ZOOM=22 jest",
     "build": "rimraf ./dist && tsc",
     "start": "npm run build && sls offline",
@@ -34,7 +33,7 @@
     ]
   },
   "dependencies": {
-    "@geolonia/normalize-japanese-addresses": "https://git@github.com/geolonia/normalize-japanese-addresses.git#master",
+    "@geolonia/normalize-japanese-addresses": "^0.0.9",
     "node-fetch": "^2.6.1"
   }
 }
