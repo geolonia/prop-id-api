@@ -89,6 +89,7 @@ test('should get return 400 with insufficient address.', async () => {
     '東京都',
     '京都府京都市',
     '滋賀県米原市大久保',
+    '兵庫県神戸市東灘区田中町1丁目'
   ]
 
   for (const address of addresses) {
