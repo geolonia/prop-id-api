@@ -37,7 +37,6 @@ test.skip('should get estate ID', async () => {
     ])
 })
 
-// TODO: https://github.com/geolonia/normalize-japanese-addresses/issues/40
 test('should get estate ID with details if authenticated', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
