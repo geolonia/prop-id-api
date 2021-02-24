@@ -103,7 +103,7 @@ test('should get estate ID with details if authenticated, and geocodeing-level i
   const body = JSON.parse(lambdaResult.body)
   expect(body).toEqual([
       {
-          ID: "28-9b53-d701-04f0-2af3",
+          ID: "28-917e-43e1-941e-83f7",
           "address": {
               "ja": {
                   "address1": "玉手2丁目",
@@ -130,9 +130,6 @@ test('should get return 400 with insufficient address.', async () => {
   dynamodb.store = async () => void 0
 
   const addresses = [
-    '東京都',
-    '京都府京都市',
-    '滋賀県米原市大久保',
     '兵庫県神戸市東灘区田中町1丁目'
   ]
 
