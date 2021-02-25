@@ -75,7 +75,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         return callback(null, error(404, "The address '%s' is not verified.", address))
     }
 
-    // not enoufh match
+    // not enough match
     if(!feature.properties.banchi_go) {
       return callback(null, error(400, "The address '%s' is not verified sufficiently.", address))
     }
@@ -88,9 +88,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     const hash = hashXY(x, y, nextSerial)
 
     if(!prefCode) {
-        process.stderr.write("Invalid `properties.pref` response from API: '${feature.properties.pref}'.\n")
+        process.stderr.write(`Invalid \`properties.pref\` response from API: '${feature.properties.pref}'.\n`)
         return callback(null, error(500, 'Internal Server Error.'))
-
     }
 
     const ID = `${prefCode}-${hash}`

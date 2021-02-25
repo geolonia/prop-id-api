@@ -79,7 +79,7 @@ test('should get estate ID with details if authenticated', async () => {
     ])
 })
 
-test('should get return 400 with insufficient address.', async () => {
+test('should return 400 with insufficient address.', async () => {
   // mock
   const dynamodb = require('./lib/dynamodb')
   dynamodb.authenticate = async () => ({ authenticated: true })
