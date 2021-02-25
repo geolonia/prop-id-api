@@ -21,7 +21,7 @@ $ npm start
 
 ```
 $ npm start
-$ npx http-server -o -c-1 -p 8080 docs
+$ npx http-server -c-1 -p 8080 docs
 $ open http://127.0.0.1:8080/debug?url=http://127.0.0.1:3000/dev/demo
 ```
 
