@@ -15,7 +15,6 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         return callback(null, error(400, 'Missing querystring parameter `q`.'))
     }
 
-
     if(isDemoMode) {
         // pass through with debug mode
     } else if(
@@ -76,7 +75,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         return callback(null, error(404, "The address '%s' is not verified.", address))
     }
 
-    if(feature.properties.geocoding_level < 7) {
+    // not enoufh match
+    if(!feature.properties.banchi_go) {
       return callback(null, error(400, "The address '%s' is not verified sufficiently.", address))
     }
 
