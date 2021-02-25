@@ -40,7 +40,13 @@ const main = ({ debug }, callback) => {
     location.hash = encodeURI(address)
 
     fetch(url)
-    .then(res => res.json())
+    .then(res => {
+      if(res.ok) {
+        return res.json()
+      } else {
+        throw new Error('application error')
+      }
+    })
     .catch(() => false)
     .then(result => {
       if(result) {

@@ -15,7 +15,6 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         return callback(null, error(400, 'Missing querystring parameter `q`.'))
     }
 
-
     if(isDemoMode) {
         // pass through with debug mode
     } else if(
@@ -72,12 +71,16 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     const feature = verifiedResult.body.features[0]
 
     // Features not found
-    if(feature.geometry === null) {
+    if(!feature || feature.geometry === null) {
         return callback(null, error(404, "The address '%s' is not verified.", address))
     }
 
-    const normalizedAddress = feature.properties.place_name
+    // not enough match
+    if(!feature.properties.banchi_go) {
+      return callback(null, error(400, "The address '%s' is not verified sufficiently.", address))
+    }
 
+    const normalizedAddress = feature.properties.place_name
     const [lng, lat] = feature.geometry.coordinates as [number, number]
     const prefCode = getPrefCode(feature.properties.pref)
     const { x, y } = coord2XY([lat, lng], ZOOM)
@@ -85,9 +88,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     const hash = hashXY(x, y, nextSerial)
 
     if(!prefCode) {
-        process.stderr.write("Invalid `properties.pref` response from API: '${feature.properties.pref}'.\n")
+        process.stderr.write(`Invalid \`properties.pref\` response from API: '${feature.properties.pref}'.\n`)
         return callback(null, error(500, 'Internal Server Error.'))
-
     }
 
     const ID = `${prefCode}-${hash}`

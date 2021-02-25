@@ -79,6 +79,37 @@ test('should get estate ID with details if authenticated', async () => {
     ])
 })
 
+test('should return 400 with insufficient address.', async () => {
+  // mock
+  const dynamodb = require('./lib/dynamodb')
+  dynamodb.authenticate = async () => ({ authenticated: true })
+  dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
+  dynamodb.removeTimestamp = async (apiKey: string) => void 0
+  dynamodb.store = async () => void 0
+
+  const addresses = [
+    '兵庫県神戸市東灘区田中町1丁目'
+  ]
+
+  for (const address of addresses) {
+    const event = {
+      queryStringParameters: {
+          q: address,
+          'api-key': 'geolonia'
+      },
+      headers: {
+          'X-Access-Token': 'test'
+      }
+    }
+    // @ts-ignore
+    const lambdaResult = await promisify(handler)(event, {})
+    // @ts-ignore
+    const body = JSON.parse(lambdaResult.body)
+    // @ts-ignore
+    expect(lambdaResult.statusCode).toEqual(400)
+  }
+})
+
 test('should return 429 with too frequest request.', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
