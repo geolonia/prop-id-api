@@ -82,7 +82,7 @@ test('should get estate ID with details if authenticated', async () => {
 test('should get estate ID with details if authenticated, and geocodeing-level is 7 (番地でマッチ：号情報が存在しない地域）', async () => {
   // mock
   const dynamodb = require('./lib/dynamodb')
-  dynamodb.issueSerial = async () => 100
+  dynamodb.issueSerial = async () => 0
   dynamodb.authenticate = async () => ({ authenticated: true })
   dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
   dynamodb.removeTimestamp = async (apiKey: string) => void 0
