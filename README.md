@@ -11,6 +11,20 @@ $ yarn # or `npm install`
 $ npm test
 ```
 
+### start localserver
+
+```shell
+$ npm start
+```
+
+### access the test tool locally
+
+```
+$ npm start
+$ npx http-server -o -c-1 -p 8080 docs
+$ open http://127.0.0.1:8080/debug?url=http://127.0.0.1:3000/dev/demo
+```
+
 ### update Snapshot tests
 
 ```shell

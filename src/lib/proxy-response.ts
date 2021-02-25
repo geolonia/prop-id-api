@@ -1,6 +1,6 @@
 import util from 'util'
 
-export const error = (statusCode: number, message: string, ...variables: string[]) => {
+export const errorResponse = (statusCode: number, message: string, ...variables: string[]) => {
     return {
         statusCode,
         headers: {
