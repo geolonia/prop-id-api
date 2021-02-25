@@ -122,9 +122,11 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     }
 
     if(isDebugMode && isDemoMode) {
+      // aggregate debug info
       return callback(null, json({
         internallyNormalized: prenormalizedAddress,
         externallyNormalized: feature,
+        cacheHit: verifiedResult.headers.get('X-Cache') === 'Hit from cloudfront',
         tileInfo: { xy: `${x}/${y}`, serial:nextSerial, ZOOM },
         apiResponse: [body]
       }));

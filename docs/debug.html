@@ -38,6 +38,7 @@
 
       <div class="form-group">
         <label for="externally-normalized-result" class="help-block" style="display: block;">外部正規化結果</label>
+        <input id="cache-hit" type="checkbox" disabled><label for="cache-hit">キャッシュヒット</label>
         <textarea id="externally-normalized-result" class="form-control"></textarea>
       </div>
 
@@ -64,14 +65,15 @@
     <script type="text/javascript" src="./main.js"></script>
     <script>
       const internallyNormalizedResult = document.getElementById('internally-normalized-result')
+      const cacheHitResult = document.getElementById('cache-hit')
       const externallyNormalizedResult = document.getElementById('externally-normalized-result')
       const tileInfoResult = document.getElementById('tile-info-result')
       const apiResponseResult = document.getElementById('api-response-result')
       main({ debug: true }, (result) => {
         if(result) {
-          const { internallyNormalized, externallyNormalized, tileInfo, apiResponse } = result
-
+          const { internallyNormalized, cacheHit, externallyNormalized, tileInfo, apiResponse } = result
           internallyNormalizedResult.value = internallyNormalized
+          cacheHitResult.checked = cacheHit
           externallyNormalizedResult.value = JSON.stringify(externallyNormalized.properties, null, 2)
           tileInfoResult.value = JSON.stringify(tileInfo, null, 2)
           apiResponseResult.value = JSON.stringify(apiResponse, null, 2)

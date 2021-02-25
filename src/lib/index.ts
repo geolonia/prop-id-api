@@ -34,7 +34,7 @@ export const verifyAddress = (addressListString: string) => {
         throw Error(err);
      })
     .then(res => {
-        return res.json().then(body => ({ body, status: res.status, ok: res.ok }))
+        return res.json().then(body => ({ body, status: res.status, ok: res.ok, headers: res.headers }))
     })
 }
 
