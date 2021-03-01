@@ -11,10 +11,11 @@ const refererHeads = [
 export const handler: EstateAPI.LambdaHandler = async (event, context, callback) => {
 
   const headers = decapitalize(event.headers);
-  const referer = headers.referer;
-  const allowed = referer && refererHeads.some(refererHead => referer.indexOf(refererHead) === 0)
+  const { referer, origin } = headers;
+  const allowedReferer = referer && refererHeads.some(refererHead => referer.indexOf(refererHead) === 0)
+  const allowedOrigin = origin && refererHeads.some(refererHead => origin.indexOf(refererHead) === 0)
 
-  if(allowed) {
+  if(allowedReferer || allowedOrigin) {
     return await publicHandler(
       event,
       context,
