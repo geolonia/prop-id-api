@@ -1,6 +1,6 @@
 import { authenticate, issueSerial, store, updateTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
-import { error, json } from './lib/proxy-response'
+import { errorResponse, json } from './lib/proxy-response'
 // @ts-ignore
 import { normalize } from '@geolonia/normalize-japanese-addresses'
 
@@ -12,7 +12,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     const ZOOM = parseInt(process.env.ZOOM, 10)
 
     if(!address) {
-        return callback(null, error(400, 'Missing querystring parameter `q`.'))
+        return callback(null, errorResponse(400, 'Missing querystring parameter `q`.'))
     }
 
     if(isDemoMode) {
@@ -23,15 +23,15 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         !accessToken ||
         !await authenticate(apiKey, accessToken)
     ) {
-        return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
+        return callback(null, errorResponse(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
     } else {
         const { authenticated, lastRequestAt } = await authenticate(apiKey, accessToken);
         if(!authenticated) {
-            return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
+            return callback(null, errorResponse(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
         } else if(lastRequestAt) {
             const diff = Date.now() - lastRequestAt
             if(diff < 3000) {
-                return callback(null, error(429, 'Please request after a few second.'))
+                return callback(null, errorResponse(429, 'Please request after a few second.'))
             }
         }
         await updateTimestamp(apiKey, Date.now())
@@ -43,7 +43,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
       prenormalizedAddress = await normalize(address)
     } catch (error) {
       console.error({ error })
-      return callback(null, error(400, `address ${address} can not be normalized.`))
+      return callback(null, errorResponse(400, `address ${address} can not be normalized.`))
     }
 
 
@@ -54,7 +54,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     } catch (error) {
         console.error({ error })
         console.error('[FATAL] API or Netowork Down Detected.')
-        return callback(null, error(500, 'Internal Server Error.'))
+        return callback(null, errorResponse(500, 'Internal Server Error.'))
     }
 
     // API key for Increment P should valid.
@@ -64,20 +64,19 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         } else {
             console.error('[FATAL] Unknown status code detected.')
         }
-        console.error(error)
-        return callback(null, error(500, 'Internal Server Error.'))
+        return callback(null, errorResponse(500, 'Internal Server Error.'))
     }
 
     const feature = verifiedResult.body.features[0]
 
     // Features not found
     if(!feature || feature.geometry === null) {
-        return callback(null, error(404, "The address '%s' is not verified.", address))
+        return callback(null, errorResponse(404, "The address '%s' is not verified.", address))
     }
 
     // not enough match
     if(!feature.properties.banchi_go) {
-      return callback(null, error(400, "The address '%s' is not verified sufficiently.", address))
+      return callback(null, errorResponse(400, "The address '%s' is not verified sufficiently.", address))
     }
 
     const normalizedAddress = feature.properties.place_name
@@ -88,8 +87,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     const hash = hashXY(x, y, nextSerial)
 
     if(!prefCode) {
-        process.stderr.write(`Invalid \`properties.pref\` response from API: '${feature.properties.pref}'.\n`)
-        return callback(null, error(500, 'Internal Server Error.'))
+        console.log(`[FATAL] Invalid \`properties.pref\` response from API: '${feature.properties.pref}'.`)
+        return callback(null, errorResponse(500, 'Internal Server Error.'))
     }
 
     const ID = `${prefCode}-${hash}`
@@ -123,9 +122,11 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     }
 
     if(isDebugMode && isDemoMode) {
+      // aggregate debug info
       return callback(null, json({
         internallyNormalized: prenormalizedAddress,
         externallyNormalized: feature,
+        cacheHit: verifiedResult.headers.get('X-Cache') === 'Hit from cloudfront',
         tileInfo: { xy: `${x}/${y}`, serial:nextSerial, ZOOM },
         apiResponse: [body]
       }));
