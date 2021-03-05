@@ -33,7 +33,7 @@
     ]
   },
   "dependencies": {
-    "@geolonia/normalize-japanese-addresses": "^0.0.9",
+    "@geolonia/normalize-japanese-addresses": "*",
     "node-fetch": "^2.6.1"
   }
 }
