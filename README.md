@@ -49,7 +49,7 @@ $ npm run deploy:dev
 
 ```shell
 # Put an API key with a randomized access token.
-$ node ./src/bin/put-api-key.mjs <description>
+$ node ./bin/put-api-key.mjs <description>
 # List all API Keys.
-$ node ./src/bin/list-api-keys.mjs
+$ node ./bin/list-api-keys.mjs
 ```
