@@ -33,7 +33,9 @@
     ]
   },
   "dependencies": {
+    "@geolonia/japanese-numeral": "*",
     "@geolonia/normalize-japanese-addresses": "*",
+    "fastest-levenshtein": "^1.0.12",
     "node-fetch": "^2.6.1"
   }
 }

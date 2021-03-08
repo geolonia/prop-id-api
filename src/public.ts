@@ -1,5 +1,5 @@
 import { authenticate, issueSerial, store, updateTimestamp } from './lib/dynamodb'
-import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
+import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode, normalizeBuilding } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'
 // @ts-ignore
 import { normalize } from '@geolonia/normalize-japanese-addresses'
@@ -79,6 +79,16 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
       return callback(null, errorResponse(400, "The address '%s' is not verified sufficiently.", address))
     }
 
+    if(feature.properties.building) {
+
+      // この物件名と過去にリクエストされてDBにある物件名をlevenshteinで比較して、
+      // 結果がX以下なら、DBにある物件名を取得。 X以上なら新規にDBに追加する。
+      const normalizedBuilding = normalizeBuilding(feature.properties.building)
+
+      // 正規化された物件名を代入
+      // feature.properties.building = normalizedBuilding
+    }
+
     const normalizedAddress = feature.properties.place_name
     const [lng, lat] = feature.geometry.coordinates as [number, number]
     const prefCode = getPrefCode(feature.properties.pref)
@@ -115,6 +125,7 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     }
 
     try {
+        // DBに一度投げられたIDを保存
         await store(ID,`${x}/${y}`, nextSerial, ZOOM, normalizedAddress)
     } catch (error) {
         console.error({ ID, ZOOM, addressObject, apiKey, error })
