@@ -2,6 +2,8 @@
 import fetch from 'node-fetch'
 import * as crypto from 'crypto'
 import prefs from './prefs.json'
+import { distance } from 'fastest-levenshtein'
+import { kanji2number, findKanjiNumbers } from '@geolonia/japanese-numeral'
 
 export const hashXY = (x: number, y: number, serial: number): string => {
     const tileIdentifier = `${x}/${y}/${serial}`
@@ -53,3 +55,72 @@ export const hashToken = (accessToken: string) => {
     return crypto.scryptSync(accessToken, process.env.ACCESS_TOKEN_SALT, 10).toString()
 }
 
+
+export const kan2num = (string: string) => {
+  const kanjiNumbers = findKanjiNumbers(string)
+  for (let i = 0; i < kanjiNumbers.length; i++) {
+    // @ts-ignore
+    string = string.replace(kanjiNumbers[i], kanji2number(kanjiNumbers[i]))
+  }
+
+  return string
+}
+
+export const normalizeBuilding = (query: string) => {
+
+  // 物件名は架空 + ネットで検索
+  const getBuildingsFromDynamoDB = [
+    'グリーンハイム壱番館',
+    'コーポ平井I',
+    'ライオンズガーデン綾瀬谷中公園A棟',
+    'センチュリーハイツ池尻B号棟',
+    'スカイレジデンスEAST',
+    'プレミアム福井D',
+    'セントラル川添第1',
+    '第3トキワ荘',
+    'OLIO高井戸4階',
+    'マイキャッスル弦巻パークサイド608号室',
+  ]
+
+  let normalizedName;
+
+  for (let index = 0; index < getBuildingsFromDynamoDB.length; index++) {
+    let building = getBuildingsFromDynamoDB[index];
+
+    // 漢数字を半角数字に変換
+    building = kan2num(building)
+
+    console.log("kan2num")
+    console.log({building})
+
+    // TODO: ローマ数字を半角数字に変換
+
+    //階と号室 + その前の数字は削除
+    building = building.replace(/\d*?(階|号室)/g,'')
+
+    console.log({building})
+
+
+
+
+    //棟、号館、番号館、の直前の文字が違っていれば、違う物件として判定。
+    // queryのマッチ結果
+    // buildingのマッチ結果
+    // if(queryMatch !== buildingMatch){
+    //   normalizedName = query
+    //   break
+    // }
+
+    // const similarScore = distance(query,building)
+    // if(similarScore < 5){
+    //   normalizedName = building
+    //   break
+    // } else {
+    //   normalizedName = query
+    //   break
+    // }
+  }
+
+  return normalizedName
+
+}
