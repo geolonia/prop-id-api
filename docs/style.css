@@ -1,0 +1,43 @@
+.container
+{
+  width: 800px;
+  max-width: 90%;
+  margin: 10px auto;
+}
+.container > div
+{
+  margin: 2em 0;
+}
+.footer
+{
+  margin-top: 40px;
+  padding-top: 1em;
+  border-top: 1px solid #dedede;
+  text-align: right;
+}
+#button, #address {
+  margin-top: .5em;
+}
+#map {
+  width: 100%;
+  height: 200px;
+  border: 1px solid #eeeeee;
+}
+#result,
+#api-response-result {
+  height: 280px;
+}
+#externally-normalized-result {
+  height: 410px;
+}
+#tile-info-result {
+  height: 110px;
+}
+i.stepper {
+  display: block;
+  text-align: center;
+  font-size: 40px;
+}
+i.stepper:before {
+  content: '↓';
+}

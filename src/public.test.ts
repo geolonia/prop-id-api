@@ -15,13 +15,14 @@ test('should specify the ZOOM environmental variable.', () => {
 test.skip('should get estate ID', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
+    dynamodb.issueSerial = async () => 100
     dynamodb.store = async () => void 0
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
 
     const event = {
         queryStringParameters: {
-            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F'
+            q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F'
         }
     }
     // @ts-ignore
@@ -39,6 +40,7 @@ test.skip('should get estate ID', async () => {
 test('should get estate ID with details if authenticated', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
+    dynamodb.issueSerial = async () => 100
     dynamodb.authenticate = async () => ({ authenticated: true })
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
@@ -46,7 +48,7 @@ test('should get estate ID with details if authenticated', async () => {
 
     const event = {
         queryStringParameters: {
-            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F',
+            q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
             'api-key': 'geolonia'
         },
         headers: {
@@ -59,7 +61,7 @@ test('should get estate ID with details if authenticated', async () => {
     const body = JSON.parse(lambdaResult.body)
     expect(body).toEqual([
         {
-            ID: "03-5759-4a9a-6195-71a0",
+            ID: "03-81b1-52e4-8c9e-d8d1",
             "address": {
                 "ja": {
                     "address1": "盛岡駅西通2丁目",
@@ -77,10 +79,42 @@ test('should get estate ID with details if authenticated', async () => {
     ])
 })
 
+test('should return 400 with insufficient address.', async () => {
+  // mock
+  const dynamodb = require('./lib/dynamodb')
+  dynamodb.authenticate = async () => ({ authenticated: true })
+  dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
+  dynamodb.removeTimestamp = async (apiKey: string) => void 0
+  dynamodb.store = async () => void 0
+
+  const addresses = [
+    '兵庫県神戸市東灘区田中町1丁目'
+  ]
+
+  for (const address of addresses) {
+    const event = {
+      queryStringParameters: {
+          q: address,
+          'api-key': 'geolonia'
+      },
+      headers: {
+          'X-Access-Token': 'test'
+      }
+    }
+    // @ts-ignore
+    const lambdaResult = await promisify(handler)(event, {})
+    // @ts-ignore
+    const body = JSON.parse(lambdaResult.body)
+    // @ts-ignore
+    expect(lambdaResult.statusCode).toEqual(400)
+  }
+})
+
 test('should return 429 with too frequest request.', async () => {
     // mock
     const dynamodb = require('./lib/dynamodb')
     const now = Date.now()
+    dynamodb.issueSerial = async () => 100
     dynamodb.authenticate = async () => ({ authenticated: true, lastRequestAt: now })
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
@@ -88,7 +122,7 @@ test('should return 429 with too frequest request.', async () => {
 
     const event = {
         queryStringParameters: {
-            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F',
+            q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
             'api-key': 'geolonia'
         },
         headers: {
@@ -118,10 +152,11 @@ test('should return 403 if not authenticated.', async () => {
     dynamodb.authenticate = async () => ({ authenticated: false })
     dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
     dynamodb.removeTimestamp = async (apiKey: string) => void 0
+    dynamodb.issueSerial = async () => 100
 
     const event = {
         queryStringParameters: {
-            q: '盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F',
+            q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
             'api-key': 'geolonia'
         },
         headers: {

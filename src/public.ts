@@ -1,8 +1,10 @@
-import { authenticate, store, updateTimestamp } from './lib/dynamodb'
+import { authenticate, issueSerial, store, updateTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode } from './lib/index'
-import { error, json } from './lib/proxy-response'
+import { errorResponse, json } from './lib/proxy-response'
+// @ts-ignore
+import { normalize } from '@geolonia/normalize-japanese-addresses'
 
-export const handler: EstateAPI.LambdaHandler = async (event, context, callback, isDemoMode = false) => {
+export const handler: EstateAPI.LambdaHandler = async (event, context, callback, isDemoMode = false, isDebugMode = false) => {
 
     const address = event.queryStringParameters?.q
     const apiKey = event.queryStringParameters ? event.queryStringParameters['api-key'] : void 0
@@ -10,9 +12,8 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     const ZOOM = parseInt(process.env.ZOOM, 10)
 
     if(!address) {
-        return callback(null, error(400, 'Missing querystring parameter `q`.'))
+        return callback(null, errorResponse(400, 'Missing querystring parameter `q`.'))
     }
-
 
     if(isDemoMode) {
         // pass through with debug mode
@@ -22,57 +23,72 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
         !accessToken ||
         !await authenticate(apiKey, accessToken)
     ) {
-        return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
+        return callback(null, errorResponse(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
     } else {
         const { authenticated, lastRequestAt } = await authenticate(apiKey, accessToken);
         if(!authenticated) {
-            return callback(null, error(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
+            return callback(null, errorResponse(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.'))
         } else if(lastRequestAt) {
             const diff = Date.now() - lastRequestAt
             if(diff < 3000) {
-                return callback(null, error(429, 'Please request after a few second.'))
+                return callback(null, errorResponse(429, 'Please request after a few second.'))
             }
         }
         await updateTimestamp(apiKey, Date.now())
     }
 
-    // Request Increment P Address Verification API
-    let result
+    // Internal normalization
+    let prenormalizedAddress: string
     try {
-        result = await verifyAddress(address)
+      prenormalizedAddress = await normalize(address)
+    } catch (error) {
+      console.error({ error })
+      return callback(null, errorResponse(400, `address ${address} can not be normalized.`))
+    }
+
+
+    // Request Increment P Address Verification API
+    let verifiedResult
+    try {
+        verifiedResult = await verifyAddress(prenormalizedAddress)
     } catch (error) {
         console.error({ error })
         console.error('[FATAL] API or Netowork Down Detected.')
-        return callback(null, error(500, 'Internal Server Error.'))
+        return callback(null, errorResponse(500, 'Internal Server Error.'))
     }
 
     // API key for Increment P should valid.
-    if(!result.ok) {
-        if(result.status === 403) {
+    if(!verifiedResult.ok) {
+        if(verifiedResult.status === 403) {
             console.error('[FATAL] API Authentication failed.')
         } else {
             console.error('[FATAL] Unknown status code detected.')
         }
-        console.error(error)
-        return callback(null, error(500, 'Internal Server Error.'))
+        return callback(null, errorResponse(500, 'Internal Server Error.'))
     }
 
-    const feature = result.body.features[0]
+    const feature = verifiedResult.body.features[0]
 
     // Features not found
-    if(feature.geometry === null) {
-        return callback(null, error(404, "The address '%s' is not verified.", address))
+    if(!feature || feature.geometry === null) {
+        return callback(null, errorResponse(404, "The address '%s' is not verified.", address))
     }
 
+    // not enough match
+    if(!feature.properties.banchi_go) {
+      return callback(null, errorResponse(400, "The address '%s' is not verified sufficiently.", address))
+    }
+
+    const normalizedAddress = feature.properties.place_name
     const [lng, lat] = feature.geometry.coordinates as [number, number]
     const prefCode = getPrefCode(feature.properties.pref)
     const { x, y } = coord2XY([lat, lng], ZOOM)
-    const hash = hashXY(x, y)
+    const nextSerial = await issueSerial(x, y, normalizedAddress)
+    const hash = hashXY(x, y, nextSerial)
 
     if(!prefCode) {
-        process.stderr.write("Invalid `properties.pref` response from API: '${feature.properties.pref}'.\n")
-        return callback(null, error(500, 'Internal Server Error.'))
-
+        console.log(`[FATAL] Invalid \`properties.pref\` response from API: '${feature.properties.pref}'.`)
+        return callback(null, errorResponse(500, 'Internal Server Error.'))
     }
 
     const ID = `${prefCode}-${hash}`
@@ -93,17 +109,28 @@ export const handler: EstateAPI.LambdaHandler = async (event, context, callback,
     let body
     if(apiKey || isDemoMode) {
         // apiKey has been authenticated and return rich results
-        body = { ID: ID, address: addressObject, location }
+        body = { ID, address: addressObject, location }
     } else {
-        body = { ID: ID }
+        body = { ID }
     }
 
     try {
-        await store(ID, ZOOM, addressObject)
+        await store(ID,`${x}/${y}`, nextSerial, ZOOM, normalizedAddress)
     } catch (error) {
         console.error({ ID, ZOOM, addressObject, apiKey, error })
         console.error('[FATAL] Something happend with DynamoDB connection.')
     }
 
-    return callback(null, json([body]));
+    if(isDebugMode && isDemoMode) {
+      // aggregate debug info
+      return callback(null, json({
+        internallyNormalized: prenormalizedAddress,
+        externallyNormalized: feature,
+        cacheHit: verifiedResult.headers.get('X-Cache') === 'Hit from cloudfront',
+        tileInfo: { xy: `${x}/${y}`, serial:nextSerial, ZOOM },
+        apiResponse: [body]
+      }));
+    } else {
+      return callback(null, json([body]));
+    }
 }

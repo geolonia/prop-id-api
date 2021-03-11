@@ -11,6 +11,20 @@ $ yarn # or `npm install`
 $ npm test
 ```
 
+### start localserver
+
+```shell
+$ npm start
+```
+
+### access the test tool locally
+
+```
+$ npm start
+$ npx http-server -c-1 -p 8080 docs
+$ open http://127.0.0.1:8080/debug?url=http://127.0.0.1:3000/dev/demo
+```
+
 ### update Snapshot tests
 
 ```shell
@@ -35,7 +49,7 @@ $ npm run deploy:dev
 
 ```shell
 # Put an API key with a randomized access token.
-$ node ./src/bin/put-api-key.mjs <description>
+$ node ./bin/put-api-key.mjs <description>
 # List all API Keys.
-$ node ./src/bin/list-api-keys.mjs
+$ node ./bin/list-api-keys.mjs
 ```

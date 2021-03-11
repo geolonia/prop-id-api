@@ -31,18 +31,57 @@ export const updateTimestamp = async (apiKey:string, timestamp: number) => {
         ExpressionAttributeValues: {
             ':timestamp': timestamp
         }
-    } 
+    }
     return await docclient.update(updateItemInput).promise()
 }
 
-export const store = async (estateId: string, zoom: number, address: object) => {
+export const issueSerial = async (x: number, y:number, address: string): Promise<number> => {
+  const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
+  const tileXY = `${x}/${y}`
+
+  const queryInputForExactMatch: AWS.DynamoDB.DocumentClient.QueryInput = {
+    TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
+    IndexName: 'address-index',
+    Limit: 1,
+    ExpressionAttributeNames: { '#a': 'address' },
+    ExpressionAttributeValues: { ':a': address },
+    KeyConditionExpression: '#a = :a',
+  }
+  const { Items: exactMatchItems = [] } = await docclient.query(queryInputForExactMatch).promise()
+
+  if (exactMatchItems.length === 1) {
+    return exactMatchItems[0].serial;
+  }
+
+  // find serial
+  const queryInputForSerial: AWS.DynamoDB.DocumentClient.QueryInput = {
+    TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
+    IndexName: 'tileXY-index',
+    Limit: 1,
+    ExpressionAttributeNames: { '#t': 'tileXY' },
+    ExpressionAttributeValues: { ':t': tileXY },
+    ScanIndexForward: false, // descending
+    KeyConditionExpression: '#t = :t'
+  }
+
+  const { Items: serializedItems = [] } = await docclient.query(queryInputForSerial).promise()
+  if(serializedItems.length === 0) {
+    return 0
+  } else {
+    return serializedItems[0].serial + 1 // next serial number
+  }
+}
+
+export const store = async (estateId: string, tileXY: string, serial: number, zoom: number, address: string) => {
     const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
     const putItemInput: AWS.DynamoDB.DocumentClient.PutItemInput = {
         TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
         Item: {
             estateId,
-            zoom: process.env.ZOOM,
-            address: JSON.stringify(address)
+            tileXY,
+            serial,
+            zoom,
+            address
         }
     }
     return await docclient.put(putItemInput).promise()
