@@ -1,5 +1,4 @@
-import { promisify } from './__tests__/utils'
-import { handler } from './public'
+import { rawHandler as handler } from './public'
 
 test('should specify the ZOOM environmental variable.', () => {
     // mock
@@ -26,7 +25,7 @@ test.skip('should get estate ID', async () => {
         }
     }
     // @ts-ignore
-     const lambdaResult = await promisify(handler)(event, {})
+     const lambdaResult = await handler(event)
     // @ts-ignore
     const body = JSON.parse(lambdaResult.body)
 
@@ -56,7 +55,7 @@ test('should get estate ID with details if authenticated', async () => {
         }
     }
     // @ts-ignore
-     const lambdaResult = await promisify(handler)(event, {})
+     const lambdaResult = await handler(event)
     // @ts-ignore
     const body = JSON.parse(lambdaResult.body)
     expect(body).toEqual([
@@ -102,7 +101,7 @@ test('should return 400 with insufficient address.', async () => {
       }
     }
     // @ts-ignore
-    const lambdaResult = await promisify(handler)(event, {})
+    const lambdaResult = await handler(event)
     // @ts-ignore
     const body = JSON.parse(lambdaResult.body)
     // @ts-ignore
@@ -130,7 +129,7 @@ test('should return 429 with too frequest request.', async () => {
         }
     }
     // @ts-ignore
-     const lambdaResult = await promisify(handler)(event, {})
+     const lambdaResult = await handler(event)
     // @ts-ignore
     expect(lambdaResult.statusCode).toBe(429)
 })
@@ -140,7 +139,7 @@ test('should return 400 with empty address', async () => {
         queryStringParameters: null
     }
     // @ts-ignore
-    const { statusCode, body } = await promisify(handler)(event, {})
+    const { statusCode, body } = await handler(event)
     const { message } = JSON.parse(body)
     expect(statusCode).toEqual(400)
     expect(message).toEqual('Missing querystring parameter `q`.')
@@ -164,7 +163,7 @@ test('should return 403 if not authenticated.', async () => {
         }
     }
     // @ts-ignore
-    const { statusCode, body } = await promisify(handler)(event, {})
+    const { statusCode, body } = await handler(event)
     const { message } = JSON.parse(body)
     expect(statusCode).toEqual(403)
     expect(message).toEqual('Incorrect querystring parameter `api-key` or `x-access-token` header value.')
@@ -178,7 +177,7 @@ test.skip('should return 404 if address is not verified', async () => {
         }
     }
     // @ts-ignore
-    const { statusCode, body } = await promisify(handler)(event, {})
+    const { statusCode, body } = await handler(event)
     const { message } = JSON.parse(body)
     expect(statusCode).toEqual(404)
     expect(message).toEqual(`The address '${event.queryStringParameters.q}' is not verified.`)
