@@ -20,7 +20,7 @@ const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (ev
     return errorResponse(403, 'Access denied.')
   }
 
-  event.isDebugMode = true
+  event.isDebugMode = event.queryStringParameters?.debug === 'true'
   event.isDemoMode = true
   const arguedProxyResult = await publicHandler(
     event,
