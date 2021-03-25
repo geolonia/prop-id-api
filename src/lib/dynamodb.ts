@@ -1,42 +1,41 @@
 import AWS from 'aws-sdk'
 import { hashToken } from './index'
 
+const DB = new AWS.DynamoDB.DocumentClient()
+
 export const authenticate = async (apiKey: string, accessToken: string) => {
-    const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
-    const getItemInput: AWS.DynamoDB.DocumentClient.GetItemInput = {
-        TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
-        Key: { apiKey }
-    }
-    const { Item: item } = await docclient.get(getItemInput).promise()
+  const getItemInput: AWS.DynamoDB.DocumentClient.GetItemInput = {
+    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
+    Key: { apiKey }
+  }
+  const { Item: item } = await DB.get(getItemInput).promise()
 
-    if(!item) {
-        return { authenticated: false }
-    }
-
-    if(item && item.accessToken === hashToken(accessToken)) {
-        return { authenticated: true, lastRequestAt: item.lastRequestAt }
-    }
+  if (!item) {
     return { authenticated: false }
+  }
+
+  if (item && item.accessToken === hashToken(accessToken)) {
+    return { authenticated: true, lastRequestAt: item.lastRequestAt }
+  }
+  return { authenticated: false }
 }
 
 export const updateTimestamp = async (apiKey:string, timestamp: number) => {
-    const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
-    const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
-        TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
-        Key: { apiKey },
-        UpdateExpression: 'set #lastRequestAt = :timestamp',
-        ExpressionAttributeNames: {
-            '#lastRequestAt': 'lastRequestAt',
-        },
-        ExpressionAttributeValues: {
-            ':timestamp': timestamp
-        }
+  const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
+    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
+    Key: { apiKey },
+    UpdateExpression: 'set #lastRequestAt = :timestamp',
+    ExpressionAttributeNames: {
+      '#lastRequestAt': 'lastRequestAt',
+    },
+    ExpressionAttributeValues: {
+      ':timestamp': timestamp
     }
-    return await docclient.update(updateItemInput).promise()
+  }
+  return await DB.update(updateItemInput).promise()
 }
 
 export const issueSerial = async (x: number, y:number, address: string): Promise<number> => {
-  const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
   const tileXY = `${x}/${y}`
 
   const queryInputForExactMatch: AWS.DynamoDB.DocumentClient.QueryInput = {
@@ -47,7 +46,7 @@ export const issueSerial = async (x: number, y:number, address: string): Promise
     ExpressionAttributeValues: { ':a': address },
     KeyConditionExpression: '#a = :a',
   }
-  const { Items: exactMatchItems = [] } = await docclient.query(queryInputForExactMatch).promise()
+  const { Items: exactMatchItems = [] } = await DB.query(queryInputForExactMatch).promise()
 
   if (exactMatchItems.length === 1) {
     return exactMatchItems[0].serial;
@@ -64,8 +63,8 @@ export const issueSerial = async (x: number, y:number, address: string): Promise
     KeyConditionExpression: '#t = :t'
   }
 
-  const { Items: serializedItems = [] } = await docclient.query(queryInputForSerial).promise()
-  if(serializedItems.length === 0) {
+  const { Items: serializedItems = [] } = await DB.query(queryInputForSerial).promise()
+  if (serializedItems.length === 0) {
     return 0
   } else {
     return serializedItems[0].serial + 1 // next serial number
@@ -73,16 +72,15 @@ export const issueSerial = async (x: number, y:number, address: string): Promise
 }
 
 export const store = async (estateId: string, tileXY: string, serial: number, zoom: number, address: string) => {
-    const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
-    const putItemInput: AWS.DynamoDB.DocumentClient.PutItemInput = {
-        TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
-        Item: {
-            estateId,
-            tileXY,
-            serial,
-            zoom,
-            address
-        }
+  const putItemInput: AWS.DynamoDB.DocumentClient.PutItemInput = {
+    TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
+    Item: {
+      estateId,
+      tileXY,
+      serial,
+      zoom,
+      address
     }
-    return await docclient.put(putItemInput).promise()
+  }
+  return await DB.put(putItemInput).promise()
 }
