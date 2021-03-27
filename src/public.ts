@@ -11,6 +11,13 @@ export interface PublicHandlerEvent extends APIGatewayProxyEvent {
   isDebugMode?: boolean
 }
 
+export interface NormalizeResult {
+  pref: string
+  city: string
+  town: string
+  addr: string
+}
+
 export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
 
   const address = event.queryStringParameters?.q
@@ -56,7 +63,7 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
 
 
   // Internal normalization
-  let prenormalizedAddress: string
+  let prenormalizedAddress: NormalizeResult
   try {
     prenormalizedAddress = await normalize(address)
   } catch (error) {
@@ -69,7 +76,7 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
   // Request Increment P Address Verification API
   let verifiedResult: VerifyAddressResult
   try {
-    verifiedResult = await verifyAddress(prenormalizedAddress)
+    verifiedResult = await verifyAddress(`${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`)
   } catch (error) {
     Sentry.captureException(error)
     console.error({ error })
