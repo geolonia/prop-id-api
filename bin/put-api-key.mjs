@@ -2,7 +2,7 @@ import AWS from 'aws-sdk'
 import * as crypto from 'crypto'
 
 const randomToken = (length) => {
-    return crypto.randomBytes(length).reduce((p, i) => p + (i % 36).toString(36), '')
+  return crypto.randomBytes(length).reduce((p, i) => p + (i % 36).toString(36), '')
 }
 
 // Do not change because same function is embedded in Lambda handler
@@ -25,9 +25,9 @@ export const main = async (stage = 'dev') => {
     const putItemInput = {
         TableName: `estate-id-api-key-${stage}`,
         Item: {
-            apiKey,
-            accessToken: hashToken(accessToken),
-            description: description
+          apiKey,
+          accessToken: hashToken(accessToken),
+          description: description
         }
     }
 

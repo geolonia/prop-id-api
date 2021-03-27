@@ -1,9 +1,12 @@
 // @ts-ignore
 import fetch from 'node-fetch'
 import * as crypto from 'crypto'
+import { promisify } from 'util'
 import prefs from './prefs.json'
 
-export const hashXY = (x: number, y: number, serial: number): string => {
+const scrypt = promisify(crypto.scrypt)
+
+export const hashXY = (x: string | number, y: string | number, serial: number): string => {
   const tileIdentifier = `${x}/${y}/${serial}`
   const sha256 = crypto.createHash('sha256').update(tileIdentifier).digest('hex')
   return (sha256.slice(0, 16).match(/.{4}/g) as string[]).join('-')
@@ -50,6 +53,16 @@ export const decapitalize = (headers: { [key : string]: string | undefined }) =>
   }, {})
 }
 
+export const randomToken = (length: number) => {
+  return crypto.randomBytes(length).reduce((p, i) => p + (i % 36).toString(36), '')
+}
+
 export const hashToken = (accessToken: string) => {
   return crypto.scryptSync(accessToken, process.env.ACCESS_TOKEN_SALT, 10).toString()
+}
+
+export const hashTokenV2 = async (apiKey: string, accessToken: string) => {
+  // use api key as salt
+  const buf = await scrypt(accessToken, apiKey, 10) as Buffer
+  return buf.toString('base64')
 }

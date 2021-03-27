@@ -1,4 +1,4 @@
-import { authenticate, issueSerial, store, updateTimestamp } from './lib/dynamodb'
+import { authenticate, EstateId, getEstateIdForAddress, issueSerial, store, StoreEstateIdReq, updateTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode, VerifyAddressResult } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
@@ -113,16 +113,13 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
   const [lng, lat] = feature.geometry.coordinates as [number, number]
   const prefCode = getPrefCode(feature.properties.pref)
   const { x, y } = coord2XY([lat, lng], ZOOM)
-  const nextSerial = await issueSerial(x, y, normalizedAddress)
-  const hash = hashXY(x, y, nextSerial)
 
-  if(!prefCode) {
+  if (!prefCode) {
     console.log(`[FATAL] Invalid \`properties.pref\` response from API: '${feature.properties.pref}'.`)
     Sentry.captureException(new Error(`Invalid \`properties.pref\` response from API: '${feature.properties.pref}'`))
     return errorResponse(500, 'Internal Server Error.')
   }
 
-  const ID = `${prefCode}-${hash}`
   const addressObject = {
     ja: {
       prefecture: feature.properties.pref,
@@ -137,6 +134,27 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
     lng: lng.toString()
   }
 
+  let estateId: EstateId
+  try {
+    // TODO: Change to prenormalizedAddress
+    const existingEstateId = await getEstateIdForAddress(normalizedAddress)
+    if (existingEstateId) {
+      estateId = existingEstateId
+    } else {
+      estateId = await store({
+        zoom: ZOOM,
+        tileXY: `${x}/${y}`,
+        address: normalizedAddress,
+        prefCode,
+      })
+    }
+  } catch (error) {
+    console.error({ ZOOM, addressObject, apiKey, error })
+    console.error('[FATAL] Something happend with DynamoDB connection.')
+  }
+
+  const ID = estateId!.estateId
+
   let body
   if (apiKey || event.isDemoMode) {
     // apiKey has been authenticated and return rich results
@@ -145,24 +163,17 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
     body = { ID }
   }
 
-  try {
-    await store(ID, `${x}/${y}`, nextSerial, ZOOM, normalizedAddress)
-  } catch (error) {
-    console.error({ ID, ZOOM, addressObject, apiKey, error })
-    console.error('[FATAL] Something happend with DynamoDB connection.')
-  }
-
   if (event.isDebugMode && event.isDemoMode) {
     // aggregate debug info
     return json({
       internallyNormalized: prenormalizedAddress,
       externallyNormalized: feature,
       cacheHit: verifiedResult.headers.get('X-Cache') === 'Hit from cloudfront',
-      tileInfo: { xy: `${x}/${y}`, serial:nextSerial, ZOOM },
-      apiResponse: [body]
+      tileInfo: { xy: `${x}/${y}`, serial: estateId!.serial, ZOOM },
+      apiResponse: [ body ]
     })
   } else {
-    return json([body])
+    return json([ body ])
   }
 }
 

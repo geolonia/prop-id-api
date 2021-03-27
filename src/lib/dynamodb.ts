@@ -1,7 +1,51 @@
 import AWS from 'aws-sdk'
-import { hashToken } from './index'
+import { hashToken, hashTokenV2, hashXY, randomToken } from './index'
 
-const DB = new AWS.DynamoDB.DocumentClient()
+const REDIRECT_MAX = 4
+const DB = process.env.TEST === "1" ? new AWS.DynamoDB.DocumentClient({ endpoint: "http://127.0.0.1:8000", region: "us-west-2" }) : new AWS.DynamoDB.DocumentClient()
+
+interface BaseEstateId {
+  estateId: string
+  address: string
+  serial: number
+  tileXY: string
+  zoom: number
+}
+
+interface ConsolidatedEstateId extends BaseEstateId {
+  canonicalId: string
+  consolidatedAt: number
+}
+
+export type EstateId = BaseEstateId | ConsolidatedEstateId
+
+export interface ApiKeyCreateResponse {
+  apiKey: string
+  accessToken: string
+}
+
+export const createApiKey = async (description: string): Promise<ApiKeyCreateResponse> => {
+  const apiKey = randomToken(20)
+  const accessToken = randomToken(32)
+
+  await DB.put({
+    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
+    Item: {
+      apiKey,
+      hashedToken: await hashTokenV2(apiKey, accessToken),
+      description
+    },
+    ConditionExpression: `attribute_not_exists(#id)`,
+    ExpressionAttributeNames: {
+      '#id': 'apiKey'
+    }
+  }).promise()
+
+  return {
+    apiKey,
+    accessToken,
+  }
+}
 
 export const authenticate = async (apiKey: string, accessToken: string) => {
   const getItemInput: AWS.DynamoDB.DocumentClient.GetItemInput = {
@@ -11,12 +55,18 @@ export const authenticate = async (apiKey: string, accessToken: string) => {
   const { Item: item } = await DB.get(getItemInput).promise()
 
   if (!item) {
+    await hashTokenV2(apiKey, accessToken)
     return { authenticated: false }
   }
 
-  if (item && item.accessToken === hashToken(accessToken)) {
+  if ('hashedToken' in item && item.hashedToken === await hashTokenV2(apiKey, accessToken)) {
     return { authenticated: true, lastRequestAt: item.lastRequestAt }
   }
+
+  if ('accessToken' in item && item.accessToken === hashToken(accessToken)) {
+    return { authenticated: true, lastRequestAt: item.lastRequestAt }
+  }
+
   return { authenticated: false }
 }
 
@@ -33,6 +83,55 @@ export const updateTimestamp = async (apiKey:string, timestamp: number) => {
     }
   }
   return await DB.update(updateItemInput).promise()
+}
+
+export const getEstateIdForAddress = async (address: string): Promise<BaseEstateId | null> => {
+  const queryInputForExactMatch: AWS.DynamoDB.DocumentClient.QueryInput = {
+    TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
+    IndexName: 'address-index',
+    Limit: 1,
+    ExpressionAttributeNames: { '#a': 'address' },
+    ExpressionAttributeValues: { ':a': address },
+    KeyConditionExpression: '#a = :a',
+  }
+  const { Items: exactMatchItems = [] } = await DB.query(queryInputForExactMatch).promise()
+
+  if (exactMatchItems.length === 0) {
+    return null
+  }
+
+  const item = exactMatchItems[0] as EstateId
+  if ('canonicalId' in item) {
+    return getEstateId(item.canonicalId, 1)
+  }
+
+  return item
+}
+
+export const getEstateId = async (id: string, redirectCount: number = 0): Promise<BaseEstateId | null> => {
+  if (redirectCount > REDIRECT_MAX) {
+    throw new Error(`Redirect count exceeded. Possible infinite loop?`)
+  }
+
+  const resp = await DB.get({
+    TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
+    Key: {
+      estateId: id
+    }
+  }).promise()
+
+  if (!resp.Item) {
+    return null
+  }
+
+  const item = resp.Item as EstateId
+
+  if ('canonicalId' in item) {
+    // Follow the redirect.
+    return await getEstateId(item.canonicalId, redirectCount + 1)
+  }
+
+  return item
 }
 
 export const issueSerial = async (x: number, y:number, address: string): Promise<number> => {
@@ -71,16 +170,45 @@ export const issueSerial = async (x: number, y:number, address: string): Promise
   }
 }
 
-export const store = async (estateId: string, tileXY: string, serial: number, zoom: number, address: string) => {
-  const putItemInput: AWS.DynamoDB.DocumentClient.PutItemInput = {
-    TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
-    Item: {
-      estateId,
-      tileXY,
-      serial,
-      zoom,
-      address
+const _generateSerial = () => Math.floor(Math.random() * 999_999_999)
+
+export interface StoreEstateIdReq {
+  address: string
+  tileXY: string
+  zoom: number
+  prefCode: string
+}
+
+export const store = async (idObj: StoreEstateIdReq) => {
+  let successfulItem: EstateId | false = false, tries = 0
+
+  while (successfulItem === false && tries < 10) {
+    try {
+      tries += 1
+      const serial = _generateSerial()
+      const [x, y] = idObj.tileXY.split('/')
+      const Item: EstateId = {
+        ...idObj,
+        estateId: idObj.prefCode + "-" + hashXY(x, y, serial),
+        serial
+      }
+      const putItemInput: AWS.DynamoDB.DocumentClient.PutItemInput = {
+        TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
+        Item,
+        ConditionExpression: `attribute_not_exists(#id)`,
+        ExpressionAttributeNames: {
+          '#id': 'estateId'
+        }
+      }
+      await DB.put(putItemInput).promise()
+      successfulItem = Item
+    } catch (e) {
     }
   }
-  return await DB.put(putItemInput).promise()
+
+  if (successfulItem === false) {
+    throw new Error(`Couldn't insert new item after ${tries} tries.`)
+  }
+
+  return successfulItem
 }
