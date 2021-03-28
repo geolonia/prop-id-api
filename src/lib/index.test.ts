@@ -123,6 +123,20 @@ describe('IncrementP Verification API', () => {
     expect(results.body.features).toHaveLength(1)
   })
 
+  test('should verify the address with 和歌山県東牟婁郡串本町田並1234', async () => {
+    const address ="和歌山県東牟婁郡串本町田並1234"
+    const results = await verifyAddress(address)
+    console.log(results)
+    expect(results.body.features).toHaveLength(1)
+  })
+
+  test('should verify the address with 和歌山県東牟婁郡串本町鬮野川1234', async () => {
+    const address ="和歌山県東牟婁郡串本町鬮野川1234"
+    const results = await verifyAddress(address)
+    console.log(results)
+    expect(results.body.features).toHaveLength(1)
+  })
+
   test('should return 400 if no address specified.', async () => {
     const result = await verifyAddress('')
     expect(result.status).toBe(400)
