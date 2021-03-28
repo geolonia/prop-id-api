@@ -123,20 +123,6 @@ describe('IncrementP Verification API', () => {
     expect(results.body.features).toHaveLength(1)
   })
 
-  test('should verify the address with 和歌山県東牟婁郡串本町田並1234', async () => {
-    const address ="和歌山県東牟婁郡串本町田並1234"
-    const results = await verifyAddress(address)
-    console.log(results)
-    expect(results.body.features).toHaveLength(1)
-  })
-
-  test('should verify the address with 和歌山県東牟婁郡串本町鬮野川1234', async () => {
-    const address ="和歌山県東牟婁郡串本町鬮野川1234"
-    const results = await verifyAddress(address)
-    console.log(results)
-    expect(results.body.features).toHaveLength(1)
-  })
-
   test('should return 400 if no address specified.', async () => {
     const result = await verifyAddress('')
     expect(result.status).toBe(400)
@@ -146,12 +132,18 @@ describe('IncrementP Verification API', () => {
 
   test('shouls return 403 if no api key specified.', async () => {
     // @ts-ignore
+    const TEMP_API_KEY = process.env.INCREMENTP_VERIFICATION_API_KEY
+    // @ts-ignore
     process.env.INCREMENTP_VERIFICATION_API_KEY = ''
+
     const address ="盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F"
     const result = await verifyAddress(address)
     expect(result.status).toBe(403)
     expect(result.ok).toEqual(false)
     expect(result.body.message).toEqual("Authentication failed")
+
+    // @ts-ignore
+    process.env.INCREMENTP_VERIFICATION_API_KEY = TEMP_API_KEY
   })
 })
 
@@ -162,4 +154,16 @@ test('should throw if API request fails with network problem', async () => {
 
   const error = await fetch().catch((err: Error) => err)
   expect(error.message).toEqual('mocked network error')
+})
+
+test('should verify the address with 和歌山県東牟婁郡串本町田並1234', async () => {
+  const address ="和歌山県東牟婁郡串本町田並1234"
+  const results = await verifyAddress(address)
+  expect(results.body.features).toHaveLength(1)
+})
+
+test('should verify the address with 和歌山県東牟婁郡串本町鬮野川1234', async () => {
+  const address ="和歌山県東牟婁郡串本町鬮野川1234"
+  const results = await verifyAddress(address)
+  expect(results.body.features).toHaveLength(1)
 })
