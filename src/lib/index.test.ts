@@ -132,12 +132,18 @@ describe('IncrementP Verification API', () => {
 
   test('shouls return 403 if no api key specified.', async () => {
     // @ts-ignore
+    const TEMP_API_KEY = process.env.INCREMENTP_VERIFICATION_API_KEY
+    // @ts-ignore
     process.env.INCREMENTP_VERIFICATION_API_KEY = ''
+
     const address ="盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F"
     const result = await verifyAddress(address)
     expect(result.status).toBe(403)
     expect(result.ok).toEqual(false)
     expect(result.body.message).toEqual("Authentication failed")
+
+    // @ts-ignore
+    process.env.INCREMENTP_VERIFICATION_API_KEY = TEMP_API_KEY
   })
 })
 
@@ -149,3 +155,40 @@ test('should throw if API request fails with network problem', async () => {
   const error = await fetch().catch((err: Error) => err)
   expect(error.message).toEqual('mocked network error')
 })
+
+test('should verify the address with 和歌山県東牟婁郡串本町田並1234', async () => {
+  const address ="和歌山県東牟婁郡串本町田並1234"
+  const results = await verifyAddress(address)
+  expect(results.body.features).toHaveLength(1)
+})
+
+test('should verify the address with 和歌山県東牟婁郡串本町鬮野川1234', async () => {
+  const address ="和歌山県東牟婁郡串本町鬮野川1234"
+  const results = await verifyAddress(address)
+  expect(results.body.features).toHaveLength(1)
+})
+
+test('should IPC responce of banchi_go is empty. test with 和歌山県東牟婁郡串本町田並1500', async () => {
+  const address ="和歌山県東牟婁郡串本町田並1500"
+  const results = await verifyAddress(address)
+  expect(results.body.features[0].properties.banchi_go).toStrictEqual("")
+})
+
+test('should IPC responce of city is not empty. test with 和歌山県東牟婁郡串本町', async () => {
+  const address ="和歌山県東牟婁郡串本町"
+  const results = await verifyAddress(address)
+  expect(results.body.features[0].properties.city).toStrictEqual('東牟婁郡串本町')
+})
+
+test('should IPC responce of area is not empty. test with 和歌山県東牟婁郡串本町鬮野川', async () => {
+  const address ="和歌山県東牟婁郡串本町鬮野川"
+  const results = await verifyAddress(address)
+  expect(results.body.features[0].properties.area).toStrictEqual('鬮野川')
+})
+
+test('should IPC responce of area is not empty. test with 和歌山県東牟婁郡北山村大沼999', async () => {
+  const address ="和歌山県東牟婁郡北山村大沼999"
+  const results = await verifyAddress(address)
+  expect(results.body.features[0].properties.area).toStrictEqual('大沼')
+})
+

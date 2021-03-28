@@ -104,7 +104,7 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
   }
 
   // not enough match
-  if (!feature.properties.banchi_go) {
+  if (!feature.properties.city) {
     Sentry.captureException(new Error(`The address '${address}' is not verified sufficiently.`))
     return errorResponse(400, "The address '%s' is not verified sufficiently.", address)
   }

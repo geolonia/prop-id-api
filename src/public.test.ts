@@ -78,6 +78,79 @@ test('should get estate ID with details if authenticated', async () => {
     ])
 })
 
+test('should get estate ID with details if authenticated with 和歌山県東牟婁郡串本町田並1500', async () => {
+  // mock
+  const dynamodb = require('./lib/dynamodb')
+  dynamodb.issueSerial = async () => 100
+  dynamodb.authenticate = async () => ({ authenticated: true })
+  dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
+  dynamodb.removeTimestamp = async (apiKey: string) => void 0
+  dynamodb.store = async () => void 0
+
+  const event = {
+      queryStringParameters: {
+          q: '和歌山県東牟婁郡串本町田並1500',
+          'api-key': 'geolonia'
+      },
+      headers: {
+          'X-Access-Token': 'test'
+      }
+  }
+  // @ts-ignore
+   const lambdaResult = await handler(event)
+  // @ts-ignore
+  const body = JSON.parse(lambdaResult.body)
+  expect(body).toEqual([
+      {
+          ID: "30-633d-b454-d333-44f3",
+          "address": {
+              "ja": {
+                  "address1": "田並",
+                  "address2": "",
+                  "city": "東牟婁郡串本町",
+                  "other": "",
+                  "prefecture": "和歌山県",
+              },
+          },
+          "location": {
+              "lat": "33.488638",
+              "lng": "135.714765",
+          },
+      }
+  ])
+})
+
+test('should return 200 with address 和歌山県東牟婁郡串本町.', async () => {
+  // mock
+  const dynamodb = require('./lib/dynamodb')
+  dynamodb.authenticate = async () => ({ authenticated: true })
+  dynamodb.updateTimestamp = async (apiKey: string, timestamp: number) => void 0
+  dynamodb.removeTimestamp = async (apiKey: string) => void 0
+  dynamodb.store = async () => void 0
+
+  const addresses = [
+    '和歌山県東牟婁郡串本町'
+  ]
+
+  for (const address of addresses) {
+    const event = {
+      queryStringParameters: {
+          q: address,
+          'api-key': 'geolonia'
+      },
+      headers: {
+          'X-Access-Token': 'test'
+      }
+    }
+    // @ts-ignore
+    const lambdaResult = await handler(event)
+    // @ts-ignore
+    const body = JSON.parse(lambdaResult.body)
+    // @ts-ignore
+    expect(lambdaResult.statusCode).toEqual(200)
+  }
+})
+
 test('should return 400 with insufficient address.', async () => {
   // mock
   const dynamodb = require('./lib/dynamodb')
@@ -87,7 +160,7 @@ test('should return 400 with insufficient address.', async () => {
   dynamodb.store = async () => void 0
 
   const addresses = [
-    '兵庫県神戸市東灘区田中町1丁目'
+    '和歌山県東牟婁郡'
   ]
 
   for (const address of addresses) {
