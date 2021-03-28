@@ -167,3 +167,28 @@ test('should verify the address with 和歌山県東牟婁郡串本町鬮野川1
   const results = await verifyAddress(address)
   expect(results.body.features).toHaveLength(1)
 })
+
+test('should IPC responce of banchi_go is empty. test with 和歌山県東牟婁郡串本町田並1500', async () => {
+  const address ="和歌山県東牟婁郡串本町田並1500"
+  const results = await verifyAddress(address)
+  expect(results.body.features[0].properties.banchi_go).toStrictEqual("")
+})
+
+test('should IPC responce of city is not empty. test with 和歌山県東牟婁郡串本町', async () => {
+  const address ="和歌山県東牟婁郡串本町"
+  const results = await verifyAddress(address)
+  expect(results.body.features[0].city).toStrictEqual('東牟婁郡串本')
+})
+
+test('should IPC responce of area is not empty. test with 和歌山県東牟婁郡串本町鬮野川', async () => {
+  const address ="和歌山県東牟婁郡串本町鬮野川"
+  const results = await verifyAddress(address)
+  expect(results.body.features[0].area).toStrictEqual('鬮野川')
+})
+
+test('should IPC responce of area is not empty. test with 和歌山県東牟婁郡北山村大沼999', async () => {
+  const address ="和歌山県東牟婁郡北山村大沼999"
+  const results = await verifyAddress(address)
+  expect(results.body.features[0].area).toStrictEqual('大沼')
+})
+
