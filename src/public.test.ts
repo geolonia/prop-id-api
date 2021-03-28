@@ -149,7 +149,6 @@ test('should return 400 with insufficient address.', async () => {
       // @ts-ignore
       throw lambdaResult.statusCode
     } catch(e) {
-      // @ts-ignore
       expect(e).toEqual(400)
     }
   }
