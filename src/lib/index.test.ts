@@ -177,18 +177,18 @@ test('should IPC responce of banchi_go is empty. test with 和歌山県東牟婁
 test('should IPC responce of city is not empty. test with 和歌山県東牟婁郡串本町', async () => {
   const address ="和歌山県東牟婁郡串本町"
   const results = await verifyAddress(address)
-  expect(results.body.features[0].city).toStrictEqual('東牟婁郡串本')
+  expect(results.body.features[0].properties.city).toStrictEqual('東牟婁郡串本町')
 })
 
 test('should IPC responce of area is not empty. test with 和歌山県東牟婁郡串本町鬮野川', async () => {
   const address ="和歌山県東牟婁郡串本町鬮野川"
   const results = await verifyAddress(address)
-  expect(results.body.features[0].area).toStrictEqual('鬮野川')
+  expect(results.body.features[0].properties.area).toStrictEqual('鬮野川')
 })
 
 test('should IPC responce of area is not empty. test with 和歌山県東牟婁郡北山村大沼999', async () => {
   const address ="和歌山県東牟婁郡北山村大沼999"
   const results = await verifyAddress(address)
-  expect(results.body.features[0].area).toStrictEqual('大沼')
+  expect(results.body.features[0].properties.area).toStrictEqual('大沼')
 })
 
