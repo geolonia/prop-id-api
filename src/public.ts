@@ -1,4 +1,4 @@
-import { authenticate, EstateId, getEstateIdForAddress, store, StoreEstateIdReq, updateTimestamp } from './lib/dynamodb'
+import { authenticate, EstateId, getEstateIdForAddress, store, StoreEstateIdReq, updateTimestamp, checkServiceUsageQuota, incrementServiceUsage } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode, VerifyAddressResult } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
@@ -24,6 +24,7 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
   const apiKey = event.queryStringParameters ? event.queryStringParameters['api-key'] : undefined
   const accessToken = decapitalize(event.headers)['x-access-token']
   const ZOOM = parseInt(process.env.ZOOM, 10)
+  const quotaType: string = "id-req"
 
   if(!address) {
     return errorResponse(400, 'Missing querystring parameter `q`.')
@@ -47,8 +48,11 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
       return errorResponse(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.')
     }
 
-    // TODO: ここでクォータを確認する
-    // await checkServiceUsageQuota(apiKey, "id-req")
+    const checkServiceUsageQuotaResult = await checkServiceUsageQuota({ apiKey, quotaType })
+    if (!checkServiceUsageQuotaResult) {
+      return errorResponse(403, `Exceed requests limit.`)
+    }
+
     if (lastRequestAt) {
       const diff = Date.now() - lastRequestAt
       if (diff < 3000) {
@@ -56,8 +60,7 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
       }
     }
 
-    // TODO: ここで今月の使用回数を+1する
-    // await incrementServiceUsage(apiKey, "id-req")
+    await incrementServiceUsage({ apiKey, quotaType })
     await updateTimestamp(apiKey, Date.now())
   }
 

@@ -2,7 +2,7 @@ import AWS from 'aws-sdk'
 import { hashToken, hashTokenV2, hashXY, randomToken } from './index'
 
 const REDIRECT_MAX = 4
-const DB = process.env.TEST === "1" ? new AWS.DynamoDB.DocumentClient({ endpoint: "http://127.0.0.1:8000", region: "us-west-2" }) : new AWS.DynamoDB.DocumentClient()
+export const DB = process.env.TEST === "1" ? new AWS.DynamoDB.DocumentClient({ endpoint: "http://127.0.0.1:8000", region: "us-west-2" }) : new AWS.DynamoDB.DocumentClient()
 
 interface BaseEstateId {
   estateId: string
@@ -250,4 +250,98 @@ export const mergeEstateId = async (params: MergeEstateIdReq): Promise<MergeEsta
     error: false,
     mergedIds: await Promise.all(promises)
   }
+}
+
+export const updateRequestCount = async (apiKey:string, quotaType:string, requested: number) => {
+
+  const today = new Date()
+  const month = today.getMonth() + 1
+  const year = today.getFullYear()
+
+  const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
+    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME, // テーブル名指定
+    Key: { apiKey }, //アップデートするAPIキーを指定
+    UpdateExpression: 'set #lastRequestAt = :timestamp',
+    ExpressionAttributeNames: {
+      '#lastRequestAt': 'lastRequestAt',
+    },
+    ExpressionAttributeValues: {
+      ':timestamp': `USAGE#${apiKey}#${quotaType}#${year}${month}`
+    }
+  }
+  return await DB.update(updateItemInput).promise()
+}
+
+export interface _generateUsageQuotaKeyReq {
+  apiKey: string
+  quotaType: string
+}
+
+export const _generateUsageQuotaKey = (params: _generateUsageQuotaKeyReq) => {
+
+  const apiKey = params.apiKey
+  const quotaType = params.quotaType
+
+  const month = new Date().getMonth() + 1
+  const year = new Date().getFullYear()
+
+  return `USAGE#${apiKey}#${quotaType}#${year}${month}`
+
+}
+
+export interface checkServiceUsageQuotaReq {
+  apiKey: string
+  quotaType: string
+}
+
+export const checkServiceUsageQuota = async (params: checkServiceUsageQuotaReq): Promise<boolean> => {
+
+  const apiKey = params.apiKey
+  const quotaType = params.quotaType
+  const quotaLimits: { [key: string]: number } = {
+    "id-req": 10000
+  }
+  const usageKey = _generateUsageQuotaKey({apiKey,quotaType})
+
+  const getItemInput: AWS.DynamoDB.DocumentClient.GetItemInput = {
+    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
+    Key: { apiKey : usageKey },
+  }
+  const { Item: item } = await DB.get(getItemInput).promise()
+  if (undefined === item){ // Initial request
+    return true
+
+  } else if (item && (quotaType in quotaLimits) && (item.c < quotaLimits[quotaType])){
+    return true
+
+  } else {
+    console.log("over quota", params, item)
+    return false
+  }
+}
+
+export interface incrementServiceUsageReq {
+  apiKey: string
+  quotaType: string
+}
+
+export const incrementServiceUsage = async (params: incrementServiceUsageReq) => {
+
+  const apiKey = params.apiKey
+  const quotaType = params.quotaType
+  const usageKey = _generateUsageQuotaKey({apiKey,quotaType})
+
+  const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
+    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
+    Key: { apiKey : usageKey },
+    UpdateExpression: 'SET #c = if_not_exists(#c, :default) + :increment',
+    ExpressionAttributeNames: {
+      '#c': 'c',
+    },
+    ExpressionAttributeValues:{
+      ":default": 0,
+      ":increment": 1
+    }
+  }
+  await DB.update(updateItemInput).promise()
 }
