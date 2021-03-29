@@ -7,20 +7,27 @@ $ git clone git@github.com:geolonia/estate-id-api.git
 $ cd estate-id-api
 $ cp .envrc.sample .envrc
 $ vim .envrc # fill the values
-$ yarn # or `npm install`
-$ npm test
+$ yarn
 ```
+
+テストに DynamoDB Local を使用します。起動するために、
+
+```
+yarn start-local-dynamodb
+```
+
+を実行してください。
 
 ### start localserver
 
 ```shell
-$ npm start
+$ yarn start
 ```
 
 ### access the test tool locally
 
 ```
-$ npm start
+$ yarn start
 $ npx http-server -c-1 -p 8080 docs
 $ open http://127.0.0.1:8080/debug?url=http://127.0.0.1:3000/dev/demo
 ```
@@ -28,7 +35,7 @@ $ open http://127.0.0.1:8080/debug?url=http://127.0.0.1:3000/dev/demo
 ### update Snapshot tests
 
 ```shell
-$ npm test -- -u
+$ yarn test -- -u
 ```
 
 ## deploy
@@ -36,13 +43,13 @@ $ npm test -- -u
 ### Deploy CDN
 
 ```shell
-$ npm run deploy:cdn:dev
+$ yarn deploy:cdn:dev
 ```
 
 ### Deploy API
 
 ```shell
-$ npm run deploy:dev
+$ yarn deploy:dev
 ```
 
 ## Utilities

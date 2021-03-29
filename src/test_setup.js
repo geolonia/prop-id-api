@@ -1,10 +1,6 @@
 const AWS = require("aws-sdk")
 
 module.exports = async () => {
-  process.env.AWS_REGION = "us-west-2"
-  process.env.AWS_ACCESS_KEY_ID = "XXX"
-  process.env.AWS_SECRET_ACCESS_KEY = "XXX"
-
   process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME = "estate-id-api-key-local"
   process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME = "estate-id-local"
 

@@ -24,7 +24,7 @@
     "aws-sdk": "^2"
   },
   "scripts": {
-    "test": "ZOOM=22 TEST=1 AWS_PROFILE= jest --config jest.config.mjs",
+    "test": "ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest --config jest.config.mjs",
     "test:ipc": "jest ./src/__tests__/ipc.test.ts",
     "build": "rimraf ./dist && tsc",
     "start": "npm run build && sls offline",
