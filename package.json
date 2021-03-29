@@ -29,7 +29,8 @@
     "build": "rimraf ./dist && tsc",
     "start": "npm run build && sls offline",
     "deploy:dev": "npm run build && sls deploy --stage=dev",
-    "deploy:cdn:dev": "sls deploy -c serverless.cdn.yml --stage=dev"
+    "deploy:cdn:dev": "sls deploy -c serverless.cdn.yml --stage=dev",
+    "start-local-dynamodb": "docker run -d -p 8000:8000 --name local-dynamodb amazon/dynamodb-local -jar DynamoDBLocal.jar -port 8000"
   },
   "jest": {
     "preset": "ts-jest"

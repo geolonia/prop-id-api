@@ -1,4 +1,4 @@
-import { authenticate, EstateId, getEstateIdForAddress, issueSerial, store, StoreEstateIdReq, updateTimestamp } from './lib/dynamodb'
+import { authenticate, EstateId, getEstateIdForAddress, store, StoreEstateIdReq, updateTimestamp } from './lib/dynamodb'
 import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode, VerifyAddressResult } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'

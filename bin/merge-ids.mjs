@@ -1,29 +1,23 @@
-import AWS from "aws-sdk"
-
-const DB = new AWS.DynamoDB.DocumentClient()
+import { mergeEstateId } from "../dist/lib/dynamodb.js"
 
 export const main = async (stage = 'dev') => {
-
-  let [,,description] = process.argv
-  const apiKey = randomToken(20)
-  const accessToken = randomToken(32)
+  const [,,fromId,toId] = process.argv
 
   process.stderr.write(`Stage: ${stage}\n`)
-  process.stderr.write(`API key: ${apiKey}\n`)
-  process.stderr.write(`Access Token: ${accessToken}\n`)
-  process.stderr.write(`Description: ${description}\n`)
+  process.stderr.write(`Merge ID: ${fromId}\n`)
+  process.stderr.write(`Merge ID To: ${toId}\n`)
 
-  const docclient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
-  const putItemInput = {
-      TableName: `estate-id-api-key-${stage}`,
-      Item: {
-          apiKey,
-          accessToken: hashToken(accessToken),
-          description: description
-      }
+  const resp = await mergeEstateId({
+    from: [fromId],
+    to: toId,
+  })
+
+  if (resp.error) {
+    process.stderr.write(`Error: ${resp.errorType}\n`)
+    process.exit(1)
   }
 
-  await docclient.put(putItemInput).promise()
+  process.stderr.write(`Done!\n`)
 }
 
 main()
