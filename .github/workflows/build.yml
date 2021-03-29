@@ -25,6 +25,11 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 14
+    - name: Start DynamoDB
+      uses: rrainn/dynamodb-action@v2.0.0
+      with:
+        port: 8000
+        cors: '*'
     - run: yarn
     - run: yarn build
     - run: yarn test

@@ -117,8 +117,5 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Use yarn
-package-lock.json
-
 # secrets
 .envrc

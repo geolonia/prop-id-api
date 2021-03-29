@@ -17,18 +17,20 @@
     "serverless": "^2.19.0",
     "serverless-offline": "^6.8.0",
     "ts-jest": "^26.4.4",
+    "ts-node": "^9.1.1",
     "typescript": "^4.1.3"
   },
   "peerDependencies": {
     "aws-sdk": "^2"
   },
   "scripts": {
-    "test": "ZOOM=22 jest",
+    "test": "ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest --config jest.config.mjs",
     "test:ipc": "jest ./src/__tests__/ipc.test.ts",
     "build": "rimraf ./dist && tsc",
     "start": "npm run build && sls offline",
     "deploy:dev": "npm run build && sls deploy --stage=dev",
-    "deploy:cdn:dev": "sls deploy -c serverless.cdn.yml --stage=dev"
+    "deploy:cdn:dev": "sls deploy -c serverless.cdn.yml --stage=dev",
+    "start-local-dynamodb": "docker run -d -p 8000:8000 --name local-dynamodb amazon/dynamodb-local -jar DynamoDBLocal.jar -port 8000"
   },
   "jest": {
     "preset": "ts-jest"
