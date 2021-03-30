@@ -13,9 +13,9 @@ export const errorResponse = (statusCode: number, message: string, ...variables:
   }
 }
 
-export const json = (body: object) => {
+export const json = (body: object, statusCode: number = 200) => {
   return {
-    statusCode: 200,
+    statusCode,
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Headers': 'x-access-token',

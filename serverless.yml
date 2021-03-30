@@ -157,9 +157,27 @@ functions:
           path: '/'
           method: get
 
+  idQuery:
+    handler: dist/idQuery.handler
+    events:
+      - http:
+          path: '/{estateId}'
+          method: get
+          request:
+            parameters:
+              paths:
+                estateId: true
+
   demo:
     handler: dist/demo.handler
     events:
       - http:
           path: '/demo'
           method: get
+      - http:
+          path: '/demo/{estateId}'
+          method: get
+          request:
+            parameters:
+              paths:
+                estateId: true
