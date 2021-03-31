@@ -68,7 +68,7 @@ export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: st
   }
 
   // 3000ms "too frequent request" 制限は解除中
-  // https://github.com/geolonia/estate-id-api/issues/93
+  // https://github.com/geolonia/prop-id-api/issues/93
   // if (lastRequestAt) {
   //   const diff = Date.now() - lastRequestAt
   //   if (diff < 3000) {
