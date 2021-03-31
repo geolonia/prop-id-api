@@ -35,6 +35,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   let prenormalizedAddress: NormalizeResult
   try {
     prenormalizedAddress = await normalize(address)
+
   } catch (error) {
     Sentry.captureException(error)
     console.error({ error })
@@ -55,7 +56,8 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     })
   }
 
-  const ipcResult = await incrementPGeocode(`${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`)
+  const normalizedAddressNJA = `${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`
+  const ipcResult = await incrementPGeocode(normalizedAddressNJA)
   if (!ipcResult) {
     return errorResponse(500, 'Internal server error')
   }
@@ -85,7 +87,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(400, "The address '%s' is not verified sufficiently.", address)
   }
 
-  const normalizedAddress = feature.properties.place_name
   const [lng, lat] = feature.geometry.coordinates as [number, number]
   const prefCode = getPrefCode(feature.properties.pref)
   const { x, y } = coord2XY([lat, lng], ZOOM)
@@ -98,11 +99,11 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   const addressObject = {
     ja: {
-      prefecture: feature.properties.pref,
-      city: feature.properties.city,
-      address1: feature.properties.area + feature.properties.koaza_chome,
-      address2: feature.properties.banchi_go,
-      other: normalizedBuidling ? feature.properties.building + feature.properties.building_number + normalizedBuidling : feature.properties.building + feature.properties.building_number
+      prefecture: prenormalizedAddress.pref,
+      city: prenormalizedAddress.city,
+      address1: prenormalizedAddress.town,
+      address2: prenormalizedAddress.addr,
+      other: normalizedBuidling ? normalizedBuidling : ""
     },
   }
   const location = {
@@ -112,8 +113,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   let estateId: EstateId
   try {
-    // TODO: Change to prenormalizedAddress
-    const existingEstateId = await getEstateIdForAddress(normalizedAddress, normalizedBuidling)
+    const existingEstateId = await getEstateIdForAddress(normalizedAddressNJA, normalizedBuidling)
     if (existingEstateId) {
       estateId = existingEstateId
     } else {
@@ -122,7 +122,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
         zoom: ZOOM,
         tileXY: `${x}/${y}`,
         rawAddress: address,
-        address: normalizedAddress,
+        address: normalizedAddressNJA,
         prefCode,
       }
       if (building) {
@@ -130,6 +130,11 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
         storeParams.building = normalizedBuidling
       }
       estateId = await store(storeParams)
+
+      await createLog(`normLogsNJA`, {
+        input: address,
+        normalized: JSON.stringify(prenormalizedAddress),
+      })
     }
   } catch (error) {
     console.error({ ZOOM, addressObject, apiKey, error })
