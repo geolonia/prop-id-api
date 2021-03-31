@@ -1,7 +1,7 @@
 import { APIGatewayProxyResult } from 'aws-lambda'
 import * as dynamodb from './lib/dynamodb'
 import { _updateServiceUsageQuota, _getServiceUsageQuotaItem } from './lib/dynamodb.test'
-import { rawHandler as handler } from './public'
+import { _handler as handler } from './public'
 
 test('should specify the ZOOM environmental variable.', () => {
     const ZOOM = parseInt(process.env.ZOOM, 10)

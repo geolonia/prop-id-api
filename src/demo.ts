@@ -1,4 +1,5 @@
-import { rawHandler as publicHandler, PublicHandlerEvent } from './public'
+import { _handler as publicHandler } from './public'
+import { _handler as idQueryHandler } from './idQuery'
 import { decapitalize } from './lib/index'
 import { errorResponse } from './lib/proxy-response'
 import Sentry from './lib/sentry'
@@ -10,7 +11,7 @@ const refererHeads = [
   'https://geolonia.github.io',
 ]
 
-const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event, context, callback) => {
+const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event, context, callback) => {
   const headers = decapitalize(event.headers);
   const { referer, origin } = headers;
   const allowedReferer = referer && refererHeads.some(refererHead => referer.indexOf(refererHead) === 0)
@@ -22,12 +23,22 @@ const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (ev
 
   event.isDebugMode = event.queryStringParameters?.debug === 'true'
   event.isDemoMode = true
-  const arguedProxyResult = await publicHandler(
+
+  let proxyHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> | undefined = undefined
+  if (event.resource === "/demo") {
+    proxyHandler = publicHandler
+  } else if (event.resource === "/demo/{estateId}") {
+    proxyHandler = idQueryHandler
+  }
+
+  if (!proxyHandler) {
+    return errorResponse(404, 'Not found')
+  }
+
+  const arguedProxyResult = await proxyHandler(
     event,
     context,
     callback,
-    // true, // demo mode
-    // event.queryStringParameters?.debug === 'true' // debug mode
   ) as APIGatewayProxyResult
 
   const proxyResult = {
@@ -40,4 +51,4 @@ const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (ev
   return proxyResult
 }
 
-export const handler = Sentry.AWSLambda.wrapHandler(rawHandler)
+export const handler = Sentry.AWSLambda.wrapHandler(_handler)

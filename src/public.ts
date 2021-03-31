@@ -1,69 +1,25 @@
-import { authenticate, EstateId, getEstateIdForAddress, store, StoreEstateIdReq, updateTimestamp, checkServiceUsageQuota, incrementServiceUsage } from './lib/dynamodb'
-import { decapitalize, verifyAddress, coord2XY, hashXY, getPrefCode, VerifyAddressResult } from './lib/index'
+import { EstateId, getEstateIdForAddress, store } from './lib/dynamodb'
+import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult, incrementPGeocode } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
-// @ts-ignore
-import { normalize } from '@geolonia/normalize-japanese-addresses'
-import { APIGatewayProxyEvent, Handler, APIGatewayProxyResult } from 'aws-lambda'
+import { normalize, NormalizeResult } from '@geolonia/normalize-japanese-addresses'
+import { Handler, APIGatewayProxyResult } from 'aws-lambda'
+import { authenticateEvent, extractApiKey } from './lib/authentication'
 
-export interface PublicHandlerEvent extends APIGatewayProxyEvent {
-  isDemoMode?: boolean
-  isDebugMode?: boolean
-}
-
-export interface NormalizeResult {
-  pref: string
-  city: string
-  town: string
-  addr: string
-}
-
-export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
-
+export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const address = event.queryStringParameters?.q
-  const apiKey = event.queryStringParameters ? event.queryStringParameters['api-key'] : undefined
-  const accessToken = decapitalize(event.headers)['x-access-token']
   const ZOOM = parseInt(process.env.ZOOM, 10)
   const quotaType: string = "id-req"
+
+  const { apiKey } = extractApiKey(event)
+  const authenticationResult = await authenticateEvent(event, quotaType)
+  if (authenticationResult !== true) {
+    return authenticationResult
+  }
 
   if(!address) {
     return errorResponse(400, 'Missing querystring parameter `q`.')
   }
-
-  if (!event.isDemoMode) {
-    // authentication is skipped when in demo mode
-    if (!apiKey || !accessToken) {
-      return errorResponse(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.')
-    }
-    const authenticateResult = await authenticate(apiKey, accessToken)
-    if (!authenticateResult) {
-      return errorResponse(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.')
-    }
-
-    // Todo?: [Alfa feature] Authenticate even if q['api-key'] not specified
-
-    const { authenticated, lastRequestAt } = authenticateResult
-
-    if (!authenticated) {
-      return errorResponse(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.')
-    }
-
-    const checkServiceUsageQuotaResult = await checkServiceUsageQuota({ apiKey, quotaType })
-    if (!checkServiceUsageQuotaResult) {
-      return errorResponse(403, `Exceed requests limit.`)
-    }
-
-    if (lastRequestAt) {
-      const diff = Date.now() - lastRequestAt
-      if (diff < 3000) {
-        return errorResponse(429, 'Please request after a few second.')
-      }
-    }
-
-    await incrementServiceUsage({ apiKey, quotaType })
-    await updateTimestamp(apiKey, Date.now())
-  }
-
 
   // Internal normalization
   let prenormalizedAddress: NormalizeResult
@@ -75,30 +31,15 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
     return errorResponse(400, `address ${address} can not be normalized.`)
   }
 
-
-  // Request Increment P Address Verification API
-  let verifiedResult: VerifyAddressResult
-  try {
-    verifiedResult = await verifyAddress(`${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`)
-  } catch (error) {
-    Sentry.captureException(error)
-    console.error({ error })
-    console.error('[FATAL] API or Network Down Detected.')
-    return errorResponse(500, 'Internal Server Error.')
+  const ipcResult = await incrementPGeocode(`${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`)
+  if (!ipcResult) {
+    return errorResponse(500, 'Internal server error')
   }
 
-  // API key for Increment P should valid.
-  if(!verifiedResult.ok) {
-    if(verifiedResult.status === 403) {
-      console.error('[FATAL] API Authentication failed.')
-    } else {
-      console.error('[FATAL] Unknown status code detected.')
-    }
-    Sentry.captureException(new Error(`error from Increment P: ${JSON.stringify(verifiedResult)}`))
-    return errorResponse(500, 'Internal Server Error.')
-  }
-
-  const feature = verifiedResult.body.features[0]
+  const {
+    feature,
+    cacheHit
+  } = ipcResult
 
   // Features not found
   if (!feature || feature.geometry === null) {
@@ -154,6 +95,8 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
   } catch (error) {
     console.error({ ZOOM, addressObject, apiKey, error })
     console.error('[FATAL] Something happend with DynamoDB connection.')
+    Sentry.captureException(error)
+    return errorResponse(500, 'Internal Server Error.')
   }
 
   const ID = estateId!.estateId
@@ -171,7 +114,7 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
     return json({
       internallyNormalized: prenormalizedAddress,
       externallyNormalized: feature,
-      cacheHit: verifiedResult.headers.get('X-Cache') === 'Hit from cloudfront',
+      cacheHit,
       tileInfo: { xy: `${x}/${y}`, serial: estateId!.serial, ZOOM },
       apiResponse: [ body ]
     })
@@ -180,4 +123,4 @@ export const rawHandler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = as
   }
 }
 
-export const handler = Sentry.AWSLambda.wrapHandler(rawHandler)
+export const handler = Sentry.AWSLambda.wrapHandler(_handler)

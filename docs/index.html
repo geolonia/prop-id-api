@@ -30,7 +30,22 @@
       ></div>
 
       <div>
-        <textarea id="result" class="form-control"></textarea>
+        <pre id="result" class="pre-scrollable"></pre>
+      </div>
+
+      <hr>
+
+      <h3>IDの逆引き</h3>
+      <form id="idLookupForm">
+        <div class="form-group">
+            <label for="idLookup" class="help-block" style="display: block;">IDを入力してください。</label>
+            <input id="idLookup" type="text" class="form-control" placeholder="">
+            <button type="submit" class="btn btn-primary" style="margin-top: 0.5em">不動産IDを逆引きする</button>
+          </div>
+      </form>
+
+      <div>
+        <pre id="idLookupResult" class="pre-scrollable"></pre>
       </div>
 
       <div class="footer">
@@ -45,8 +60,29 @@
       main({ debug: false }, (result) => {
         if(result) {
           const content = JSON.stringify(result, null, 2)
-          resultTextArea.value = content
+          resultTextArea.innerText = content
         }
+      })
+
+      const idLookupForm = document.getElementById('idLookupForm')
+      idLookupForm.addEventListener("submit", function(e) {
+        e.preventDefault()
+        let endpoint = "https://api.propid.jp/dev/demo/" + document.getElementById('idLookup').value
+        // let endpoint = "http://localhost:3000/dev/demo/" + document.getElementById('idLookup').value
+        fetch(endpoint)
+          .then((res) => {
+            if (!res.ok && res.status === 404) {
+              document.getElementById('idLookupResult').innerText = "指定したIDは見つかりませんでした"
+              throw new Error("error")
+            } else if (!res.ok) {
+              console.error(res)
+              throw new Error("error")
+            }
+            return res.json()
+          })
+          .then((res) => {
+            document.getElementById('idLookupResult').innerText = JSON.stringify(res, null, 2)
+          })
       })
     </script>
 
