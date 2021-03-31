@@ -7,6 +7,7 @@ import { normalize, NormalizeResult } from '@geolonia/normalize-japanese-address
 import { Handler, APIGatewayProxyResult } from 'aws-lambda'
 import { authenticateEvent, extractApiKey } from './lib/authentication'
 import { createLog } from './lib/dynamodb_logs'
+import { ipcNormalizationErrorReport } from './outerApiErrorReport'
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   "prefecture_not_recognized",
@@ -65,8 +66,12 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   const normalizedAddressNJA = `${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`
   const ipcResult = await incrementPGeocode(normalizedAddressNJA)
+
   if (!ipcResult) {
     Sentry.captureException(new Error(`IPC result null`))
+    await ipcNormalizationErrorReport('normFailNoIPCGeomNull', {
+      input: normalizedAddressNJA
+    })
     return errorResponse(500, 'Internal server error')
   }
 
@@ -78,11 +83,17 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   // Features not found
   if (!feature || feature.geometry === null) {
     Sentry.captureException(new Error(`The address '${address}' is not verified.`))
-    await createLog('normFailNoIPCGeom', {
-      input: address,
-      prenormalized: normalizedAddressNJA,
-      ipcResult: JSON.stringify(ipcResult),
-    })
+
+    await Promise.all([
+      createLog('normFailNoIPCGeom', {
+        input: address,
+        prenormalized: normalizedAddressNJA,
+        ipcResult: JSON.stringify(ipcResult),
+      }),
+      ipcNormalizationErrorReport('normFailNoIPCGeom', {
+        prenormalized: normalizedAddressNJA
+      }),
+    ])
 
     return json({
       error: true,
@@ -95,6 +106,13 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   const { geocoding_level } = feature.properties
   const prefCode = getPrefCode(feature.properties.pref)
   const { x, y } = coord2XY([lat, lng], ZOOM)
+
+  if (geocoding_level <= 4 ) {
+    await ipcNormalizationErrorReport('normLogsIPCGeom', {
+      prenormalized: normalizedAddressNJA,
+      geocoding_level:geocoding_level
+    })
+  }
 
   if (!prefCode) {
     console.log(`[FATAL] Invalid \`properties.pref\` response from API: '${feature.properties.pref}'.`)
