@@ -1,4 +1,4 @@
-import { hashXY, coord2XY, verifyAddress } from './index'
+import { hashXY, coord2XY, verifyAddress, normalizeBuilding, zen2hanAscii, han2zenKana, yokobo2zenchoonSymbol  } from './index'
 
 test('Should hash tile index as xxxx-xxxx-xxxx-xxxx', () => {
     const indexX = 1234567
@@ -192,3 +192,20 @@ test('should IPC responce of area is not empty. test with 和歌山県東牟婁�
   expect(results.body.features[0].properties.area).toStrictEqual('大沼')
 })
 
+test('Should replace 全角Ascii to 半角Ascii', () => {
+  const ascii = '！ ＂ ＃ ＄ ％ ＆ ＇ （ ） ＊ ＋ ， － ． ／ ： ； ＜ ＝ ＞ ？ ＠ ［ ＼ ］ ＾ ＿ ｀ ｛ ｜ ｝　'
+  const normalized = zen2hanAscii(ascii)
+  expect(normalized).toStrictEqual('! \" # $ % & \' ( ) * + , - . / : ; < = > ? @ [ \\ ] ^ _ ` { | } ')
+})
+
+test('Should replace 半角カナ to 全角カナ', () => {
+  const hanKana = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝｳﾞｶﾞｷﾞｸﾞｹﾞｺﾞｻﾞｼﾞｽﾞｾﾞｿﾞﾀﾞﾁﾞﾂﾞﾃﾞﾄﾞﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞﾊﾟﾋﾟﾌﾟﾍﾟﾎﾟｧｨｩｪｫｬｭｮｯｰﾞﾟ､｡･｢｣'
+  const normalized = han2zenKana(hanKana)
+  expect(normalized).toStrictEqual('アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンヴガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポァィゥェォャュョッー゛゜、。・「」')
+})
+
+test('Should replace 横棒 to 長音記号', () => {
+  const yokobo = '-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━'
+  const normalized = yokobo2zenchoonSymbol(yokobo)
+  expect(normalized).toStrictEqual('ーーーーーーーーーーーーーーーーーー')
+})

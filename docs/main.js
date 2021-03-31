@@ -6,25 +6,31 @@ const main = ({ debug }, callback) => {
   let endpoint = "https://api.propid.jp/dev/demo/"
 
   const addressInput = document.getElementById('address')
+  const buildingInput = document.getElementById('building')
   const button = document.getElementById('button')
   const notFound = document.getElementById('not-found')
 
+  const inputs = [ addressInput, buildingInput ]
   const showNotFound = (display) => notFound.style.display = display ? 'block' : 'none'
 
-  // No submit with Enter
-  addressInput.addEventListener('keypress', (e) => {
-    if(e.keyCode === 13) {
-      e.preventDefault()
-      button.click()
-    }
-  })
+  inputs.forEach( input => {
+    // No submit with Enter
+    input.addEventListener('keypress', (e) => {
+      if(e.keyCode === 13) {
+        e.preventDefault()
+        button.click()
+      }
+    })
 
-  addressInput.addEventListener('change', (e) => {
-    showNotFound(false)
+    input.addEventListener('change', (e) => {
+      showNotFound(false)
+    })
   })
 
   if (location.hash.length) {
-    addressInput.value = decodeURI(location.hash.slice(1));
+    const hashParams = decodeURI(location.hash).slice(1).split('&')
+    addressInput.value = hashParams[0]
+    buildingInput.value = hashParams[1]
   }
 
   // inject another endpoint
@@ -35,9 +41,10 @@ const main = ({ debug }, callback) => {
 
   button.addEventListener('click', () => {
     const address = addressInput.value
-    const url = `${endpoint}?q=${address}&debug=${debug}`
+    const building = buildingInput.value
+    const url = `${endpoint}?q=${address}&building=${building}&debug=${debug}`
 
-    location.hash = encodeURI(address)
+    location.hash = encodeURI(`${address}&${building}`)
 
     fetch(url)
     .then(res => {

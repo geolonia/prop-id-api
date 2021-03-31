@@ -1,5 +1,5 @@
 import { EstateId, getEstateIdForAddress, store } from './lib/dynamodb'
-import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult, incrementPGeocode } from './lib/index'
+import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult, incrementPGeocode, normalizeBuilding } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
 import { normalize, NormalizeResult } from '@geolonia/normalize-japanese-addresses'
@@ -8,8 +8,9 @@ import { authenticateEvent, extractApiKey } from './lib/authentication'
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const address = event.queryStringParameters?.q
+  const building = event.queryStringParameters && event.queryStringParameters['building'] ? event.queryStringParameters['building'] : null
   const ZOOM = parseInt(process.env.ZOOM, 10)
-  const quotaType: string = "id-req"
+  const quotaType = "id-req"
 
   const { apiKey } = extractApiKey(event)
   const authenticationResult = await authenticateEvent(event, quotaType)
@@ -21,6 +22,14 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(400, 'Missing querystring parameter `q`.')
   }
 
+  Sentry.setContext("query", {
+    address,
+    debug: event.isDebugMode,
+  })
+  Sentry.setUser({
+    id: event.isDemoMode ? "demo" : apiKey
+  })
+
   // Internal normalization
   let prenormalizedAddress: NormalizeResult
   try {
@@ -30,6 +39,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     console.error({ error })
     return errorResponse(400, `address ${address} can not be normalized.`)
   }
+  const normalizedBuidling = normalizeBuilding(building)
 
   const ipcResult = await incrementPGeocode(`${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`)
   if (!ipcResult) {
@@ -70,7 +80,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       city: feature.properties.city,
       address1: feature.properties.area + feature.properties.koaza_chome,
       address2: feature.properties.banchi_go,
-      other: feature.properties.building + feature.properties.building_number
+      other: normalizedBuidling ? feature.properties.building + feature.properties.building_number + normalizedBuidling : feature.properties.building + feature.properties.building_number
     },
   }
   const location = {
@@ -81,14 +91,17 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   let estateId: EstateId
   try {
     // TODO: Change to prenormalizedAddress
-    const existingEstateId = await getEstateIdForAddress(normalizedAddress)
+    const existingEstateId = await getEstateIdForAddress(normalizedAddress, normalizedBuidling)
     if (existingEstateId) {
       estateId = existingEstateId
     } else {
       estateId = await store({
         zoom: ZOOM,
         tileXY: `${x}/${y}`,
+        rawAddress: address,
         address: normalizedAddress,
+        rawBuilding: building,
+        building: normalizedBuidling,
         prefCode,
       })
     }

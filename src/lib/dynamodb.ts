@@ -85,14 +85,15 @@ export const updateTimestamp = async (apiKey:string, timestamp: number) => {
   return await DB.update(updateItemInput).promise()
 }
 
-export const getEstateIdForAddress = async (address: string): Promise<BaseEstateId | null> => {
+export const getEstateIdForAddress = async (address: string, building?: string | null ): Promise<BaseEstateId | null> => {
   const queryInputForExactMatch: AWS.DynamoDB.DocumentClient.QueryInput = {
     TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
     IndexName: 'address-index',
     Limit: 1,
-    ExpressionAttributeNames: { '#a': 'address' },
-    ExpressionAttributeValues: { ':a': address },
+    ExpressionAttributeNames: { '#a': 'address', '#b': 'building'  },
+    ExpressionAttributeValues: { ':a': address, ':b': building, ':null': null },
     KeyConditionExpression: '#a = :a',
+    FilterExpression: '#b = :b OR ((:b = :null) AND attribute_not_exists(#b))'
   }
   const { Items: exactMatchItems = [] } = await DB.query(queryInputForExactMatch).promise()
 
@@ -137,7 +138,10 @@ export const getEstateId = async (id: string, redirectCount: number = 0): Promis
 const _generateSerial = () => Math.floor(Math.random() * 999_999_999)
 
 export interface StoreEstateIdReq {
+  rawAddress: string
   address: string
+  rawBuilding?: string | null
+  building?: string | null
   tileXY: string
   zoom: number
   prefCode: string
