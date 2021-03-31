@@ -252,49 +252,25 @@ export const mergeEstateId = async (params: MergeEstateIdReq): Promise<MergeEsta
   }
 }
 
-export const updateRequestCount = async (apiKey:string, quotaType:string, requested: number) => {
-
-  const today = new Date()
-  const month = today.getMonth() + 1
-  const year = today.getFullYear()
-
-  const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
-    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME, // テーブル名指定
-    Key: { apiKey }, //アップデートするAPIキーを指定
-    UpdateExpression: 'set #lastRequestAt = :timestamp',
-    ExpressionAttributeNames: {
-      '#lastRequestAt': 'lastRequestAt',
-    },
-    ExpressionAttributeValues: {
-      ':timestamp': `USAGE#${apiKey}#${quotaType}#${year}${month}`
-    }
-  }
-  return await DB.update(updateItemInput).promise()
-}
-
-export interface _generateUsageQuotaKeyReq {
+export interface UsageQuotaParams {
   apiKey: string
   quotaType: string
 }
 
-export const _generateUsageQuotaKey = (params: _generateUsageQuotaKeyReq) => {
+export const _generateUsageQuotaKey = (params: UsageQuotaParams) => {
 
   const apiKey = params.apiKey
   const quotaType = params.quotaType
 
-  const month = new Date().getMonth() + 1
-  const year = new Date().getFullYear()
+  const now = new Date()
+  const month = `${now.getMonth() + 1}`.padStart(2, "0")
+  const year = now.getFullYear()
 
   return `USAGE#${apiKey}#${quotaType}#${year}${month}`
 
 }
 
-export interface checkServiceUsageQuotaReq {
-  apiKey: string
-  quotaType: string
-}
-
-export const checkServiceUsageQuota = async (params: checkServiceUsageQuotaReq): Promise<boolean> => {
+export const checkServiceUsageQuota = async (params: UsageQuotaParams): Promise<boolean> => {
 
   const apiKey = params.apiKey
   const quotaType = params.quotaType
@@ -315,17 +291,16 @@ export const checkServiceUsageQuota = async (params: checkServiceUsageQuotaReq):
     return true
 
   } else {
-    console.log("over quota", params, item)
     return false
   }
 }
 
-export interface incrementServiceUsageReq {
+export interface IncrementServiceUsageReq {
   apiKey: string
   quotaType: string
 }
 
-export const incrementServiceUsage = async (params: incrementServiceUsageReq) => {
+export const incrementServiceUsage = async (params: IncrementServiceUsageReq) => {
 
   const apiKey = params.apiKey
   const quotaType = params.quotaType
