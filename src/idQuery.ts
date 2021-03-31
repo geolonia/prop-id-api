@@ -1,4 +1,5 @@
 import { Handler, APIGatewayProxyResult } from 'aws-lambda'
+import { incrementPGeocode } from './lib'
 import { extractApiKey, authenticateEvent } from './lib/authentication'
 import { getEstateId } from './lib/dynamodb'
 import { errorResponse, json } from './lib/proxy-response'
@@ -26,10 +27,27 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     }, 404)
   }
 
+  const ipcResult = await incrementPGeocode(estateIdObj.address)
+  if (!ipcResult) {
+    return errorResponse(500, 'Internal server error')
+  }
+
+  const {
+    feature,
+  } = ipcResult
+
+  const [lng, lat] = feature.geometry.coordinates as [number, number]
+
+  const location = {
+    lat: lat.toString(),
+    lng: lng.toString()
+  }
+
   return json([
     {
       ID: estateIdObj.estateId,
       address: estateIdObj.address,
+      location,
     }
   ])
 }

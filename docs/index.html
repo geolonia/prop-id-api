@@ -67,8 +67,8 @@
       const idLookupForm = document.getElementById('idLookupForm')
       idLookupForm.addEventListener("submit", function(e) {
         e.preventDefault()
-        // let endpoint = "https://d2cs0t9ef9cmd3.cloudfront.net/dev/demo/" + document.getElementById('idLookup').value
-        let endpoint = "http://localhost:3000/dev/demo/" + document.getElementById('idLookup').value
+        let endpoint = "https://d2cs0t9ef9cmd3.cloudfront.net/dev/demo/" + document.getElementById('idLookup').value
+        // let endpoint = "http://localhost:3000/dev/demo/" + document.getElementById('idLookup').value
         fetch(endpoint)
           .then((res) => {
             if (!res.ok && res.status === 404) {

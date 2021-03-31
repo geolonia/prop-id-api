@@ -3,6 +3,7 @@ import fetch from 'node-fetch'
 import * as crypto from 'crypto'
 import { promisify } from 'util'
 import prefs from './prefs.json'
+import Sentry from './sentry'
 
 const scrypt = promisify(crypto.scrypt)
 
@@ -40,6 +41,42 @@ export const verifyAddress: (addressListString: string) => Promise<VerifyAddress
   const res = await fetch(url, { headers })
   const body = await res.json()
   return ({ body, status: res.status, ok: res.ok, headers: res.headers })
+}
+
+export type IncrementPGeocodeResult = {
+  feature: any
+  cacheHit: boolean
+}
+
+export const incrementPGeocode: (address: string) => Promise<IncrementPGeocodeResult | false> = async (address) => {
+  // Request Increment P Address Verification API
+  let verifiedResult: VerifyAddressResult
+  try {
+    verifiedResult = await verifyAddress(address)
+  } catch (error) {
+    Sentry.captureException(error)
+    console.error({ error })
+    console.error('[FATAL] API or Network Down Detected.')
+    return false
+  }
+
+  // API key for Increment P should valid.
+  if(!verifiedResult.ok) {
+    if(verifiedResult.status === 403) {
+      console.error('[FATAL] API Authentication failed.')
+    } else {
+      console.error('[FATAL] Unknown status code detected.')
+    }
+    Sentry.captureException(new Error(`error from Increment P: ${JSON.stringify(verifiedResult)}`))
+    return false
+  }
+
+  const feature = verifiedResult.body.features[0]
+
+  return {
+    feature,
+    cacheHit: verifiedResult.headers.get('X-Cache') === 'Hit from cloudfront'
+  }
 }
 
 export const getPrefCode = (prefName: string): string | null => {

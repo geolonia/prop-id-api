@@ -1,5 +1,5 @@
 import { EstateId, getEstateIdForAddress, store } from './lib/dynamodb'
-import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult } from './lib/index'
+import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult, incrementPGeocode } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
 import { normalize, NormalizeResult } from '@geolonia/normalize-japanese-addresses'
@@ -31,29 +31,15 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(400, `address ${address} can not be normalized.`)
   }
 
-  // Request Increment P Address Verification API
-  let verifiedResult: VerifyAddressResult
-  try {
-    verifiedResult = await verifyAddress(`${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`)
-  } catch (error) {
-    Sentry.captureException(error)
-    console.error({ error })
-    console.error('[FATAL] API or Network Down Detected.')
-    return errorResponse(500, 'Internal Server Error.')
+  const ipcResult = await incrementPGeocode(`${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`)
+  if (!ipcResult) {
+    return errorResponse(500, 'Internal server error')
   }
 
-  // API key for Increment P should valid.
-  if(!verifiedResult.ok) {
-    if(verifiedResult.status === 403) {
-      console.error('[FATAL] API Authentication failed.')
-    } else {
-      console.error('[FATAL] Unknown status code detected.')
-    }
-    Sentry.captureException(new Error(`error from Increment P: ${JSON.stringify(verifiedResult)}`))
-    return errorResponse(500, 'Internal Server Error.')
-  }
-
-  const feature = verifiedResult.body.features[0]
+  const {
+    feature,
+    cacheHit
+  } = ipcResult
 
   // Features not found
   if (!feature || feature.geometry === null) {
@@ -128,7 +114,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return json({
       internallyNormalized: prenormalizedAddress,
       externallyNormalized: feature,
-      cacheHit: verifiedResult.headers.get('X-Cache') === 'Hit from cloudfront',
+      cacheHit,
       tileInfo: { xy: `${x}/${y}`, serial: estateId!.serial, ZOOM },
       apiResponse: [ body ]
     })
