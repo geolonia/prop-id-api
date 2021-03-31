@@ -3,7 +3,7 @@ const main = ({ debug }, callback) => {
   const map = new geolonia.Map('#map')
   const marker = new geolonia.Marker()
 
-  let endpoint = "https://d2cs0t9ef9cmd3.cloudfront.net/dev/demo/"
+  let endpoint = "https://api.propid.jp/dev/demo/"
 
   const addressInput = document.getElementById('address')
   const button = document.getElementById('button')
