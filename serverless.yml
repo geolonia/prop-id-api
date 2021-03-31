@@ -26,7 +26,7 @@ provider:
     # Internal Stack Refs
     AWS_DYNAMODB_API_KEY_TABLE_NAME: ${self:custom.awsDynamodbApiKeyTableName}
     AWS_DYNAMODB_ESTATE_ID_TABLE_NAME: ${self:custom.awsDynamodbEstateIdTableName}
-    AWS_DYNAMODB_LOG_TABLE_NAME: !Ref logTable
+    AWS_DYNAMODB_LOG_TABLE_NAME: ${self:custom.${self:provider.stage}.AWS_DYNAMODB_LOG_TABLE_NAME}
 
     AUTH0_CLIENT_ID: ${self:custom.${self:provider.stage}.AUTH0_CLIENT_ID}
     AUTH0_DOMAIN: ${self:custom.${self:provider.stage}.AUTH0_DOMAIN}
@@ -94,15 +94,18 @@ custom:
   local:
     AUTH0_CLIENT_ID: "Odt4Kq2h7HTJsbkzhVrY4Rm7QLhMkFLH"
     AUTH0_DOMAIN: "prop-id-dev.jp.auth0.com"
+    AWS_DYNAMODB_LOG_TABLE_NAME: estate-id-log-local
   dev:
     AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_DEV, ''}
     AUTH0_DOMAIN: "prop-id-dev.jp.auth0.com"
     admin_origins: "http://localhost:*,https://*-g-prop-id-app.netlify.app"
+    AWS_DYNAMODB_LOG_TABLE_NAME: !Ref logTable
   v1:
     AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_V1, ''}
     AUTH0_DOMAIN: "auth.propid.jp"
     AUTH0_MGMT_DOMAIN: "prop-id.jp.auth0.com"
     admin_origins: "https://app.propid.jp"
+    AWS_DYNAMODB_LOG_TABLE_NAME: !Ref logTable
 
 package:
   patterns:
