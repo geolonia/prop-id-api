@@ -1,5 +1,6 @@
 import { APIGatewayProxyResult } from 'aws-lambda'
 import * as dynamodb from './lib/dynamodb'
+import { _updateServiceUsageQuota, _getServiceUsageQuotaItem } from './lib/dynamodb.test'
 import { rawHandler as handler } from './public'
 
 test('should specify the ZOOM environmental variable.', () => {
@@ -161,6 +162,47 @@ test('should return 403 if not authenticated.', async () => {
   const { message } = JSON.parse(body)
   expect(statusCode).toEqual(403)
   expect(message).toEqual('Incorrect querystring parameter `api-key` or `x-access-token` header value.')
+})
+
+test('should return 403 if request exceeds request limit, or  200 if request dose not exceeds request limit, ', async () => {
+
+  const testCases = [
+    { requested: 10000, status: 403},
+    { requested: 9999, status: 200}
+  ]
+
+  await Promise.all(testCases.map(async testCase => {
+
+    const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
+    const quotaType = "id-req"
+    const usageKey = dynamodb._generateUsageQuotaKey({ apiKey, quotaType })
+
+    //Update X number for requested count
+    await _updateServiceUsageQuota(usageKey, testCase.requested)
+
+    const item = await _getServiceUsageQuotaItem(usageKey)
+    // @ts-ignore
+    expect(item.c).toStrictEqual(testCase.requested)
+
+    const event = {
+      queryStringParameters: {
+        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
+        'api-key': apiKey,
+      },
+      headers: {
+        'X-Access-Token': accessToken,
+      }
+    }
+
+    try {
+      // @ts-ignore
+      const lambdaResult = await handler(event)
+      // @ts-ignore
+      throw lambdaResult.statusCode
+    } catch(e) {
+      expect(e).toEqual(testCase.status)
+    }
+  }))
 })
 
 // [Alpha feature] Authentication required

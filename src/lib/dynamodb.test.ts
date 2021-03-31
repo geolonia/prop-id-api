@@ -94,3 +94,69 @@ describe('mergeEstateId', () => {
     })
   })
 })
+
+export const _updateServiceUsageQuota = async ( usageKey:string, updateRequestCount:number ) => {
+
+  const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
+    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
+    Key: { apiKey : usageKey },
+    UpdateExpression: 'SET #c = :c',
+    ExpressionAttributeNames: {
+      '#c': 'c',
+    },
+    ExpressionAttributeValues: {
+      ':c': updateRequestCount
+    }
+  }
+  await dynamodb.DB.update(updateItemInput).promise()
+}
+
+export const _getServiceUsageQuotaItem = async ( usageKey:string ) =>{
+  const getItemInput: AWS.DynamoDB.DocumentClient.GetItemInput = {
+    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
+    Key: { apiKey : usageKey },
+  }
+  const { Item: item } = await dynamodb.DB.get(getItemInput).promise()
+  return item
+}
+
+describe('checkServiceUsageQuota', () => {
+
+  test('it works', async () => {
+    const { apiKey } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
+    const quotaType = "id-req"
+    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType })
+
+    expect(res).toStrictEqual(true)
+  })
+
+  test('it fails with QuotaType id-req and requests over 10000', async () => {
+
+    const { apiKey } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
+    const quotaType = "id-req"
+    const usageKey = dynamodb._generateUsageQuotaKey({ apiKey, quotaType })
+
+    // Add 10000 for requested count
+    await _updateServiceUsageQuota(usageKey, 10000)
+
+    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType })
+
+    expect(res).toStrictEqual(false)
+  })
+})
+
+describe('incrementServiceUsage', () => {
+  test('it works', async () => {
+
+    const { apiKey } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
+    const quotaType = "id-req";
+    const usageKey = dynamodb._generateUsageQuotaKey({ apiKey, quotaType })
+
+    await dynamodb.incrementServiceUsage({ apiKey, quotaType })
+
+    const item = await _getServiceUsageQuotaItem(usageKey)
+
+    // @ts-ignore
+    expect(item.c).toStrictEqual(1)
+  })
+})
