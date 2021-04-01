@@ -86,14 +86,26 @@ export const updateTimestamp = async (apiKey:string, timestamp: number) => {
 }
 
 export const getEstateIdForAddress = async (address: string, building?: string | null ): Promise<BaseEstateId | null> => {
+
+  let ExpressionAttributeNames =  { '#a': 'address', '#b': 'building' }
+  let ExpressionAttributeValues : {':a':string, ':b'?:string} =  { ':a': address }
+  let KeyConditionExpression = '#a = :a'
+  let FilterExpression;
+  if (building) {
+    ExpressionAttributeValues[':b'] = building
+    FilterExpression = '#b = :b'
+  } else {
+    FilterExpression = 'attribute_not_exists(#b)'
+  }
+
   const queryInputForExactMatch: AWS.DynamoDB.DocumentClient.QueryInput = {
     TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
     IndexName: 'address-index',
     Limit: 1,
-    ExpressionAttributeNames: { '#a': 'address', '#b': 'building'  },
-    ExpressionAttributeValues: { ':a': address, ':b': building, ':null': null },
-    KeyConditionExpression: '#a = :a',
-    FilterExpression: '#b = :b OR ((:b = :null) AND attribute_not_exists(#b))'
+    ExpressionAttributeNames,
+    ExpressionAttributeValues,
+    KeyConditionExpression,
+    FilterExpression
   }
   const { Items: exactMatchItems = [] } = await DB.query(queryInputForExactMatch).promise()
 
