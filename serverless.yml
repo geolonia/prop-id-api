@@ -101,6 +101,7 @@ package:
     - tsconfig.json
     - yarn.lock
     - package-lock.json
+    - dist/**/*.map
 
 resources:
   Resources:
