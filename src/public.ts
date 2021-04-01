@@ -21,6 +21,14 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(400, 'Missing querystring parameter `q`.')
   }
 
+  Sentry.setContext("query", {
+    address,
+    debug: event.isDebugMode,
+  })
+  Sentry.setUser({
+    id: event.isDemoMode ? "demo" : apiKey
+  })
+
   // Internal normalization
   let prenormalizedAddress: NormalizeResult
   try {
