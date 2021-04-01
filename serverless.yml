@@ -25,61 +25,38 @@ provider:
     # Internal Stack Refs
     AWS_DYNAMODB_API_KEY_TABLE_NAME: ${self:custom.awsDynamodbApiKeyTableName}
     AWS_DYNAMODB_ESTATE_ID_TABLE_NAME: ${self:custom.awsDynamodbEstateIdTableName}
+    AWS_DYNAMODB_LOG_TABLE_NAME: !Ref logTable
 
     RELEASE_VER: ${env:GITHUB_SHA, 'dev'}
-    SENTRY_DSN: ${env:SENTRY_DSN}
+    SENTRY_DSN: ${env:SENTRY_DSN, ''}
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
 
   layers:
     - arn:aws:lambda:ap-northeast-1:943013980633:layer:SentryNodeServerlessSDK:9
 
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:GetItem
-        - dynamodb:UpdateItem
-      Resource:
-        - Fn::Join:
-            - ":"
-            - - arn:aws:dynamodb
-              - ${self:provider.region}
-              - Ref: "AWS::AccountId"
-              - table/${self:custom.awsDynamodbApiKeyTableName}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+          Resource:
+            - !GetAtt apiKeyTable.Arn
 
-    - Effect: Allow
-      Action:
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-      Resource:
-        - Fn::Join:
-            - ":"
-            - - arn:aws:dynamodb
-              - ${self:provider.region}
-              - Ref: "AWS::AccountId"
-              - table/${self:custom.awsDynamodbEstateIdTableName}
-
-    - Effect: Allow
-      Action:
-        - dynamodb:Query
-      Resource:
-        - Fn::Join:
-            - ":"
-            - - arn:aws:dynamodb
-              - ${self:provider.region}
-              - Ref: "AWS::AccountId"
-              - table/${self:custom.awsDynamodbEstateIdTableName}/index/address-index
-
-    - Effect: Allow
-      Action:
-        - dynamodb:Query
-      Resource:
-        - Fn::Join:
-            - ":"
-            - - arn:aws:dynamodb
-              - ${self:provider.region}
-              - Ref: "AWS::AccountId"
-              - table/${self:custom.awsDynamodbEstateIdTableName}/index/tileXY-index
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:Query
+          Resource:
+            - !GetAtt estateIdTable.Arn
+            - !Join
+              - ""
+              - - !GetAtt estateIdTable.Arn
+                - "/index/*"
+            - !GetAtt logTable.Arn
 
 custom:
   stage: ${opt:stage, self:provider.stage}
@@ -107,6 +84,7 @@ resources:
   Resources:
     apiKeyTable:
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
       Properties:
         TableName: ${self:custom.awsDynamodbApiKeyTableName}
         AttributeDefinitions:
@@ -119,6 +97,7 @@ resources:
 
     estateIdTable:
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
       Properties:
         TableName: ${self:custom.awsDynamodbEstateIdTableName}
         AttributeDefinitions:
@@ -148,6 +127,22 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+    logTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
 
 functions:

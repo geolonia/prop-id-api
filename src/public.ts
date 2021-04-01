@@ -5,6 +5,7 @@ import Sentry from './lib/sentry'
 import { normalize, NormalizeResult } from '@geolonia/normalize-japanese-addresses'
 import { Handler, APIGatewayProxyResult } from 'aws-lambda'
 import { authenticateEvent, extractApiKey } from './lib/authentication'
+import { createLog } from './lib/dynamodb_logs'
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const address = event.queryStringParameters?.q
@@ -36,7 +37,20 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   } catch (error) {
     Sentry.captureException(error)
     console.error({ error })
+    if ('address' in error) {
+      // this is a normalize-japanese-addressses error
+      await createLog(`normFailNJA`, {
+        input: address,
+        errorMsg: error.message,
+      })
+    }
     return errorResponse(400, `address ${address} can not be normalized.`)
+  }
+
+  if (!prenormalizedAddress.town || prenormalizedAddress.town === '') {
+    await createLog('normFailNoTown', {
+      input: address
+    })
   }
 
   const ipcResult = await incrementPGeocode(`${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`)
@@ -52,12 +66,20 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   // Features not found
   if (!feature || feature.geometry === null) {
     Sentry.captureException(new Error(`The address '${address}' is not verified.`))
+    await createLog('normFailNoIPCGeom', {
+      input: address,
+      ipcResult: JSON.stringify(ipcResult),
+    })
     return errorResponse(404, "The address '%s' is not verified.", address)
   }
 
   // not enough match
   if (!feature.properties.city) {
     Sentry.captureException(new Error(`The address '${address}' is not verified sufficiently.`))
+    await createLog('normFailNoCity', {
+      input: address,
+      ipcResult: JSON.stringify(ipcResult),
+    })
     return errorResponse(400, "The address '%s' is not verified sufficiently.", address)
   }
 

@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@geolonia/normalize-japanese-addresses": "*",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "ulid": "^2.3.0"
   }
 }
