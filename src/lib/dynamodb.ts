@@ -85,14 +85,27 @@ export const updateTimestamp = async (apiKey:string, timestamp: number) => {
   return await DB.update(updateItemInput).promise()
 }
 
-export const getEstateIdForAddress = async (address: string): Promise<BaseEstateId | null> => {
+export const getEstateIdForAddress = async (address: string, building?: string | undefined ): Promise<BaseEstateId | null> => {
+
+  const ExpressionAttributeNames =  { '#a': 'address', '#b': 'building' }
+  const ExpressionAttributeValues : {':a':string, ':b'?:string|undefined } =  { ':a': address }
+  const KeyConditionExpression = '#a = :a'
+  let FilterExpression;
+  if (building) {
+    ExpressionAttributeValues[':b'] = building
+    FilterExpression = '#b = :b'
+  } else {
+    FilterExpression = 'attribute_not_exists(#b)'
+  }
+
   const queryInputForExactMatch: AWS.DynamoDB.DocumentClient.QueryInput = {
     TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
     IndexName: 'address-index',
     Limit: 1,
-    ExpressionAttributeNames: { '#a': 'address' },
-    ExpressionAttributeValues: { ':a': address },
-    KeyConditionExpression: '#a = :a',
+    ExpressionAttributeNames,
+    ExpressionAttributeValues,
+    KeyConditionExpression,
+    FilterExpression
   }
   const { Items: exactMatchItems = [] } = await DB.query(queryInputForExactMatch).promise()
 
@@ -137,7 +150,10 @@ export const getEstateId = async (id: string, redirectCount: number = 0): Promis
 const _generateSerial = () => Math.floor(Math.random() * 999_999_999)
 
 export interface StoreEstateIdReq {
+  rawAddress: string
   address: string
+  rawBuilding?: string | undefined
+  building?: string | undefined
   tileXY: string
   zoom: number
   prefCode: string

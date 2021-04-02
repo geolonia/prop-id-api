@@ -1,4 +1,4 @@
-import { hashXY, coord2XY, verifyAddress } from './index'
+import { hashXY, coord2XY, verifyAddress, normalizeBuilding, zen2hanAscii, yokobo2zenchoonSymbol  } from './index'
 
 test('Should hash tile index as xxxx-xxxx-xxxx-xxxx', () => {
     const indexX = 1234567
@@ -192,3 +192,34 @@ test('should IPC responce of area is not empty. test with 和歌山県東牟婁�
   expect(results.body.features[0].properties.area).toStrictEqual('大沼')
 })
 
+test('Should replace 全角Ascii to 半角Ascii', () => {
+  const ascii = '！＂＃＄％＆＇（）＊＋，－．／：；＜＝＞？＠［＼］＾＿｀｛｜｝'
+  const normalized = zen2hanAscii(ascii)
+  expect(normalized).toStrictEqual('\!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}')
+})
+
+test('Should replace 横棒 to 長音記号', () => {
+  const yokobo = '-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━'
+  const normalized = yokobo2zenchoonSymbol(yokobo)
+  expect(normalized).toStrictEqual('ーーーーーーーーーーーーーーーーーー')
+})
+
+test('Should normalize ダイアパレス北１０条 to ダイアパレス北10条', () => {
+  expect(normalizeBuilding('ダイアパレス北１０条')).toStrictEqual('ダイアパレス北10条')
+})
+
+test('Should normalize びゅうＭシティ上盛岡 to びゅうMシティ上盛岡', () => {
+  expect(normalizeBuilding('びゅうＭシティ上盛岡')).toStrictEqual('びゅうMシティ上盛岡')
+})
+
+test('Should normalize ａｉｅ北上駅前 to aie北上駅前', () => {
+  expect(normalizeBuilding('ａｉｅ北上駅前')).toStrictEqual('aie北上駅前')
+})
+
+test('Should normalize ザ・ガ﹣デンズ勾当台通タワ﹣レジデンス to ザ・ガーデンズ勾当台通タワーレジデンス', () => {
+  expect(normalizeBuilding('ザ・ガ﹣デンズ勾当台通タワ﹣レジデンス')).toStrictEqual('ザ・ガーデンズ勾当台通タワーレジデンス')
+})
+
+test('Should normalize Ｄ’クラディア八日町 to D’クラディア八日町', () => {
+  expect(normalizeBuilding('Ｄ’クラディア八日町')).toStrictEqual('D’クラディア八日町')
+})

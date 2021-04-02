@@ -103,3 +103,21 @@ export const hashTokenV2 = async (apiKey: string, accessToken: string) => {
   const buf = await scrypt(accessToken, apiKey, 10) as Buffer
   return buf.toString('base64')
 }
+
+export const zen2hanAscii = (str: string) => {
+  return str.replace(/[Ａ-Ｚａ-ｚ０-９！＂＃＄％＆＇（）＊＋，－．／：；＜＝＞？＠［＼］＾＿｀｛｜｝]/g, (s) => {
+      return String.fromCharCode(s.charCodeAt(0) - 0xfee0)
+  })
+  .replace(/　/g, " ") // 全角スペースを半角スペースに変換
+}
+
+export const yokobo2zenchoonSymbol = (str: string) => {
+  return str.replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/gi,'ー') // 長音記号に変換
+}
+
+export const normalizeBuilding = (building: string | undefined ): string | undefined => {
+  if(undefined === building) {
+    return undefined
+  }
+  return yokobo2zenchoonSymbol(zen2hanAscii(building.trim()))
+}

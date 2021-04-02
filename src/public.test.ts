@@ -10,10 +10,11 @@ test('should specify the ZOOM environmental variable.', () => {
 })
 
 test('should get same estate ID for multiple queries to same address', async () => {
+
   const event = {
     isDemoMode: true,
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F'
     },
   }
   // @ts-ignore
@@ -27,48 +28,67 @@ test('should get same estate ID for multiple queries to same address', async () 
   const body2 = JSON.parse(lambdaResult2.body)
 
   expect(body1[0].ID).toEqual(body2[0].ID)
+
 })
 
 test('should get estate ID with details if authenticated', async () => {
   const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
 
-  const event = {
-    queryStringParameters: {
+  const queryPatterns = [
+    {
       q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
       'api-key': apiKey,
     },
-    headers: {
-      'X-Access-Token': accessToken,
+    {
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
+      building: 'マリオス10F',
+      'api-key': apiKey,
     }
-  }
-  // @ts-ignore
-  const lambdaResult = await handler(event)
-  // @ts-ignore
-  const body = JSON.parse(lambdaResult.body)
-  expect(body).toEqual([
-    expect.objectContaining({
-      "address": {
-        "ja": {
-            "address1": "盛岡駅西通2丁目",
-            "address2": "9-1",
-            "city": "盛岡市",
-            "other": "マリオス10F",
-            "prefecture": "岩手県",
+  ]
+
+  await Promise.all(queryPatterns.map(async queryPattern => {
+
+    const event = {
+      queryStringParameters: queryPattern,
+      headers: {
+        'X-Access-Token': accessToken,
+      }
+    }
+    // @ts-ignore
+    const lambdaResult = await handler(event)
+    // @ts-ignore
+    const body = JSON.parse(lambdaResult.body)
+    expect(body).toEqual([
+      expect.objectContaining({
+        "address": {
+          "ja": {
+              "address1": "盛岡駅西通2丁目",
+              "address2": "9-1",
+              "city": "盛岡市",
+              "other": "マリオス10F",
+              "prefecture": "岩手県",
+          },
         },
-      },
-      "location": {
-        "lat": "39.701281",
-        "lng": "141.13366",
-      },
-    })
-  ])
+        "location": {
+          "lat": "39.701281",
+          "lng": "141.13366",
+        },
+      })
+    ])
+  }))
 })
 
 test('should get estate ID with details if authenticated with 和歌山県東牟婁郡串本町田並1500', async () => {
+  const { apiKey, accessToken } = await dynamodb.createApiKey('should return 429 with too frequest request')
+
   const event = {
     isDemoMode: true,
     queryStringParameters: {
       q: '和歌山県東牟婁郡串本町田並1500',
+      'api-key': apiKey
+    },
+    headers: {
+      'X-Access-Token': accessToken,
     }
   }
   // @ts-ignore
@@ -103,7 +123,7 @@ test('should return 400 with insufficient address.', async () => {
     const event = {
       isDemoMode: true,
       queryStringParameters: {
-          q: address,
+          q: address
       }
     }
 
@@ -123,7 +143,8 @@ test('should return 429 with too frequest request.', async () => {
 
   const event = {
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
+      building: 'マリオス10F',
       'api-key': apiKey,
     },
     headers: {
@@ -154,7 +175,8 @@ test('should return 400 with empty address', async () => {
 test('should return 403 if not authenticated.', async () => {
   const event = {
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F'
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
+      building: 'マリオス10F',
     },
   }
   // @ts-ignore
@@ -167,8 +189,8 @@ test('should return 403 if not authenticated.', async () => {
 test('should return 403 if request exceeds request limit, or  200 if request dose not exceeds request limit, ', async () => {
 
   const testCases = [
-    { requested: 10000, status: 403},
-    { requested: 9999, status: 200}
+    { requested: 10000, status: 403 },
+    { requested: 9999, status: 200 }
   ]
 
   await Promise.all(testCases.map(async testCase => {
@@ -186,7 +208,8 @@ test('should return 403 if request exceeds request limit, or  200 if request dos
 
     const event = {
       queryStringParameters: {
-        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
+        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
+        building: 'マリオス10F',
         'api-key': apiKey,
       },
       headers: {
@@ -203,6 +226,39 @@ test('should return 403 if request exceeds request limit, or  200 if request dos
       expect(e).toEqual(testCase.status)
     }
   }))
+})
+
+test('should get same estate ID by normalization', async () => {
+
+  const queryPattern1 = {
+    q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
+    building: 'マリオス１０Ｆ',
+  }
+  const queryPattern2 = {
+    q: '岩手県盛岡市盛岡駅西通2-９-１',
+    building: 'マリオス10F',
+  }
+
+  const event1 = {
+    isDemoMode: true,
+    queryStringParameters: queryPattern1,
+  }
+  // @ts-ignore
+  const lambdaResult1 = await handler(event1)
+  // @ts-ignore
+  const body1 = JSON.parse(lambdaResult1.body)
+
+  const event2 = {
+    isDemoMode: true,
+    queryStringParameters: queryPattern2,
+  }
+  // @ts-ignore
+  const lambdaResult2 = await handler(event2)
+  // @ts-ignore
+  const body2 = JSON.parse(lambdaResult2.body)
+
+  expect(body1[0].ID).toEqual(body2[0].ID)
+
 })
 
 // [Alpha feature] Authentication required

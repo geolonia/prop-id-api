@@ -1,5 +1,5 @@
-import { EstateId, getEstateIdForAddress, store } from './lib/dynamodb'
-import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult, incrementPGeocode } from './lib/index'
+import { EstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './lib/dynamodb'
+import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult, incrementPGeocode, normalizeBuilding } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
 import { normalize, NormalizeResult } from '@geolonia/normalize-japanese-addresses'
@@ -9,8 +9,9 @@ import { createLog } from './lib/dynamodb_logs'
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const address = event.queryStringParameters?.q
+  const building = event.queryStringParameters && event.queryStringParameters['building'] ? event.queryStringParameters['building'] : undefined
   const ZOOM = parseInt(process.env.ZOOM, 10)
-  const quotaType: string = "id-req"
+  const quotaType = "id-req"
 
   const { apiKey } = extractApiKey(event)
   const authenticationResult = await authenticateEvent(event, quotaType)
@@ -46,6 +47,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     }
     return errorResponse(400, `address ${address} can not be normalized.`)
   }
+  const normalizedBuidling = normalizeBuilding(building)
 
   if (!prenormalizedAddress.town || prenormalizedAddress.town === '') {
     await createLog('normFailNoTown', {
@@ -100,7 +102,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       city: feature.properties.city,
       address1: feature.properties.area + feature.properties.koaza_chome,
       address2: feature.properties.banchi_go,
-      other: feature.properties.building + feature.properties.building_number
+      other: normalizedBuidling ? feature.properties.building + feature.properties.building_number + normalizedBuidling : feature.properties.building + feature.properties.building_number
     },
   }
   const location = {
@@ -111,16 +113,23 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   let estateId: EstateId
   try {
     // TODO: Change to prenormalizedAddress
-    const existingEstateId = await getEstateIdForAddress(normalizedAddress)
+    const existingEstateId = await getEstateIdForAddress(normalizedAddress, normalizedBuidling)
     if (existingEstateId) {
       estateId = existingEstateId
     } else {
-      estateId = await store({
+
+      const storeParams: StoreEstateIdReq = {
         zoom: ZOOM,
         tileXY: `${x}/${y}`,
+        rawAddress: address,
         address: normalizedAddress,
         prefCode,
-      })
+      }
+      if (building) {
+        storeParams.rawBuilding = building
+        storeParams.building = normalizedBuidling
+      }
+      estateId = await store(storeParams)
     }
   } catch (error) {
     console.error({ ZOOM, addressObject, apiKey, error })

@@ -3,7 +3,10 @@ import * as dynamodb from './dynamodb'
 describe('mergeEstateId', () => {
   test('it works', async () => {
     const destId = await dynamodb.store({
+      rawAddress: "test",
       address: "test",
+      rawBuilding: "テストビル",
+      building: "テストビル",
       tileXY: "3726576/1649777",
       zoom: 22,
       prefCode: "11"
@@ -63,7 +66,10 @@ describe('mergeEstateId', () => {
 
   test('it fails when destination is not canonical', async () => {
     const destId = await dynamodb.store({
+      rawAddress: "test",
       address: "test",
+      rawBuilding: "テストビル",
+      building: "テストビル",
       tileXY: "3726576/1649777",
       zoom: 22,
       prefCode: "11"
