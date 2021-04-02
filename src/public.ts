@@ -1,4 +1,4 @@
-import { EstateId, getEstateIdForAddress, store } from './lib/dynamodb'
+import { EstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './lib/dynamodb'
 import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult, incrementPGeocode, normalizeBuilding } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
@@ -8,7 +8,7 @@ import { authenticateEvent, extractApiKey } from './lib/authentication'
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const address = event.queryStringParameters?.q
-  const building = event.queryStringParameters && event.queryStringParameters['building'] ? event.queryStringParameters['building'] : null
+  const building = event.queryStringParameters && event.queryStringParameters['building'] ? event.queryStringParameters['building'] : undefined
   const ZOOM = parseInt(process.env.ZOOM, 10)
   const quotaType = "id-req"
 
@@ -95,15 +95,19 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     if (existingEstateId) {
       estateId = existingEstateId
     } else {
-      estateId = await store({
+
+      const storeParams: StoreEstateIdReq = {
         zoom: ZOOM,
         tileXY: `${x}/${y}`,
         rawAddress: address,
         address: normalizedAddress,
-        rawBuilding: building,
-        building: normalizedBuidling,
         prefCode,
-      })
+      }
+      if (building) {
+        storeParams.rawBuilding = building
+        storeParams.building = normalizedBuidling
+      }
+      estateId = await store(storeParams)
     }
   } catch (error) {
     console.error({ ZOOM, addressObject, apiKey, error })

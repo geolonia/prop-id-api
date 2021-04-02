@@ -1,4 +1,4 @@
-import { hashXY, coord2XY, verifyAddress, normalizeBuilding, zen2hanAscii, han2zenKana, yokobo2zenchoonSymbol  } from './index'
+import { hashXY, coord2XY, verifyAddress, normalizeBuilding, zen2hanAscii, yokobo2zenchoonSymbol  } from './index'
 
 test('Should hash tile index as xxxx-xxxx-xxxx-xxxx', () => {
     const indexX = 1234567
@@ -193,15 +193,9 @@ test('should IPC responce of area is not empty. test with 和歌山県東牟婁�
 })
 
 test('Should replace 全角Ascii to 半角Ascii', () => {
-  const ascii = '！ ＂ ＃ ＄ ％ ＆ ＇ （ ） ＊ ＋ ， － ． ／ ： ； ＜ ＝ ＞ ？ ＠ ［ ＼ ］ ＾ ＿ ｀ ｛ ｜ ｝　'
+  const ascii = '！＂＃＄％＆＇（）＊＋，－．／：；＜＝＞？＠［＼］＾＿｀｛｜｝'
   const normalized = zen2hanAscii(ascii)
-  expect(normalized).toStrictEqual('! \" # $ % & \' ( ) * + , - . / : ; < = > ? @ [ \\ ] ^ _ ` { | } ')
-})
-
-test('Should replace 半角カナ to 全角カナ', () => {
-  const hanKana = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝｳﾞｶﾞｷﾞｸﾞｹﾞｺﾞｻﾞｼﾞｽﾞｾﾞｿﾞﾀﾞﾁﾞﾂﾞﾃﾞﾄﾞﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞﾊﾟﾋﾟﾌﾟﾍﾟﾎﾟｧｨｩｪｫｬｭｮｯｰﾞﾟ､｡･｢｣'
-  const normalized = han2zenKana(hanKana)
-  expect(normalized).toStrictEqual('アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンヴガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポァィゥェォャュョッー゛゜、。・「」')
+  expect(normalized).toStrictEqual('\!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}')
 })
 
 test('Should replace 横棒 to 長音記号', () => {
@@ -228,8 +222,4 @@ test('Should normalize ザ・ガ﹣デンズ勾当台通タワ﹣レジデンス
 
 test('Should normalize Ｄ’クラディア八日町 to D’クラディア八日町', () => {
   expect(normalizeBuilding('Ｄ’クラディア八日町')).toStrictEqual('D’クラディア八日町')
-})
-
-test('Should normalize ﾛｲﾔﾙ･ｳﾞｧﾝﾍﾞｰﾙ大山1番館 to ロイヤル・ヴァンベール大山1番館', () => {
-  expect(normalizeBuilding('ﾛｲﾔﾙ･ｳﾞｧﾝﾍﾞｰﾙ大山1番館')).toStrictEqual('ロイヤル・ヴァンベール大山1番館')
 })

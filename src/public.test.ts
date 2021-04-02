@@ -11,34 +11,23 @@ test('should specify the ZOOM environmental variable.', () => {
 
 test('should get same estate ID for multiple queries to same address', async () => {
 
-  const queryPatterns = [
-    {
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
       q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F'
     },
-    {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
-      building: 'マリオス10F',
-    }
-  ]
+  }
+  // @ts-ignore
+  const lambdaResult1 = await handler(event)
+  // @ts-ignore
+  const body1 = JSON.parse(lambdaResult1.body)
 
-  await Promise.all(queryPatterns.map(async queryPattern => {
+  // @ts-ignore
+  const lambdaResult2 = await handler(event)
+  // @ts-ignore
+  const body2 = JSON.parse(lambdaResult2.body)
 
-    const event = {
-      isDemoMode: true,
-      queryStringParameters: queryPattern,
-    }
-    // @ts-ignore
-    const lambdaResult1 = await handler(event)
-    // @ts-ignore
-    const body1 = JSON.parse(lambdaResult1.body)
-
-    // @ts-ignore
-    const lambdaResult2 = await handler(event)
-    // @ts-ignore
-    const body2 = JSON.parse(lambdaResult2.body)
-
-    expect(body1[0].ID).toEqual(body2[0].ID)
-  }))
+  expect(body1[0].ID).toEqual(body2[0].ID)
 
 })
 
@@ -237,6 +226,39 @@ test('should return 403 if request exceeds request limit, or  200 if request dos
       expect(e).toEqual(testCase.status)
     }
   }))
+})
+
+test('should get same estate ID by normalization', async () => {
+
+  const queryPattern1 = {
+    q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
+    building: 'マリオス１０Ｆ',
+  }
+  const queryPattern2 = {
+    q: '岩手県盛岡市盛岡駅西通2-９-１',
+    building: 'マリオス10F',
+  }
+
+  const event1 = {
+    isDemoMode: true,
+    queryStringParameters: queryPattern1,
+  }
+  // @ts-ignore
+  const lambdaResult1 = await handler(event1)
+  // @ts-ignore
+  const body1 = JSON.parse(lambdaResult1.body)
+
+  const event2 = {
+    isDemoMode: true,
+    queryStringParameters: queryPattern2,
+  }
+  // @ts-ignore
+  const lambdaResult2 = await handler(event2)
+  // @ts-ignore
+  const body2 = JSON.parse(lambdaResult2.body)
+
+  expect(body1[0].ID).toEqual(body2[0].ID)
+
 })
 
 // [Alpha feature] Authentication required
