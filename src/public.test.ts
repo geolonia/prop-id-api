@@ -189,22 +189,27 @@ test('should return 403 if not authenticated.', async () => {
 test('should return 403 if request exceeds request limit, or  200 if request dose not exceeds request limit, ', async () => {
 
   const testCases = [
-    { requested: 10000, status: 403 },
-    { requested: 9999, status: 200 }
+    { requested: 10_000, status: 429 },
+    { requested: 9_999,  status: 200 },
+    { requested: 10_001, status: 200, customQuota: 20_000 },
+    { requested: 20_001, status: 429, customQuota: 20_000 }
   ]
 
   await Promise.all(testCases.map(async testCase => {
-
-    const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
     const quotaType = "id-req"
-    const usageKey = dynamodb._generateUsageQuotaKey({ apiKey, quotaType })
+    const otherParams: {[key: string]: any} = {}
+    if (testCase.customQuota) {
+      otherParams[`quota_${quotaType}`] = testCase.customQuota
+    }
+    const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated', otherParams)
+    const usageKey = dynamodb._generateUsageQuotaKey(apiKey, quotaType)
 
-    //Update X number for requested count
+    // Update X number for requested count
     await _updateServiceUsageQuota(usageKey, testCase.requested)
 
     const item = await _getServiceUsageQuotaItem(usageKey)
-    // @ts-ignore
-    expect(item.c).toStrictEqual(testCase.requested)
+    expect(item).toBeDefined()
+    expect(item!.c).toStrictEqual(testCase.requested)
 
     const event = {
       queryStringParameters: {
@@ -217,14 +222,9 @@ test('should return 403 if request exceeds request limit, or  200 if request dos
       }
     }
 
-    try {
-      // @ts-ignore
-      const lambdaResult = await handler(event)
-      // @ts-ignore
-      throw lambdaResult.statusCode
-    } catch(e) {
-      expect(e).toEqual(testCase.status)
-    }
+    // @ts-ignore
+    const lambdaResult = await handler(event) as APIGatewayProxyResult
+    expect(lambdaResult.statusCode).toEqual(testCase.status)
   }))
 })
 

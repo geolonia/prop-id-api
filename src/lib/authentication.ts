@@ -31,15 +31,19 @@ export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: st
 
   // Todo?: [Alfa feature] Authenticate even if q['api-key'] not specified
 
-  const { authenticated, lastRequestAt } = authenticateResult
+  const { authenticated, lastRequestAt, customQuotas } = authenticateResult
 
-  if (!authenticated) {
+  if (!authenticated || !customQuotas) {
     return errorResponse(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.')
   }
 
-  const checkServiceUsageQuotaResult = await checkServiceUsageQuota({ apiKey, quotaType })
+  const checkServiceUsageQuotaResult = await checkServiceUsageQuota({
+    apiKey,
+    quotaType,
+    customQuotas,
+  })
   if (!checkServiceUsageQuotaResult) {
-    return errorResponse(403, `Exceed requests limit.`)
+    return errorResponse(429, `Exceed requests limit.`)
   }
 
   if (lastRequestAt) {

@@ -131,7 +131,7 @@ describe('checkServiceUsageQuota', () => {
   test('it works', async () => {
     const { apiKey } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
     const quotaType = "id-req"
-    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType })
+    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas: {} })
 
     expect(res).toStrictEqual(true)
   })
@@ -140,12 +140,12 @@ describe('checkServiceUsageQuota', () => {
 
     const { apiKey } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
     const quotaType = "id-req"
-    const usageKey = dynamodb._generateUsageQuotaKey({ apiKey, quotaType })
+    const usageKey = dynamodb._generateUsageQuotaKey(apiKey, quotaType)
 
     // Add 10000 for requested count
     await _updateServiceUsageQuota(usageKey, 10000)
 
-    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType })
+    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas: {} })
 
     expect(res).toStrictEqual(false)
   })
@@ -156,7 +156,7 @@ describe('incrementServiceUsage', () => {
 
     const { apiKey } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
     const quotaType = "id-req";
-    const usageKey = dynamodb._generateUsageQuotaKey({ apiKey, quotaType })
+    const usageKey = dynamodb._generateUsageQuotaKey(apiKey, quotaType)
 
     await dynamodb.incrementServiceUsage({ apiKey, quotaType })
 
