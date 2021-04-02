@@ -24,7 +24,7 @@ export interface ApiKeyCreateResponse {
   accessToken: string
 }
 
-export const createApiKey = async (description: string): Promise<ApiKeyCreateResponse> => {
+export const createApiKey = async (description: string, otherParams: {[key: string]: any} = {}): Promise<ApiKeyCreateResponse> => {
   const apiKey = randomToken(20)
   const accessToken = randomToken(32)
 
@@ -33,7 +33,8 @@ export const createApiKey = async (description: string): Promise<ApiKeyCreateRes
     Item: {
       apiKey,
       hashedToken: await hashTokenV2(apiKey, accessToken),
-      description
+      description,
+      ...otherParams,
     },
     ConditionExpression: `attribute_not_exists(#id)`,
     ExpressionAttributeNames: {
@@ -59,12 +60,30 @@ export const authenticate = async (apiKey: string, accessToken: string) => {
     return { authenticated: false }
   }
 
+  const itemKeys = Object.keys(item)
+  const customQuotas: { [key: string]: number } = {}
+  for (let i = 0; i < itemKeys.length; i++) {
+    const itemKey = itemKeys[i];
+    if ( itemKey.startsWith("quota_") ) {
+      const quotaName = itemKey.substr(6)
+      customQuotas[quotaName] = item[itemKey]
+    }
+  }
+
   if ('hashedToken' in item && item.hashedToken === await hashTokenV2(apiKey, accessToken)) {
-    return { authenticated: true, lastRequestAt: item.lastRequestAt }
+    return {
+      authenticated: true,
+      lastRequestAt: item.lastRequestAt,
+      customQuotas
+    }
   }
 
   if ('accessToken' in item && item.accessToken === hashToken(accessToken)) {
-    return { authenticated: true, lastRequestAt: item.lastRequestAt }
+    return {
+      authenticated: true,
+      lastRequestAt: item.lastRequestAt,
+      customQuotas
+    }
   }
 
   return { authenticated: false }
@@ -271,13 +290,10 @@ export const mergeEstateId = async (params: MergeEstateIdReq): Promise<MergeEsta
 export interface UsageQuotaParams {
   apiKey: string
   quotaType: string
+  customQuotas: { [key: string]: number }
 }
 
-export const _generateUsageQuotaKey = (params: UsageQuotaParams) => {
-
-  const apiKey = params.apiKey
-  const quotaType = params.quotaType
-
+export const _generateUsageQuotaKey = (apiKey: string, quotaType: string) => {
   const now = new Date()
   const month = `${now.getMonth() + 1}`.padStart(2, "0")
   const year = now.getFullYear()
@@ -287,23 +303,31 @@ export const _generateUsageQuotaKey = (params: UsageQuotaParams) => {
 }
 
 export const checkServiceUsageQuota = async (params: UsageQuotaParams): Promise<boolean> => {
-
-  const apiKey = params.apiKey
-  const quotaType = params.quotaType
+  const { apiKey, quotaType, customQuotas } = params
   const quotaLimits: { [key: string]: number } = {
     "id-req": 10000
   }
-  const usageKey = _generateUsageQuotaKey({apiKey,quotaType})
+  const usageKey = _generateUsageQuotaKey(apiKey, quotaType)
+
+  if (!(quotaType in quotaLimits)) {
+    return false
+  }
+
+  let quotaLimit: number = quotaLimits[quotaType]
+  if (quotaType in customQuotas) {
+    quotaLimit = customQuotas[quotaType]
+  }
 
   const getItemInput: AWS.DynamoDB.DocumentClient.GetItemInput = {
     TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
     Key: { apiKey : usageKey },
   }
   const { Item: item } = await DB.get(getItemInput).promise()
+
   if (undefined === item){ // Initial request
     return true
 
-  } else if (item && (quotaType in quotaLimits) && (item.c < quotaLimits[quotaType])){
+  } else if (item && item.c < quotaLimit) {
     return true
 
   } else {
@@ -317,10 +341,8 @@ export interface IncrementServiceUsageReq {
 }
 
 export const incrementServiceUsage = async (params: IncrementServiceUsageReq) => {
-
-  const apiKey = params.apiKey
-  const quotaType = params.quotaType
-  const usageKey = _generateUsageQuotaKey({apiKey,quotaType})
+  const { apiKey, quotaType } = params
+  const usageKey = _generateUsageQuotaKey( apiKey, quotaType )
 
   const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
     TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
