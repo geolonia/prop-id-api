@@ -36,6 +36,11 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   try {
     prenormalizedAddress = await normalize(address)
 
+    await createLog(`normLogsNJA`, {
+      input: address,
+      normalized: JSON.stringify(prenormalizedAddress),
+    })
+
   } catch (error) {
     Sentry.captureException(error)
     console.error({ error })
@@ -48,7 +53,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     }
     return errorResponse(400, `address ${address} can not be normalized.`)
   }
-  const normalizedBuidling = normalizeBuilding(building)
+  const normalizedBuilding = normalizeBuilding(building)
 
   if (!prenormalizedAddress.town || prenormalizedAddress.town === '') {
     await createLog('normFailNoTown', {
@@ -103,7 +108,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       city: prenormalizedAddress.city,
       address1: prenormalizedAddress.town,
       address2: prenormalizedAddress.addr,
-      other: normalizedBuidling ? normalizedBuidling : ""
+      other: normalizedBuilding ? normalizedBuilding : ""
     },
   }
   const location = {
@@ -113,7 +118,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   let estateId: EstateId
   try {
-    const existingEstateId = await getEstateIdForAddress(normalizedAddressNJA, normalizedBuidling)
+    const existingEstateId = await getEstateIdForAddress(normalizedAddressNJA, normalizedBuilding)
     if (existingEstateId) {
       estateId = existingEstateId
     } else {
@@ -127,14 +132,9 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       }
       if (building) {
         storeParams.rawBuilding = building
-        storeParams.building = normalizedBuidling
+        storeParams.building = normalizedBuilding
       }
       estateId = await store(storeParams)
-
-      await createLog(`normLogsNJA`, {
-        input: address,
-        normalized: JSON.stringify(prenormalizedAddress),
-      })
     }
   } catch (error) {
     console.error({ ZOOM, addressObject, apiKey, error })
