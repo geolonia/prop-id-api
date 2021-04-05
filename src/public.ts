@@ -15,7 +15,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   const { apiKey } = extractApiKey(event)
   const authenticationResult = await authenticateEvent(event, quotaType)
-  if (authenticationResult !== true) {
+  if ('statusCode' in authenticationResult) {
     return authenticationResult
   }
 
@@ -82,17 +82,8 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(404, "The address '%s' is not verified.", address)
   }
 
-  // not enough match
-  if (!feature.properties.city) {
-    Sentry.captureException(new Error(`The address '${address}' is not verified sufficiently.`))
-    await createLog('normFailNoCity', {
-      input: address,
-      ipcResult: JSON.stringify(ipcResult),
-    })
-    return errorResponse(400, "The address '%s' is not verified sufficiently.", address)
-  }
-
   const [lng, lat] = feature.geometry.coordinates as [number, number]
+  const { geocoding_level } = feature.properties
   const prefCode = getPrefCode(feature.properties.pref)
   const { x, y } = coord2XY([lat, lng], ZOOM)
 
@@ -112,6 +103,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     },
   }
   const location = {
+    geocoding_level: geocoding_level.toString(),
     lat: lat.toString(),
     lng: lng.toString()
   }
@@ -145,9 +137,8 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   const ID = estateId!.estateId
 
-  let body
-  if (apiKey || event.isDemoMode) {
-    // apiKey has been authenticated and return rich results
+  let body: any
+  if (authenticationResult.plan === "paid" || event.isDemoMode) {
     body = { ID, address: addressObject, location }
   } else {
     body = { ID }

@@ -19,13 +19,11 @@ test('should get same estate ID for multiple queries to same address', async () 
     },
   }
   // @ts-ignore
-  const lambdaResult1 = await handler(event)
-  // @ts-ignore
+  const lambdaResult1 = await handler(event) as APIGatewayProxyResult
   const body1 = JSON.parse(lambdaResult1.body)
 
   // @ts-ignore
-  const lambdaResult2 = await handler(event)
-  // @ts-ignore
+  const lambdaResult2 = await handler(event) as APIGatewayProxyResult
   const body2 = JSON.parse(lambdaResult2.body)
 
   expect(body1[0].ID).toEqual(body2[0].ID)
@@ -45,9 +43,9 @@ test('should get estate ID with details if authenticated', async () => {
     }
   }
   // @ts-ignore
-  const lambdaResult = await handler(event)
-  // @ts-ignore
+  const lambdaResult = await handler(event) as APIGatewayProxyResult
   const body = JSON.parse(lambdaResult.body)
+
   expect(body).toEqual([
     expect.objectContaining({
       "address": {
@@ -60,6 +58,7 @@ test('should get estate ID with details if authenticated', async () => {
         },
       },
       "location": {
+        "geocoding_level": "8",
         "lat": "39.701281",
         "lng": "141.13366",
       },
@@ -94,6 +93,7 @@ test('[Not Recommended request type] should get estate ID with details if authen
         },
       },
       "location": {
+        "geocoding_level": "8",
         "lat": "39.701281",
         "lng": "141.13366",
       },
@@ -101,8 +101,34 @@ test('[Not Recommended request type] should get estate ID with details if authen
   ])
 })
 
+
+test('should get estate ID without details if authenticated with a free API key', async () => {
+  const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID without details if authenticated with a free API key', { plan: "free" })
+
+  const queryStringParameters = {
+    q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
+    building: 'マリオス10F',
+    'api-key': apiKey,
+  }
+
+  const event = {
+    queryStringParameters,
+    headers: {
+      'X-Access-Token': accessToken,
+    }
+  }
+  // @ts-ignore
+  const lambdaResult = await handler(event) as APIGatewayProxyResult
+  const body = JSON.parse(lambdaResult.body)
+
+  const first = body[0]
+  expect(first).toHaveProperty("ID")
+  expect(first.address).toBeUndefined()
+  expect(first.location).toBeUndefined()
+})
+
 test('should get estate ID with details if authenticated with 和歌山県東牟婁郡串本町田並1500', async () => {
-  const { apiKey, accessToken } = await dynamodb.createApiKey('should return 429 with too frequest request')
+  const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
 
   const event = {
     isDemoMode: true,
@@ -115,21 +141,22 @@ test('should get estate ID with details if authenticated with 和歌山県東牟
     }
   }
   // @ts-ignore
-  const lambdaResult = await handler(event)
-  // @ts-ignore
+  const lambdaResult = await handler(event) as APIGatewayProxyResult
   const body = JSON.parse(lambdaResult.body)
+
   expect(body).toEqual([
     expect.objectContaining({
       "address": {
         "ja": {
-            "address1": "田並",
-            "address2": "1500",
-            "city": "東牟婁郡串本町",
-            "other": "",
-            "prefecture": "和歌山県",
+          "address1": "田並",
+          "address2": "1500",
+          "city": "東牟婁郡串本町",
+          "other": "",
+          "prefecture": "和歌山県",
         },
       },
       "location": {
+        "geocoding_level": "3",
         "lat": "33.488638",
         "lng": "135.714765",
       },
@@ -146,41 +173,14 @@ test('should return 400 with insufficient address.', async () => {
     const event = {
       isDemoMode: true,
       queryStringParameters: {
-          q: address
+        q: address
       }
     }
 
-    try {
-      // @ts-ignore
-      const lambdaResult = await handler(event)
-      // @ts-ignore
-      throw lambdaResult.statusCode
-    } catch(e) {
-      expect(e).toEqual(400)
-    }
+    // @ts-ignore
+    const lambdaResult = await handler(event) as APIGatewayProxyResult
+    expect(lambdaResult.statusCode).toEqual(400)
   }
-})
-
-test('should return 429 with too frequest request.', async () => {
-  const { apiKey, accessToken } = await dynamodb.createApiKey('should return 429 with too frequest request')
-
-  const event = {
-    queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
-      building: 'マリオス10F',
-      'api-key': apiKey,
-    },
-    headers: {
-      'X-Access-Token': accessToken,
-    }
-  }
-  // @ts-ignore
-  const lambdaResult1 = await handler(event) as APIGatewayProxyResult
-  expect(lambdaResult1!.statusCode).toBe(200)
-
-  // @ts-ignore
-  const lambdaResult2 = await handler(event) as APIGatewayProxyResult
-  expect(lambdaResult2.statusCode).toBe(429)
 })
 
 test('should return 400 with empty address', async () => {
@@ -283,17 +283,3 @@ test('should get same estate ID by normalization', async () => {
   expect(body1[0].ID).toEqual(body2[0].ID)
 
 })
-
-// [Alpha feature] Authentication required
-// test.skip('should return 404 if address is not verified', async () => {
-//     const event = {
-//         queryStringParameters: {
-//             q: '===Not exisiting address. This string should not be verified via API.==='
-//         }
-//     }
-//     // @ts-ignore
-//     const { statusCode, body } = await handler(event)
-//     const { message } = JSON.parse(body)
-//     expect(statusCode).toEqual(404)
-//     expect(message).toEqual(`The address '${event.queryStringParameters.q}' is not verified.`)
-// })
