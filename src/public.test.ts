@@ -14,7 +14,8 @@ test('should get same estate ID for multiple queries to same address', async () 
   const event = {
     isDemoMode: true,
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F'
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
+      building: 'マリオス10F',
     },
   }
   // @ts-ignore
@@ -33,49 +34,71 @@ test('should get same estate ID for multiple queries to same address', async () 
 
 test('should get estate ID with details if authenticated', async () => {
   const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
-
-  const queryPatterns = [
-    {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
-      'api-key': apiKey,
-    },
-    {
+  const event = {
+    queryStringParameters: {
       q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
       building: 'マリオス10F',
       'api-key': apiKey,
+  },
+    headers: {
+      'X-Access-Token': accessToken,
     }
-  ]
+  }
+  // @ts-ignore
+  const lambdaResult = await handler(event)
+  // @ts-ignore
+  const body = JSON.parse(lambdaResult.body)
+  expect(body).toEqual([
+    expect.objectContaining({
+      "address": {
+        "ja": {
+            "address1": "盛岡駅西通二丁目",
+            "address2": "9-1",
+            "city": "盛岡市",
+            "other": "マリオス10F",
+            "prefecture": "岩手県",
+        },
+      },
+      "location": {
+        "lat": "39.701281",
+        "lng": "141.13366",
+      },
+    })
+  ])
+})
 
-  await Promise.all(queryPatterns.map(async queryPattern => {
-
-    const event = {
-      queryStringParameters: queryPattern,
-      headers: {
-        'X-Access-Token': accessToken,
-      }
+test('[Not Recommended request type] should get estate ID with details if authenticated and Building name in q query. ', async () => {
+  const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
+  const event = {
+    queryStringParameters: {
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
+      'api-key': apiKey,
+  },
+    headers: {
+      'X-Access-Token': accessToken,
     }
-    // @ts-ignore
-    const lambdaResult = await handler(event)
-    // @ts-ignore
-    const body = JSON.parse(lambdaResult.body)
-    expect(body).toEqual([
-      expect.objectContaining({
-        "address": {
-          "ja": {
-              "address1": "盛岡駅西通2丁目",
-              "address2": "9-1",
-              "city": "盛岡市",
-              "other": "マリオス10F",
-              "prefecture": "岩手県",
-          },
+  }
+  // @ts-ignore
+  const lambdaResult = await handler(event)
+  // @ts-ignore
+  const body = JSON.parse(lambdaResult.body)
+  expect(body).toEqual([
+    expect.objectContaining({
+      "address": {
+        "ja": {
+            "address1": "盛岡駅西通二丁目",
+            "address2": "9-1 マリオス10F",
+            "city": "盛岡市",
+            "other": "",
+            "prefecture": "岩手県",
         },
-        "location": {
-          "lat": "39.701281",
-          "lng": "141.13366",
-        },
-      })
-    ])
-  }))
+      },
+      "location": {
+        "lat": "39.701281",
+        "lng": "141.13366",
+      },
+    })
+  ])
 })
 
 test('should get estate ID with details if authenticated with 和歌山県東牟婁郡串本町田並1500', async () => {
@@ -100,7 +123,7 @@ test('should get estate ID with details if authenticated with 和歌山県東牟
       "address": {
         "ja": {
             "address1": "田並",
-            "address2": "",
+            "address2": "1500",
             "city": "東牟婁郡串本町",
             "other": "",
             "prefecture": "和歌山県",
