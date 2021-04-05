@@ -1,4 +1,5 @@
 import AWS from 'aws-sdk'
+import { AuthenticationPlanIdentifier } from './authentication'
 import { hashToken, hashTokenV2, hashXY, randomToken } from './index'
 
 const REDIRECT_MAX = 4
@@ -34,6 +35,7 @@ export const createApiKey = async (description: string, otherParams: {[key: stri
       apiKey,
       hashedToken: await hashTokenV2(apiKey, accessToken),
       description,
+      plan: "paid", // default plan is "paid"
       ...otherParams,
     },
     ConditionExpression: `attribute_not_exists(#id)`,
@@ -48,7 +50,16 @@ export const createApiKey = async (description: string, otherParams: {[key: stri
   }
 }
 
-export const authenticate = async (apiKey: string, accessToken: string) => {
+type AuthenticationResult = {
+  authenticated: false
+} | {
+  authenticated: true
+  lastRequestAt: number
+  customQuotas: { [key: string]: number }
+  plan: AuthenticationPlanIdentifier
+}
+
+export const authenticate = async (apiKey: string, accessToken: string): Promise<AuthenticationResult> => {
   const getItemInput: AWS.DynamoDB.DocumentClient.GetItemInput = {
     TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
     Key: { apiKey }
@@ -74,7 +85,8 @@ export const authenticate = async (apiKey: string, accessToken: string) => {
     return {
       authenticated: true,
       lastRequestAt: item.lastRequestAt,
-      customQuotas
+      customQuotas,
+      plan: item.plan || "paid",
     }
   }
 
@@ -82,7 +94,8 @@ export const authenticate = async (apiKey: string, accessToken: string) => {
     return {
       authenticated: true,
       lastRequestAt: item.lastRequestAt,
-      customQuotas
+      customQuotas,
+      plan: item.plan || "paid",
     }
   }
 

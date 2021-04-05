@@ -13,11 +13,18 @@ export const extractApiKey = (event: PublicHandlerEvent) => {
   }
 }
 
-export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: string): Promise<APIGatewayProxyResult | true> => {
+export type AuthenticationPlanIdentifier = "paid" | "free"
+
+export type AuthenticationResult = {
+  valid: true
+  plan: AuthenticationPlanIdentifier
+}
+
+export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: string): Promise<APIGatewayProxyResult | AuthenticationResult> => {
   const { apiKey, accessToken } = extractApiKey(event)
 
   if (event.isDemoMode) {
-    return true
+    return { valid: true, plan: "paid" }
   }
 
   // authentication is skipped when in demo mode
@@ -25,13 +32,18 @@ export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: st
     return errorResponse(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.')
   }
   const authenticateResult = await authenticate(apiKey, accessToken)
-  if (!authenticateResult) {
+  if (authenticateResult.authenticated === false) {
     return errorResponse(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.')
   }
 
   // Todo?: [Alfa feature] Authenticate even if q['api-key'] not specified
 
-  const { authenticated, lastRequestAt, customQuotas } = authenticateResult
+  const {
+    authenticated,
+    // lastRequestAt,
+    customQuotas,
+    plan,
+  } = authenticateResult
 
   if (!authenticated || !customQuotas) {
     return errorResponse(403, 'Incorrect querystring parameter `api-key` or `x-access-token` header value.')
@@ -46,17 +58,19 @@ export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: st
     return errorResponse(429, `Exceed requests limit.`)
   }
 
-  if (lastRequestAt) {
-    const diff = Date.now() - lastRequestAt
-    if (diff < 3000) {
-      return errorResponse(429, 'Please request after a few second.')
-    }
-  }
+  // 3000ms "too frequent request" 制限は解除中
+  // https://github.com/geolonia/estate-id-api/issues/93
+  // if (lastRequestAt) {
+  //   const diff = Date.now() - lastRequestAt
+  //   if (diff < 3000) {
+  //     return errorResponse(429, 'Please request after a few second.')
+  //   }
+  // }
 
   await Promise.all([
     incrementServiceUsage({ apiKey, quotaType }),
     updateTimestamp(apiKey, Date.now()),
   ])
 
-  return true
+  return { valid: true, plan }
 }
