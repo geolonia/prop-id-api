@@ -1,13 +1,17 @@
 import AWS from 'aws-sdk'
 import * as crypto from 'crypto'
+import { promisify } from 'util'
+
+const scrypt = promisify(crypto.scrypt)
 
 const randomToken = (length) => {
   return crypto.randomBytes(length).reduce((p, i) => p + (i % 36).toString(36), '')
 }
 
-// Do not change because same function is embedded in Lambda handler
-const hashToken = (accessToken) => {
-    return crypto.scryptSync(accessToken, process.env.ACCESS_TOKEN_SALT, 10).toString()
+const hashTokenV2 = async (apiKey, accessToken) => {
+  // use api key as salt
+  const buf = await scrypt(accessToken, apiKey, 10)
+  return buf.toString('base64')
 }
 
 export const main = async (stage = 'dev') => {
@@ -26,7 +30,8 @@ export const main = async (stage = 'dev') => {
         TableName: `estate-id-api-key-${stage}`,
         Item: {
           apiKey,
-          accessToken: hashToken(accessToken),
+          hashedToken: await hashTokenV2(apiKey, accessToken),
+          plan: "paid",
           description: description
         }
     }
