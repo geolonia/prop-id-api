@@ -15,7 +15,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   const { apiKey } = extractApiKey(event)
   const authenticationResult = await authenticateEvent(event, quotaType)
-  if (authenticationResult !== true) {
+  if ('statusCode' in authenticationResult) {
     return authenticationResult
   }
 
@@ -145,9 +145,8 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   const ID = estateId!.estateId
 
-  let body
-  if (apiKey || event.isDemoMode) {
-    // apiKey has been authenticated and return rich results
+  let body: any
+  if (authenticationResult.plan === "paid" || event.isDemoMode) {
     body = { ID, address: addressObject, location }
   } else {
     body = { ID }
