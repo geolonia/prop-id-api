@@ -48,6 +48,7 @@ test('it works', async () => {
   const body2 = JSON.parse(lambdaResult2.body)
 
   expect(body2[0].ID).toBe(body1[0].ID)
+  expect(body2[0].location.geocoding_level).toBe(body1[0].location.geocoding_level)
 })
 
 test('should get estate ID without details if authenticated with a free API key', async () => {

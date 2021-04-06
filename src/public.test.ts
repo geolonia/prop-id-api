@@ -58,6 +58,7 @@ test('should get estate ID with details if authenticated', async () => {
         },
       },
       "location": {
+        "geocoding_level": "8",
         "lat": "39.701281",
         "lng": "141.13366",
       },
@@ -92,6 +93,7 @@ test('[Not Recommended request type] should get estate ID with details if authen
         },
       },
       "location": {
+        "geocoding_level": "8",
         "lat": "39.701281",
         "lng": "141.13366",
       },
@@ -154,6 +156,7 @@ test('should get estate ID with details if authenticated with 和歌山県東牟
         },
       },
       "location": {
+        "geocoding_level": "3",
         "lat": "33.488638",
         "lng": "135.714765",
       },

@@ -82,17 +82,8 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(404, "The address '%s' is not verified.", address)
   }
 
-  // not enough match
-  if (!feature.properties.city) {
-    Sentry.captureException(new Error(`The address '${address}' is not verified sufficiently.`))
-    await createLog('normFailNoCity', {
-      input: address,
-      ipcResult: JSON.stringify(ipcResult),
-    })
-    return errorResponse(400, "The address '%s' is not verified sufficiently.", address)
-  }
-
   const [lng, lat] = feature.geometry.coordinates as [number, number]
+  const { geocoding_level } = feature.properties
   const prefCode = getPrefCode(feature.properties.pref)
   const { x, y } = coord2XY([lat, lng], ZOOM)
 
@@ -112,6 +103,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     },
   }
   const location = {
+    geocoding_level: geocoding_level.toString(),
     lat: lat.toString(),
     lng: lng.toString()
   }

@@ -42,8 +42,10 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     } = ipcResult
 
     const [lng, lat] = feature.geometry.coordinates as [number, number]
+    const { geocoding_level } = feature.properties
 
     const location = {
+      geocoding_level: geocoding_level.toString(),
       lat: lat.toString(),
       lng: lng.toString()
     }
