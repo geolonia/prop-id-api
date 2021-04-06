@@ -5,7 +5,9 @@ export default async () => {
     rootDir: "src",
     preset: "ts-jest",
     testPathIgnorePatterns: [
-      "__tests__"
+      "__tests__",
+      "ipc.test.ts",
+      "addresses.test.ts"
     ],
     globalSetup: join(process.cwd(), "src", "test_setup.js"),
   }
