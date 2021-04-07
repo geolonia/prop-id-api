@@ -1,10 +1,16 @@
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
 declare global {
   interface PublicHandlerEvent extends APIGatewayProxyEvent {
     isDemoMode?: boolean
     isDebugMode?: boolean
   }
+
+  interface AdminHandlerEvent extends APIGatewayProxyEvent {
+    userId: string
+  }
+
+  type AdminHandler = (event: AdminHandlerEvent) => Promise<APIGatewayProxyResult>
 
   namespace NodeJS {
     export interface ProcessEnv {

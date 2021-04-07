@@ -25,6 +25,14 @@ module.exports = async () => {
         {
           "AttributeName": "apiKey",
           "AttributeType": "S"
+        },
+        {
+          "AttributeName": "GSI1PK",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "GSI1SK",
+          "AttributeType": "S"
         }
       ],
       "KeySchema": [
@@ -32,7 +40,29 @@ module.exports = async () => {
           "AttributeName": "apiKey",
           "KeyType": "HASH"
         }
-      ]
+      ],
+      "GlobalSecondaryIndexes": [
+        {
+          "IndexName": "GSI1PK-GSI1SK-index",
+          "KeySchema": [
+            {
+              "AttributeName": "GSI1PK",
+              "KeyType": "HASH"
+            },
+            {
+              "AttributeName": "GSI1SK",
+              "KeyType": "RANGE"
+            },
+          ],
+          "Projection": {
+            "ProjectionType": "ALL"
+          },
+          ProvisionedThroughput: {
+            ReadCapacityUnits: 10,
+            WriteCapacityUnits: 10,
+          },
+        },
+      ],
     }).promise()
     console.log("Created", process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME)
   }
@@ -113,7 +143,7 @@ module.exports = async () => {
             WriteCapacityUnits: 10,
           },
         }
-      ]
+      ],
     }).promise()
     console.log("Created", process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME)
   }

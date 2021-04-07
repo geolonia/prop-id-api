@@ -77,6 +77,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     Sentry.captureException(new Error(`The address '${address}' is not verified.`))
     await createLog('normFailNoIPCGeom', {
       input: address,
+      prenormalized: normalizedAddressNJA,
       ipcResult: JSON.stringify(ipcResult),
     })
     return errorResponse(404, "The address '%s' is not verified.", address)

@@ -3,12 +3,13 @@ frameworkVersion: '2'
 
 plugins:
   - serverless-offline
+  - serverless-plugin-typescript
 
 provider:
   name: aws
   runtime: nodejs14.x
   lambdaHashingVersion: 20201221
-  stage: dev
+  stage: ${opt:stage, 'dev'}
   region: ap-northeast-1
   apiGateway:
     shouldStartNameWithService: true
@@ -20,12 +21,14 @@ provider:
     ZOOM: ${self:custom.zoomLevel}
     ACCESS_TOKEN_SALT: ${env:ACCESS_TOKEN_SALT}
     # IPC configs
-    INCREMENTP_VERIFICATION_API_ENDPOINT: ${cf:estate-id-api-cdn-${self:custom.stage}.BackendCDNEndpoint}
+    INCREMENTP_VERIFICATION_API_ENDPOINT: "d3q1ylas6o7xmg.cloudfront.net"
     INCREMENTP_VERIFICATION_API_KEY: ${env:INCREMENTP_VERIFICATION_API_KEY}
     # Internal Stack Refs
     AWS_DYNAMODB_API_KEY_TABLE_NAME: ${self:custom.awsDynamodbApiKeyTableName}
     AWS_DYNAMODB_ESTATE_ID_TABLE_NAME: ${self:custom.awsDynamodbEstateIdTableName}
     AWS_DYNAMODB_LOG_TABLE_NAME: !Ref logTable
+
+    AUTH0_CLIENT_ID: ${self:custom.${self:provider.stage}.AUTH0_CLIENT_ID}
 
     RELEASE_VER: ${env:GITHUB_SHA, 'dev'}
     SENTRY_DSN: ${env:SENTRY_DSN, ''}
@@ -39,10 +42,21 @@ provider:
       statements:
         - Effect: Allow
           Action:
-            - dynamodb:GetItem
-            - dynamodb:UpdateItem
+            - ssm:GetParameter
+            - kms:Decrypt
           Resource:
-            - !GetAtt apiKeyTable.Arn
+            - !Join
+              - ":"
+              - - "arn:aws:ssm"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - parameter/propid/auth0/${self:provider.environment.AUTH0_CLIENT_ID}
+            - !Join
+              - ":"
+              - - "arn:aws:kms"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - "key/alias/aws/ssm"
 
         - Effect: Allow
           Action:
@@ -56,14 +70,25 @@ provider:
               - ""
               - - !GetAtt estateIdTable.Arn
                 - "/index/*"
+            - !GetAtt apiKeyTable.Arn
+            - !Join
+              - ""
+              - - !GetAtt apiKeyTable.Arn
+                - "/index/*"
             - !GetAtt logTable.Arn
 
 custom:
-  stage: ${opt:stage, self:provider.stage}
   # [ATTENTION] All Estate IDs will be changed If zoom altered.
   zoomLevel: 22
-  awsDynamodbApiKeyTableName: estate-id-api-key-${self:custom.stage}
-  awsDynamodbEstateIdTableName: estate-id-${self:custom.stage}
+  awsDynamodbApiKeyTableName: estate-id-api-key-${self:provider.stage}
+  awsDynamodbEstateIdTableName: estate-id-${self:provider.stage}
+
+  local:
+    AUTH0_CLIENT_ID: "0IGvgMGyFFgeKseJtwchmzqEXyPyDUH9"
+  dev:
+    AUTH0_CLIENT_ID: "q8MpkH61Sufg0lkIH7PRKF7Ksz4cAmRN"
+  v1:
+    AUTH0_CLIENT_ID: "Nibkdkq435jxZpJR2JiiZlxY5gMvzAzw"
 
 package:
   exclude:
@@ -78,7 +103,7 @@ package:
     - tsconfig.json
     - yarn.lock
     - package-lock.json
-    - dist/**/*.map
+    - src/**/*.map
 
 resources:
   Resources:
@@ -90,9 +115,22 @@ resources:
         AttributeDefinitions:
           - AttributeName: apiKey
             AttributeType: S
+          - AttributeName: GSI1PK
+            AttributeType: S
+          - AttributeName: GSI1SK
+            AttributeType: S
         KeySchema:
           - AttributeName: apiKey
             KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: GSI1PK-GSI1SK-index
+            KeySchema:
+              - AttributeName: GSI1PK
+                KeyType: HASH
+              - AttributeName: GSI1SK
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
 
     estateIdTable:
@@ -147,14 +185,14 @@ resources:
 
 functions:
   public:
-    handler: dist/public.handler
+    handler: src/public.handler
     events:
       - http:
           path: '/'
           method: get
 
   idQuery:
-    handler: dist/idQuery.handler
+    handler: src/idQuery.handler
     events:
       - http:
           path: '/{estateId}'
@@ -164,8 +202,25 @@ functions:
               paths:
                 estateId: true
 
+  admin:
+    handler: src/admin.handler
+    events:
+      - http:
+          path: '/admin/keys'
+          method: get
+      - http:
+          path: '/admin/keys'
+          method: post
+      - http:
+          path: '/admin/keys/{keyId}/reissue'
+          method: patch
+          request:
+            parameters:
+              paths:
+                keyId: true
+
   demo:
-    handler: dist/demo.handler
+    handler: src/demo.handler
     events:
       - http:
           path: '/demo'
