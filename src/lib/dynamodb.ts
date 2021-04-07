@@ -3,7 +3,18 @@ import { AuthenticationPlanIdentifier } from './authentication'
 import { hashToken, hashTokenV2, hashXY, randomToken } from './index'
 
 const REDIRECT_MAX = 4
-export const DB = process.env.TEST === "1" ? new AWS.DynamoDB.DocumentClient({ endpoint: "http://127.0.0.1:8000", region: "us-west-2" }) : new AWS.DynamoDB.DocumentClient()
+export const DB = process.env.TEST === "1" ? (
+  new AWS.DynamoDB.DocumentClient({
+    endpoint: "http://127.0.0.1:8000",
+    region: "us-west-2",
+    credentials: {
+      accessKeyId: "XXX",
+      secretAccessKey: "XXX",
+    }
+  })
+) : (
+  new AWS.DynamoDB.DocumentClient()
+)
 
 interface BaseEstateId {
   estateId: string
