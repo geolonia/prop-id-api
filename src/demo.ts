@@ -1,3 +1,4 @@
+import '.'
 import { _handler as publicHandler } from './public'
 import { _handler as idQueryHandler } from './idQuery'
 import { decapitalize } from './lib/index'

@@ -1,3 +1,4 @@
+import '.'
 import { Handler, APIGatewayProxyResult } from 'aws-lambda'
 import { incrementPGeocode } from './lib'
 import { extractApiKey, authenticateEvent } from './lib/authentication'

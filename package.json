@@ -32,6 +32,7 @@
     "build": "tsc",
     "start": "TEST=1 sls offline --stage=local",
     "deploy:dev": "sls deploy --stage=dev",
+    "deploy:v1": "sls deploy --stage=v1",
     "deploy:cdn:dev": "sls deploy -c serverless.cdn.yml --stage=dev",
     "start-local-dynamodb": "docker run -d -p 8000:8000 --name local-dynamodb amazon/dynamodb-local -jar DynamoDBLocal.jar -port 8000"
   },
