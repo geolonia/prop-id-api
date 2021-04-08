@@ -70,10 +70,6 @@ export const create: AdminHandler = async (event) => {
 }
 
 export const reissue: AdminHandler = async (event) => {
-  const auth0 = await auth0ManagementClient()
-  const user = await auth0.getUser({id: event.userId})
-  const plan = user.app_metadata?.plan || "paid"
-
   const apiKey = event.pathParameters?.keyId
   if (!apiKey) {
     return errorResponse(404, "key not found")
@@ -111,7 +107,7 @@ export const reissue: AdminHandler = async (event) => {
     key: {
       apiKey: apiKey,
       accessToken: newAccessToken,
-      plan
+      plan: keyResp.Item.plan
     }
   })
 }
