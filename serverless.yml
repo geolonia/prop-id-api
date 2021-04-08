@@ -86,9 +86,9 @@ custom:
   local:
     AUTH0_CLIENT_ID: "0IGvgMGyFFgeKseJtwchmzqEXyPyDUH9"
   dev:
-    AUTH0_CLIENT_ID: "q8MpkH61Sufg0lkIH7PRKF7Ksz4cAmRN"
+    AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_DEV}
   v1:
-    AUTH0_CLIENT_ID: "Nibkdkq435jxZpJR2JiiZlxY5gMvzAzw"
+    AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_V1}
 
 package:
   exclude:
