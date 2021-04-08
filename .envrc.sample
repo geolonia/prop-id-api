@@ -8,3 +8,6 @@ export AUTH0_CLIENT_ID="0IGvgMGyFFgeKseJtwchmzqEXyPyDUH9"
 export INCREMENTP_VERIFICATION_API_HOST="example.com"
 export INCREMENTP_VERIFICATION_API_ENDPOINT="https://example.com/"
 export INCREMENTP_VERIFICATION_API_KEY=zzzz
+
+export AWS_DYNAMODB_API_KEY_TABLE_NAME="estate-id-api-key-local"
+export AWS_DYNAMODB_ESTATE_ID_TABLE_NAME="estate-id-local"
