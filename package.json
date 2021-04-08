@@ -27,8 +27,9 @@
     "aws-sdk": "^2"
   },
   "scripts": {
-    "test": "ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest --config jest.config.mjs",
+    "test": "ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest --config jest-default.config.mjs",
     "test:ipc": "jest ./src/__tests__/ipc.test.ts",
+    "test:addresses": "node ./src/test_download-data.js && ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest ./src/addresses.test.ts",
     "build": "tsc",
     "start": "TEST=1 sls offline --stage=local",
     "deploy:dev": "sls deploy --stage=dev",

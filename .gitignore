@@ -122,3 +122,5 @@ dist
 
 # serverless-typescript
 .build
+
+src/addresses.csv
