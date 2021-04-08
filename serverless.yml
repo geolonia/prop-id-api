@@ -5,6 +5,11 @@ plugins:
   - serverless-offline
   - serverless-plugin-typescript
 
+_shared_blocks:
+  default_cors: &default_cors
+    cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate'
+    origin: ${self:custom.${self:provider.stage}.admin_origins, '*'}
+
 provider:
   name: aws
   runtime: nodejs14.x
@@ -86,9 +91,11 @@ custom:
   local:
     AUTH0_CLIENT_ID: "0IGvgMGyFFgeKseJtwchmzqEXyPyDUH9"
   dev:
-    AUTH0_CLIENT_ID: "q8MpkH61Sufg0lkIH7PRKF7Ksz4cAmRN"
+    AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_DEV, ''}
+    admin_origins: "https://app.propid.jp,https://*-g-prop-id-app.netlify.app"
   v1:
-    AUTH0_CLIENT_ID: "Nibkdkq435jxZpJR2JiiZlxY5gMvzAzw"
+    AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_V1, ''}
+    admin_origins: "https://app.propid.jp"
 
 package:
   exclude:
@@ -208,9 +215,11 @@ functions:
       - http:
           path: '/admin/keys'
           method: get
+          cors: *default_cors
       - http:
           path: '/admin/keys'
           method: post
+          cors: *default_cors
       - http:
           path: '/admin/keys/{keyId}/reissue'
           method: patch
@@ -218,6 +227,7 @@ functions:
             parameters:
               paths:
                 keyId: true
+          cors: *default_cors
 
   demo:
     handler: src/demo.handler
