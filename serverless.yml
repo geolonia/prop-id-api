@@ -5,11 +5,6 @@ plugins:
   - serverless-offline
   - serverless-plugin-typescript
 
-_shared_blocks:
-  default_cors: &default_cors
-    cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate'
-    origin: ${self:custom.${self:provider.stage}.admin_origins, '*'}
-
 provider:
   name: aws
   runtime: nodejs14.x
@@ -98,19 +93,12 @@ custom:
     admin_origins: "https://app.propid.jp"
 
 package:
-  exclude:
-    - __tests__
-    - .*
-    - bin/
-    - docs/
-    - src/
-    - package.json
-    - README.md
-    - serverless.yml
-    - tsconfig.json
-    - yarn.lock
-    - package-lock.json
-    - src/**/*.map
+  patterns:
+    - "*.json"
+    - "!dist/**/*"
+    - "!.build/**/*"
+    - "!node_modules/.yarn-integrity"
+    - "!node_modules/.bin/*"
 
 resources:
   Resources:
@@ -215,7 +203,10 @@ functions:
       - http:
           path: '/admin/keys'
           method: get
-          cors: *default_cors
+          cors: &default_cors
+            cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate'
+            origin: ${self:custom.${self:provider.stage}.admin_origins, '*'}
+
       - http:
           path: '/admin/keys'
           method: post

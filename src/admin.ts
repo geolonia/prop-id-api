@@ -1,6 +1,7 @@
+import '.'
 import Sentry from './lib/sentry'
 import { APIGatewayProxyHandler } from 'aws-lambda'
-import { errorResponse, json } from './lib/proxy-response'
+import { errorResponse } from './lib/proxy-response'
 import jwt from "jsonwebtoken"
 import jwks from "jwks-rsa"
 

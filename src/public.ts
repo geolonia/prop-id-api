@@ -1,3 +1,4 @@
+import '.'
 import { EstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './lib/dynamodb'
 import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult, incrementPGeocode, normalizeBuilding } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'

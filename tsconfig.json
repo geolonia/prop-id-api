@@ -10,11 +10,23 @@
     "inlineSources": true,
     "sourceRoot": "/",
 
+    "rootDir": ".",
+
     /* Advanced Options */
     "skipLibCheck": true,                     /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true, /* Disallow inconsistently-cased references to the same file. */
 
     "resolveJsonModule": true
   },
-  "exclude": ["./src/__tests__/*", "./src/**/*.spec.ts", "./src/**/*.test.ts", "./src/test_setup.js", "jest.config.mjs"],
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "./src/__tests__/*",
+    "./src/**/*.spec.ts",
+    "./src/**/*.test.ts",
+    "./src/test_setup.js",
+    "jest.config.mjs",
+    "./bin/*.mjs"
+  ],
 }
