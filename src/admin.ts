@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken"
 import jwks from "jwks-rsa"
 
 import * as keys from "./admin/keys"
+import { decapitalize } from './lib'
 
 const jwksClient = jwks({
   cache: true,
@@ -15,8 +16,9 @@ const jwksClient = jwks({
 })
 
 const _handler: APIGatewayProxyHandler = async (event) => {
-  const tokenHeader = event.headers['authorization']
-  if (!tokenHeader || !tokenHeader.match(/^bearer/i)) {
+  const headers = decapitalize(event.headers)
+  const tokenHeader = headers['authorization']
+  if (!tokenHeader || !tokenHeader.match(/^bearer /i)) {
     return errorResponse(401, 'Not authenticated')
   }
   const token = tokenHeader.substr(7)
