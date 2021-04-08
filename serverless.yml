@@ -21,7 +21,7 @@ provider:
     ZOOM: ${self:custom.zoomLevel}
     ACCESS_TOKEN_SALT: ${env:ACCESS_TOKEN_SALT}
     # IPC configs
-    INCREMENTP_VERIFICATION_API_ENDPOINT: "d3q1ylas6o7xmg.cloudfront.net"
+    INCREMENTP_VERIFICATION_API_ENDPOINT: "https://d3q1ylas6o7xmg.cloudfront.net/v1"
     INCREMENTP_VERIFICATION_API_KEY: ${env:INCREMENTP_VERIFICATION_API_KEY}
     # Internal Stack Refs
     AWS_DYNAMODB_API_KEY_TABLE_NAME: ${self:custom.awsDynamodbApiKeyTableName}
