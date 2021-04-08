@@ -86,8 +86,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
       - name: Create build for Sentry release
-        run: yarn build --outDir=dist
-      - name: Create Sentry release
+        run: yarn build --outDir dist
+      - name: Create Sentry release (dev)
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: getsentry/action-release@v1
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -95,5 +96,16 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         with:
           environment: dev
+          sourcemaps: ./dist/
+          version: ${{ github.sha }}
+      - name: Create Sentry release (v1)
+        if: ${{ github.ref == 'refs/tags/' }}
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        with:
+          environment: v1
           sourcemaps: ./dist/
           version: ${{ github.sha }}
