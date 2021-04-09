@@ -29,6 +29,7 @@ provider:
     AWS_DYNAMODB_LOG_TABLE_NAME: !Ref logTable
 
     AUTH0_CLIENT_ID: ${self:custom.${self:provider.stage}.AUTH0_CLIENT_ID}
+    AUTH0_DOMAIN: ${self:custom.${self:provider.stage}.AUTH0_DOMAIN}
 
     RELEASE_VER: ${env:GITHUB_SHA, 'dev'}
     SENTRY_DSN: ${env:SENTRY_DSN, ''}
@@ -84,12 +85,15 @@ custom:
   awsDynamodbEstateIdTableName: estate-id-${self:provider.stage}
 
   local:
-    AUTH0_CLIENT_ID: "0IGvgMGyFFgeKseJtwchmzqEXyPyDUH9"
+    AUTH0_CLIENT_ID: "Odt4Kq2h7HTJsbkzhVrY4Rm7QLhMkFLH"
+    AUTH0_DOMAIN: "prop-id-dev.jp.auth0.com"
   dev:
     AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_DEV, ''}
-    admin_origins: "https://app.propid.jp,https://*-g-prop-id-app.netlify.app"
+    AUTH0_DOMAIN: "prop-id-dev.jp.auth0.com"
+    admin_origins: "https://*-g-prop-id-app.netlify.app"
   v1:
     AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_V1, ''}
+    AUTH0_DOMAIN: "auth.propid.jp"
     admin_origins: "https://app.propid.jp"
 
 package:
