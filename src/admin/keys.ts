@@ -63,7 +63,8 @@ export const create: AdminHandler = async (event) => {
     error: false,
     key: {
       apiKey: apiKey.apiKey,
-      accessToken: apiKey.accessToken
+      accessToken: apiKey.accessToken,
+      plan
     }
   })
 }
@@ -105,7 +106,8 @@ export const reissue: AdminHandler = async (event) => {
     error: false,
     key: {
       apiKey: apiKey,
-      accessToken: newAccessToken
+      accessToken: newAccessToken,
+      plan: keyResp.Item.plan
     }
   })
 }
