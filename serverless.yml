@@ -30,8 +30,9 @@ provider:
 
     AUTH0_CLIENT_ID: ${self:custom.${self:provider.stage}.AUTH0_CLIENT_ID}
     AUTH0_DOMAIN: ${self:custom.${self:provider.stage}.AUTH0_DOMAIN}
+    AUTH0_MGMT_DOMAIN: ${self:custom.${self:provider.stage}.AUTH0_MGMT_DOMAIN, self:provider.environment.AUTH0_DOMAIN}
 
-    RELEASE_VER: ${env:GITHUB_SHA, 'dev'}
+    RELEASE_VER: ${env:GITHUB_SHA, self:provider.stage}
     SENTRY_DSN: ${env:SENTRY_DSN, ''}
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
 
@@ -94,6 +95,7 @@ custom:
   v1:
     AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_V1, ''}
     AUTH0_DOMAIN: "auth.propid.jp"
+    AUTH0_MGMT_DOMAIN: "prop-id.jp.auth0.com"
     admin_origins: "https://app.propid.jp"
 
 package:
