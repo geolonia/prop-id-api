@@ -30,7 +30,7 @@
     "test": "ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest --config jest.config.mjs",
     "test:ipc": "jest ./src/__tests__/ipc.test.ts",
     "build": "tsc",
-    "start": "TEST=1 sls offline --stage=local",
+    "start": "TEST=1 sls offline --stage=local --httpPort 3000",
     "deploy:dev": "sls deploy --stage=dev",
     "deploy:v1": "sls deploy --stage=v1",
     "deploy:cdn:dev": "sls deploy -c serverless.cdn.yml --stage=dev",

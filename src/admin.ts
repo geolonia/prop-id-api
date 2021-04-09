@@ -7,25 +7,28 @@ import jwks from "jwks-rsa"
 
 import * as keys from "./admin/keys"
 import { decapitalize } from './lib'
+import { AUTH0_DOMAIN } from './lib/auth0_client'
 
 const jwksClient = jwks({
   cache: true,
   cacheMaxAge: 600000,
   rateLimit: true,
   jwksRequestsPerMinute: 5,
-  jwksUri: "https://prop-id.jp.auth0.com/.well-known/jwks.json"
+  jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`
 })
 
 const _handler: APIGatewayProxyHandler = async (event) => {
   const headers = decapitalize(event.headers)
   const tokenHeader = headers['authorization']
   if (!tokenHeader || !tokenHeader.match(/^bearer /i)) {
+    console.log("Couldn't find authorization header.")
     return errorResponse(401, 'Not authenticated')
   }
   const token = tokenHeader.substr(7)
   const decodedToken = jwt.decode(token, { complete: true })
   const kid = decodedToken?.header.kid
   if (!kid) {
+    console.log("Token couldn't be decoded")
     return errorResponse(401, 'Not authenticated')
   }
   let userId: string | undefined = undefined
@@ -34,7 +37,7 @@ const _handler: APIGatewayProxyHandler = async (event) => {
     const verifiedToken = jwt.verify(token, signingKey.getPublicKey(), {
       audience: 'https://api.propid.jp',
       algorithms: ['RS256'],
-      issuer: 'https://prop-id.jp.auth0.com/'
+      issuer: `https://${AUTH0_DOMAIN}/`
     }) as { [key: string]: any }
     userId = verifiedToken.sub
   } catch (e) {
@@ -45,6 +48,7 @@ const _handler: APIGatewayProxyHandler = async (event) => {
     ) {
       throw e
     }
+    console.log("Token verification error: ", e.name, JSON.stringify(e))
   }
   if (!userId) {
     return errorResponse(401, 'Not authenticated')

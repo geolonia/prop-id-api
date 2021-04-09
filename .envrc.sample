@@ -3,7 +3,7 @@ export AWS_ACCESS_KEY_ID=xxxx
 export AWS_SECRET_ACCESS_KEY=xxxx
 export ACCESS_TOKEN_SALT=yyyy
 
-export AUTH0_CLIENT_ID="0IGvgMGyFFgeKseJtwchmzqEXyPyDUH9"
+export AUTH0_CLIENT_ID="Odt4Kq2h7HTJsbkzhVrY4Rm7QLhMkFLH"
 
 export INCREMENTP_VERIFICATION_API_HOST="example.com"
 export INCREMENTP_VERIFICATION_API_ENDPOINT="https://example.com/"
