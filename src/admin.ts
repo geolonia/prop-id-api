@@ -39,7 +39,7 @@ const _handler: APIGatewayProxyHandler = async (event) => {
       algorithms: ['RS256'],
       issuer: [
         `https://${AUTH0_DOMAIN}/`,
-        `https://${AUTH0_MGMT_DOMAIN}`,
+        `https://${AUTH0_MGMT_DOMAIN}/`,
       ],
     }) as { [key: string]: any }
     userId = verifiedToken.sub
