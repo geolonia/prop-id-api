@@ -7,7 +7,7 @@ import jwks from "jwks-rsa"
 
 import * as keys from "./admin/keys"
 import { decapitalize } from './lib'
-import { AUTH0_DOMAIN } from './lib/auth0_client'
+import { AUTH0_DOMAIN, AUTH0_MGMT_DOMAIN } from './lib/auth0_client'
 
 const jwksClient = jwks({
   cache: true,
@@ -37,7 +37,10 @@ const _handler: APIGatewayProxyHandler = async (event) => {
     const verifiedToken = jwt.verify(token, signingKey.getPublicKey(), {
       audience: 'https://api.propid.jp',
       algorithms: ['RS256'],
-      issuer: `https://${AUTH0_DOMAIN}/`
+      issuer: [
+        `https://${AUTH0_DOMAIN}/`,
+        `https://${AUTH0_MGMT_DOMAIN}`,
+      ],
     }) as { [key: string]: any }
     userId = verifiedToken.sub
   } catch (e) {
