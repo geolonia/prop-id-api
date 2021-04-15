@@ -10,6 +10,7 @@ const refererHeads = [
   'http://127.0.0.1:',
   'http://localhost:',
   'https://geolonia.github.io',
+  'https://api.propid.jp',
 ]
 
 const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event, context, callback) => {
