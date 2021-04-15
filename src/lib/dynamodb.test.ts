@@ -101,6 +101,47 @@ describe('mergeEstateId', () => {
   })
 })
 
+describe('getEstateIdForAddress', () => {
+  test('it returns different IDs for different buildings and addresses without buildings', async () => {
+    const id1 = await dynamodb.store({
+      rawAddress: "東京都千代田区永田町１丁目７−１",
+      address: "東京都千代田区永田町一丁目7-1",
+      tileXY: "3726576/1649777",
+      zoom: 22,
+      prefCode: "11"
+    })
+
+    const id2 = await dynamodb.store({
+      rawAddress: "東京都千代田区永田町１丁目７−１",
+      address: "東京都千代田区永田町一丁目7-1",
+      rawBuilding: "国会議事堂A棟",
+      building: "国会議事堂A棟",
+      tileXY: "3726576/1649777",
+      zoom: 22,
+      prefCode: "11"
+    })
+
+    const id3 = await dynamodb.store({
+      rawAddress: "東京都千代田区永田町１丁目７−１",
+      address: "東京都千代田区永田町一丁目7-1",
+      rawBuilding: "国会議事堂B棟",
+      building: "国会議事堂B棟",
+      tileXY: "3726576/1649777",
+      zoom: 22,
+      prefCode: "11"
+    })
+
+    const queryResp1 = await dynamodb.getEstateIdForAddress("東京都千代田区永田町一丁目7-1")
+    expect(queryResp1).toMatchObject(id1)
+
+    const queryResp2 = await dynamodb.getEstateIdForAddress("東京都千代田区永田町一丁目7-1", "国会議事堂A棟")
+    expect(queryResp2).toMatchObject(id2)
+
+    const queryResp3 = await dynamodb.getEstateIdForAddress("東京都千代田区永田町一丁目7-1", "国会議事堂B棟")
+    expect(queryResp3).toMatchObject(id3)
+  })
+})
+
 export const _updateServiceUsageQuota = async ( usageKey:string, updateRequestCount:number ) => {
 
   const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
