@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { APIGatewayProxyResult } from 'aws-lambda'
-import { _updateServiceUsageQuota, _getServiceUsageQuotaItem } from './lib/dynamodb.test'
+import { _getServiceUsageQuotaItem, _updateServiceUsageQuota } from './lib/dynamodb_test_helpers.test'
 import { _handler as handler } from './public'
 
 const lines = fs

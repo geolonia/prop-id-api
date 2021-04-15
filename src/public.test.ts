@@ -1,6 +1,6 @@
 import { APIGatewayProxyResult } from 'aws-lambda'
 import * as dynamodb from './lib/dynamodb'
-import { _updateServiceUsageQuota, _getServiceUsageQuotaItem } from './lib/dynamodb.test'
+import { _getServiceUsageQuotaItem, _updateServiceUsageQuota } from './lib/dynamodb_test_helpers.test'
 import { _handler as handler } from './public'
 
 test('should specify the ZOOM environmental variable.', () => {
