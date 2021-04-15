@@ -144,11 +144,10 @@ export const getEstateIdForAddress = async (address: string, building?: string |
   const queryInputForExactMatch: AWS.DynamoDB.DocumentClient.QueryInput = {
     TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
     IndexName: 'address-index',
-    Limit: 1,
     ExpressionAttributeNames,
     ExpressionAttributeValues,
     KeyConditionExpression,
-    FilterExpression
+    FilterExpression,
   }
   const { Items: exactMatchItems = [] } = await DB.query(queryInputForExactMatch).promise()
 
