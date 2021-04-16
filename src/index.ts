@@ -1,7 +1,8 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
 
 declare global {
   interface PublicHandlerEvent extends APIGatewayProxyEvent {
+    preauthenticatedUserId?: string
     isDemoMode?: boolean
     isDebugMode?: boolean
   }

@@ -66,6 +66,85 @@ test('should get estate ID with details if authenticated', async () => {
   ])
 })
 
+describe("preauthenticatedUserId", () => {
+  test('should get estate ID if preauthenticated', async () => {
+    const userId = 'keymock|should get estate ID if preauthenticated'
+    const { apiKey } = await dynamodb.createApiKey('should get estate ID if preauthenticated', {
+      GSI1PK: userId,
+      plan: "free",
+    })
+    const event = {
+      queryStringParameters: {
+        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
+        building: 'マリオス10F',
+        'api-key': apiKey,
+      },
+      preauthenticatedUserId: userId,
+    }
+    // @ts-ignore
+    const lambdaResult = await handler(event) as APIGatewayProxyResult
+    const body = JSON.parse(lambdaResult.body)
+
+    expect(lambdaResult.statusCode).toBe(200)
+    expect(body[0].ID).toBeDefined()
+    expect(body[0].location).toBeUndefined()
+  })
+
+  test('should get estate ID if preauthenticated as paid user', async () => {
+    const userId = 'keymock|should get estate ID if preauthenticated as paid user'
+    const { apiKey } = await dynamodb.createApiKey('should get estate ID if preauthenticated as paid user', {
+      GSI1PK: userId,
+      plan: "paid",
+    })
+    const event = {
+      queryStringParameters: {
+        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
+        building: 'マリオス10F',
+        'api-key': apiKey,
+      },
+      preauthenticatedUserId: userId,
+    }
+    // @ts-ignore
+    const lambdaResult = await handler(event) as APIGatewayProxyResult
+    const body = JSON.parse(lambdaResult.body)
+
+    expect(lambdaResult.statusCode).toBe(200)
+    expect(body[0].ID).toBeDefined()
+    expect(body[0].location).toMatchObject({
+      "geocoding_level": "8",
+      "lat": "39.701281",
+      "lng": "141.13366",
+    })
+  })
+
+  test('should get error if API key and preauthenticated user does not match', async () => {
+    const userId = 'keymock|should get error if API key and preauthenticated user does not match'
+    const userId2 = 'keymock|should get error if API key and preauthenticated user does not match 2'
+    const { apiKey } = await dynamodb.createApiKey('should get error if API key and preauthenticated user does not match', {
+      GSI1PK: userId,
+      plan: "free",
+    })
+    await dynamodb.createApiKey('should get error if API key and preauthenticated user does not match2', {
+      GSI1PK: userId2,
+      plan: "free",
+    })
+    const event = {
+      queryStringParameters: {
+        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
+        building: 'マリオス10F',
+        'api-key': apiKey,
+      },
+      preauthenticatedUserId: userId2,
+    }
+    // @ts-ignore
+    const lambdaResult = await handler(event) as APIGatewayProxyResult
+    const body = JSON.parse(lambdaResult.body)
+
+    expect(lambdaResult.statusCode).toBe(403)
+    expect(body[0]?.ID).toBeUndefined()
+  })
+})
+
 test('[Not Recommended request type] should get estate ID with details if authenticated and Building name in q query. ', async () => {
   const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
   const event = {

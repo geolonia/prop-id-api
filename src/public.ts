@@ -10,7 +10,7 @@ import { createLog } from './lib/dynamodb_logs'
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const address = event.queryStringParameters?.q
-  const building = event.queryStringParameters && event.queryStringParameters['building'] ? event.queryStringParameters['building'] : undefined
+  const building = event.queryStringParameters?.building
   const ZOOM = parseInt(process.env.ZOOM, 10)
   const quotaType = "id-req"
 

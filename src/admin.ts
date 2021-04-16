@@ -1,11 +1,14 @@
 import '.'
 import Sentry from './lib/sentry'
-import { APIGatewayProxyHandler } from 'aws-lambda'
+import { APIGatewayProxyResult, Handler } from 'aws-lambda'
 import { errorResponse } from './lib/proxy-response'
 import jwt from "jsonwebtoken"
 import jwks from "jwks-rsa"
 
 import * as keys from "./admin/keys"
+import { _handler as publicHandler } from './public'
+import { _handler as idQueryHandler } from './idQuery'
+
 import { decapitalize } from './lib'
 import { AUTH0_DOMAIN, AUTH0_MGMT_DOMAIN } from './lib/auth0_client'
 
@@ -17,7 +20,7 @@ const jwksClient = jwks({
   jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`
 })
 
-const _handler: APIGatewayProxyHandler = async (event) => {
+const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event, context, callback) => {
   const headers = decapitalize(event.headers)
   const tokenHeader = headers['authorization']
   if (!tokenHeader || !tokenHeader.match(/^bearer /i)) {
@@ -68,6 +71,12 @@ const _handler: APIGatewayProxyHandler = async (event) => {
     return keys.create(adminEvent)
   } else if (event.resource === "/admin/keys/{keyId}/reissue" && event.httpMethod === "PATCH") {
     return keys.reissue(adminEvent)
+  } else if (event.resource === "/admin/query" && event.httpMethod === "GET") {
+    event.preauthenticatedUserId = userId
+    return await publicHandler(event, context, callback) as APIGatewayProxyResult
+  } else if (event.resource === "/admin/query/{estateId}" && event.httpMethod === "GET") {
+    event.preauthenticatedUserId = userId
+    return await idQueryHandler(event, context, callback) as APIGatewayProxyResult
   }
   return errorResponse(404, 'Not found')
 }
