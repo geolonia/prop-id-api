@@ -73,9 +73,11 @@ const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (even
     return keys.reissue(adminEvent)
   } else if (event.resource === "/admin/query" && event.httpMethod === "GET") {
     event.preauthenticatedUserId = userId
+    event.isDebugMode = event.queryStringParameters?.debug === 'true'
     return await publicHandler(event, context, callback) as APIGatewayProxyResult
   } else if (event.resource === "/admin/query/{estateId}" && event.httpMethod === "GET") {
     event.preauthenticatedUserId = userId
+    event.isDebugMode = event.queryStringParameters?.debug === 'true'
     return await idQueryHandler(event, context, callback) as APIGatewayProxyResult
   }
   return errorResponse(404, 'Not found')

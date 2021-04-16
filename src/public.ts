@@ -146,7 +146,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     body = { ID }
   }
 
-  if (event.isDebugMode && event.isDemoMode) {
+  if (event.isDebugMode === true) {
     // aggregate debug info
     return json({
       internallyNormalized: prenormalizedAddress,
