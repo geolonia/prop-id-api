@@ -217,6 +217,7 @@ functions:
           path: '/admin/keys'
           method: post
           cors: *default_cors
+
       - http:
           path: '/admin/keys/{keyId}/reissue'
           method: patch
@@ -224,6 +225,20 @@ functions:
             parameters:
               paths:
                 keyId: true
+          cors: *default_cors
+
+      - http:
+          path: '/admin/query'
+          method: get
+          cors: *default_cors
+
+      - http:
+          path: '/admin/query/{estateId}'
+          method: get
+          request:
+            parameters:
+              paths:
+                estateId: true
           cors: *default_cors
 
   demo:

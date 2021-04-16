@@ -70,7 +70,11 @@ type AuthenticationResult = {
   plan: AuthenticationPlanIdentifier
 }
 
-export const authenticate = async (apiKey: string, accessToken: string): Promise<AuthenticationResult> => {
+export const authenticate = async (
+  apiKey: string,
+  accessToken: string,
+  preauthenticatedUserId?: string,
+): Promise<AuthenticationResult> => {
   const getItemInput: AWS.DynamoDB.DocumentClient.GetItemInput = {
     TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
     Key: { apiKey }
@@ -92,22 +96,19 @@ export const authenticate = async (apiKey: string, accessToken: string): Promise
     }
   }
 
-  if ('hashedToken' in item && item.hashedToken === await hashTokenV2(apiKey, accessToken)) {
-    return {
-      authenticated: true,
-      lastRequestAt: item.lastRequestAt,
-      customQuotas,
-      plan: item.plan || "paid",
-    }
+  const authenticatedResp = {
+    authenticated: true,
+    lastRequestAt: item.lastRequestAt,
+    customQuotas,
+    plan: item.plan || "paid",
   }
 
-  if ('accessToken' in item && item.accessToken === hashToken(accessToken)) {
-    return {
-      authenticated: true,
-      lastRequestAt: item.lastRequestAt,
-      customQuotas,
-      plan: item.plan || "paid",
-    }
+  if (
+    (typeof preauthenticatedUserId !== 'undefined' && item.GSI1PK === preauthenticatedUserId) ||
+    ('hashedToken' in item && item.hashedToken === await hashTokenV2(apiKey, accessToken)) ||
+    ('accessToken' in item && item.accessToken === hashToken(accessToken))
+  ) {
+    return authenticatedResp
   }
 
   return { authenticated: false }
