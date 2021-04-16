@@ -1,4 +1,5 @@
 import * as dynamodb from './dynamodb'
+import { _getServiceUsageQuotaItem, _updateServiceUsageQuota } from './dynamodb_test_helpers.test'
 
 describe('mergeEstateId', () => {
   test('it works', async () => {
@@ -101,30 +102,56 @@ describe('mergeEstateId', () => {
   })
 })
 
-export const _updateServiceUsageQuota = async ( usageKey:string, updateRequestCount:number ) => {
+describe('getEstateIdForAddress', () => {
+  test('it returns different IDs for different buildings and addresses without buildings', async () => {
+    const address = `getEstateIdForAddress - return different ID`
+    const [
+      id1,
+      id2,
+      id3,
+    ] = await Promise.all([
+      dynamodb.store({
+        rawAddress: "東京都千代田区永田町１丁目７−１",
+        address,
+        tileXY: "3726576/1649777",
+        zoom: 22,
+        prefCode: "11"
+      }),
+      dynamodb.store({
+        rawAddress: "東京都千代田区永田町１丁目７−１",
+        address,
+        rawBuilding: "国会議事堂A棟",
+        building: "国会議事堂A棟",
+        tileXY: "3726576/1649777",
+        zoom: 22,
+        prefCode: "11"
+      }),
+      dynamodb.store({
+        rawAddress: "東京都千代田区永田町１丁目７−１",
+        address,
+        rawBuilding: "国会議事堂B棟",
+        building: "国会議事堂B棟",
+        tileXY: "3726576/1649777",
+        zoom: 22,
+        prefCode: "11"
+      }),
+    ])
 
-  const updateItemInput: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
-    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
-    Key: { apiKey : usageKey },
-    UpdateExpression: 'SET #c = :c',
-    ExpressionAttributeNames: {
-      '#c': 'c',
-    },
-    ExpressionAttributeValues: {
-      ':c': updateRequestCount
-    }
-  }
-  await dynamodb.DB.update(updateItemInput).promise()
-}
+    const [
+      queryResp1,
+      queryResp2,
+      queryResp3,
+    ] = await Promise.all([
+      dynamodb.getEstateIdForAddress(address),
+      dynamodb.getEstateIdForAddress(address, "国会議事堂A棟"),
+      dynamodb.getEstateIdForAddress(address, "国会議事堂B棟"),
+    ])
 
-export const _getServiceUsageQuotaItem = async ( usageKey:string ) =>{
-  const getItemInput: AWS.DynamoDB.DocumentClient.GetItemInput = {
-    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
-    Key: { apiKey : usageKey },
-  }
-  const { Item: item } = await dynamodb.DB.get(getItemInput).promise()
-  return item
-}
+    expect(queryResp1).toMatchObject(id1)
+    expect(queryResp2).toMatchObject(id2)
+    expect(queryResp3).toMatchObject(id3)
+  })
+})
 
 describe('checkServiceUsageQuota', () => {
 
