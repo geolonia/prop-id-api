@@ -66,6 +66,31 @@ test('should get estate ID with details if authenticated', async () => {
   ])
 })
 
+test('should return the same ID for query with empty building', async () => {
+  const event1 = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地2号',
+    },
+  }
+  const event2 = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地2号',
+      building: '',
+    },
+  }
+  // @ts-ignore
+  const lambdaResult1 = await handler(event1) as APIGatewayProxyResult
+  const body1 = JSON.parse(lambdaResult1.body)
+
+  // @ts-ignore
+  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult
+  const body2 = JSON.parse(lambdaResult2.body)
+
+  expect(body1[0].ID).toEqual(body2[0].ID)
+})
+
 describe("preauthenticatedUserId", () => {
   test('should get estate ID if preauthenticated', async () => {
     const userId = 'keymock|should get estate ID if preauthenticated'
