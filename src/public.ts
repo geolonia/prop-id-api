@@ -8,6 +8,11 @@ import { Handler, APIGatewayProxyResult } from 'aws-lambda'
 import { authenticateEvent, extractApiKey } from './lib/authentication'
 import { createLog } from './lib/dynamodb_logs'
 
+const NORMALIZATION_ERROR_CODE_DETAILS = [
+  "prefecture_not_recognized",
+  "city_not_recognized",
+]
+
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const address = event.queryStringParameters?.q
   const building = event.queryStringParameters?.building
@@ -33,27 +38,23 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   })
 
   // Internal normalization
-  let prenormalizedAddress: NormalizeResult
-  try {
-    prenormalizedAddress = await normalize(address)
+  const prenormalizedAddress = await normalize(address)
+  await createLog(`normLogsNJA`, {
+    input: address,
+    level: prenormalizedAddress.level,
+    normalized: JSON.stringify(prenormalizedAddress),
+  })
 
-    await createLog(`normLogsNJA`, {
-      input: address,
-      normalized: JSON.stringify(prenormalizedAddress),
-    })
-
-  } catch (error) {
-    Sentry.captureException(error)
-    console.error({ error })
-    if ('address' in error) {
-      // this is a normalize-japanese-addressses error
-      await createLog(`normFailNJA`, {
-        input: address,
-        errorMsg: error.message,
-      })
-    }
-    return errorResponse(400, `address ${address} can not be normalized.`)
+  if (prenormalizedAddress.level < 2) {
+    const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalizedAddress.level]
+    return json({
+      error: true,
+      error_code: `normalization_failed`,
+      error_code_detail,
+      address,
+    }, 400)
   }
+
   const normalizedBuilding = normalizeBuilding(building)
 
   if (!prenormalizedAddress.town || prenormalizedAddress.town === '') {
@@ -65,6 +66,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   const normalizedAddressNJA = `${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`
   const ipcResult = await incrementPGeocode(normalizedAddressNJA)
   if (!ipcResult) {
+    Sentry.captureException(new Error(`IPC result null`))
     return errorResponse(500, 'Internal server error')
   }
 
@@ -81,7 +83,12 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       prenormalized: normalizedAddressNJA,
       ipcResult: JSON.stringify(ipcResult),
     })
-    return errorResponse(404, "The address '%s' is not verified.", address)
+
+    return json({
+      error: true,
+      error_code: `address_not_verified`,
+      address,
+    }, 404)
   }
 
   const [lng, lat] = feature.geometry.coordinates as [number, number]
@@ -137,7 +144,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(500, 'Internal Server Error.')
   }
 
-  const ID = estateId!.estateId
+  const ID = estateId.estateId
 
   let body: any
   if (authenticationResult.plan === "paid" || event.isDemoMode) {

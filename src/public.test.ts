@@ -268,35 +268,44 @@ test('should get estate ID with details if authenticated with 和歌山県東牟
   ])
 })
 
-test('should return 400 with insufficient address.', async () => {
-  const addresses = [
-    '和歌山県東牟婁郡'
-  ]
+describe("normalization error cases",  () => {
+  test('should return 400 with insufficient address.', async () => {
+    const addresses = [
+      ['和歌山県東牟婁郡', 'city_not_recognized'],
+      ['和歌山県aoeu', 'city_not_recognized'],
+      ['和歌県', 'prefecture_not_recognized'],
+      ['おはよう', 'prefecture_not_recognized'],
+    ]
 
-  for (const address of addresses) {
+    for (const addressData of addresses) {
+      const [ address, expectedErrorCodeDetail ] = addressData
+      const event = {
+        isDemoMode: true,
+        queryStringParameters: {
+          q: address
+        }
+      }
+
+      // @ts-ignore
+      const resp = await handler(event) as APIGatewayProxyResult
+      const body = JSON.parse(resp.body)
+      expect(resp.statusCode).toEqual(400)
+      expect(body.error_code).toBe("normalization_failed")
+      expect(body.error_code_detail).toBe(expectedErrorCodeDetail)
+    }
+  })
+
+  test('should return 400 with empty address', async () => {
     const event = {
       isDemoMode: true,
-      queryStringParameters: {
-        q: address
-      }
+      queryStringParameters: null
     }
-
     // @ts-ignore
-    const lambdaResult = await handler(event) as APIGatewayProxyResult
-    expect(lambdaResult.statusCode).toEqual(400)
-  }
-})
-
-test('should return 400 with empty address', async () => {
-  const event = {
-    isDemoMode: true,
-    queryStringParameters: null
-  }
-  // @ts-ignore
-  const { statusCode, body } = await handler(event)
-  const { message } = JSON.parse(body)
-  expect(statusCode).toEqual(400)
-  expect(message).toEqual('Missing querystring parameter `q`.')
+    const { statusCode, body } = await handler(event)
+    const { message } = JSON.parse(body)
+    expect(statusCode).toEqual(400)
+    expect(message).toEqual('Missing querystring parameter `q`.')
+  })
 })
 
 test('should return 403 if not authenticated.', async () => {

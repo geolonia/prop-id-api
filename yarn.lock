@@ -310,9 +310,9 @@
   integrity sha512-LO1f4Bw/UF5OIWAavX9CyclxYCsHPDe6h/CWL/1RInc3QLMkEGicZp++qyfjodDsPKMCs84GReJapQnPWl3ZUQ==
 
 "@geolonia/normalize-japanese-addresses@*":
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-0.1.9.tgz#59aa9597dafcb4170c31b947bfac7833b1f8e24f"
-  integrity sha512-/D+D5GjrjmR34N1S5p/sbRsortR0fGYncdWLJMUADvEZUzo4mP6fSwbfEDXS7Rz9W9+bFbRpKC1piRBY+iehwg==
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-1.0.2.tgz#e1bab3443265b1288e9798aa6e9de1509222431b"
+  integrity sha512-KfewiWewUhrAkzrvQeqFH+AXonCqDRjGlR18qiXmA78gtq0GzyeXIZHCowMY3iwd1wRaEZ6PgZXA+FLNvUCCJQ==
   dependencies:
     "@geolonia/japanese-numeral" "^0.1.11"
     node-fetch "^2.6.1"
