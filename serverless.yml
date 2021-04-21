@@ -167,6 +167,8 @@ resources:
             Projection:
               ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
+        StreamSpecification:
+          StreamViewType: 'NEW_IMAGE'
 
     logTable:
       Type: AWS::DynamoDB::Table
@@ -254,3 +256,17 @@ functions:
             parameters:
               paths:
                 estateId: true
+
+  idEvents:
+    handler: src/idEvents.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn: !GetAtt estateIdTable.StreamArn
+          batchWindow: 30
+          batchSize: 10
+          # parallelizationFactor: 1
+          # bisectBatchOnFunctionError: true
+          # maximumRetryAttempts: 5
+          # destinations:
+          #   onFailure: !Ref some SQS queue

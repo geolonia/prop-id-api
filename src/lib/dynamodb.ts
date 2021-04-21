@@ -22,6 +22,9 @@ interface BaseEstateId {
   serial: number
   tileXY: string
   zoom: number
+  rawAddress: string
+  building?: string
+  rawBuilding?: string
 }
 
 interface ConsolidatedEstateId extends BaseEstateId {
@@ -132,7 +135,7 @@ export const updateTimestamp = async (apiKey:string, timestamp: number) => {
 export const getEstateIdForAddress = async (address: string, building?: string | undefined ): Promise<BaseEstateId | null> => {
 
   const ExpressionAttributeNames =  { '#a': 'address', '#b': 'building' }
-  const ExpressionAttributeValues : {':a':string, ':b'?:string|undefined } =  { ':a': address }
+  const ExpressionAttributeValues: { ':a':string, ':b'?:string } =  { ':a': address }
   const KeyConditionExpression = '#a = :a'
   let FilterExpression;
   if (building) {
