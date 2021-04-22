@@ -88,7 +88,14 @@ const _findDuplicates = async (id: EstateId) => {
     })
   }
 
+  const channels = {
+    local: "dev-propid-id-notifications-dev",
+    dev: "dev-propid-id-notifications-dev",
+    v1: "dev-propid-id-notifications",
+  }
+
   await sendSlackNotification({
+    channel: channels[process.env.STAGE],
     blocks: [
       {
         type: "section",
