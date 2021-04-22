@@ -15,6 +15,7 @@ declare global {
 
   namespace NodeJS {
     export interface ProcessEnv {
+      readonly STAGE: "local" | "v1" | "dev"
       readonly ZOOM: string
       readonly AWS_DYNAMODB_API_KEY_TABLE_NAME: string
       readonly AWS_DYNAMODB_ESTATE_ID_TABLE_NAME: string
