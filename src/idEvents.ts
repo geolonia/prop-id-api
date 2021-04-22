@@ -33,7 +33,7 @@ const _findDuplicateTile = async (estateId: EstateId) => {
     IndexName: 'tileXY-index',
     KeyConditionExpression: '#t = :t',
     ExpressionAttributeNames: {
-      '#t': 'address',
+      '#t': 'tileXY',
       '#id': 'estateId',
     },
     ExpressionAttributeValues: {

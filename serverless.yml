@@ -55,6 +55,12 @@ provider:
                 - parameter/propid/auth0/${self:provider.environment.AUTH0_CLIENT_ID}
             - !Join
               - ":"
+              - - "arn:aws:ssm"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - parameter/propid/slack/main
+            - !Join
+              - ":"
               - - "arn:aws:kms"
                 - !Ref AWS::Region
                 - !Ref AWS::AccountId
