@@ -1,4 +1,3 @@
-
 # 不動産共通ID仕様（β）
 
 
@@ -212,40 +211,26 @@ Name
 
 #### パラメータ
 
-
 <table>
   <tr>
-   <td>Name
-   </td>
-   <td>Type
-   </td>
-   <td>In
-   </td>
-   <td>Description
-   </td>
+    <td>Name</td>
+    <td>Type</td>
+    <td>In</td>
+    <td>Description</td>
   </tr>
   <tr>
-   <td> id
-   </td>
-   <td>string
-   </td>
-   <td>path
-   </td>
-   <td>不動産共通ID
-   </td>
+    <td> id</td>
+    <td>string</td>
+    <td>path</td>
+    <td>不動産共通ID</td>
   </tr>
   <tr>
-   <td>language
-   </td>
-   <td>string
-   </td>
-   <td>query
-   </td>
-   <td>言語コード
-   </td>
+    <td>language</td>
+    <td>string</td>
+    <td>query</td>
+    <td>言語コード</td>
   </tr>
 </table>
-
 
 
 #### レスポンス
@@ -295,3 +280,74 @@ Name
   }
 ]
 ```
+
+
+## エラー
+
+不動産共通ID及び、不動産共通ID取得APIが リクエストの処理に成功すると、API はステータスコード「200」を返します。リクエストでエラーが発生すると、エラーの種類に基づいて HTTP ステータスコード、理由を含むレスポンスが API から返されます。 レスポンスの本文には、エラーの原因についての詳しい説明が記述されています。
+
+## 標準エラーレスポンス
+<table>
+  <tr>
+    <td style="min-width: 110px;">ステータス</td>
+    <td>説明</td>
+    <td>メッセージ</td>
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>
+    <td><code>{"message":"Incorrect querystring parameter `api-key` or `x-access-token` header value."}</code></td>
+  </tr>
+  <tr>
+    <td>429</td>
+    <td>Too Many Requests</td>
+    <td><code>{"message":"Exceed requests limit."}</code></td>
+  </tr>
+</table>
+
+
+## 不動産共通ID取得API
+
+<table>
+  <tr>
+    <td style="min-width: 110px;">ステータス</td>
+    <td>説明</td>
+    <td>メッセージ</td>
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>
+    <td><code>{"message":"Missing querystring parameter `q`."}</code></td>
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>
+    <td><code>{"error":true,"error_code":"normalization_failed","error_code_detail":"city_not_recognized","address":"和歌山県東牟婁郡"}</code></td>
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>
+    <td><code>{"error":true,"error_code":"normalization_failed","error_code_detail":"prefecture_not_recognized","address":"XXX"}</code></td>
+  </tr>
+  <tr>
+    <td>404</td>
+    <td>Not Found</td>
+    <td><code>{"error":true,"error_code":"address_not_verified","address":"XXX"}</code></td>
+  </tr>
+</table>
+
+
+## 不動産共通ID参照API
+
+<table>
+  <tr>
+    <td style="min-width: 110px;">ステータス</td>
+    <td>説明</td>
+    <td>メッセージ</td>
+  </tr>
+  <tr>
+    <td>404</td>
+    <td>Not Found</td>
+    <td><code>{"error":true,"error_description":"not_found"}</code></td>
+  </tr>
+</table>
