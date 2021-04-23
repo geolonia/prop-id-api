@@ -3,8 +3,8 @@
 ## development
 
 ```shell
-$ git clone git@github.com:geolonia/estate-id-api.git
-$ cd estate-id-api
+$ git clone git@github.com:geolonia/prop-id-api.git
+$ cd prop-id-api
 $ cp .envrc.sample .envrc
 $ vim .envrc # fill the values
 $ yarn
