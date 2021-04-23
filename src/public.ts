@@ -99,7 +99,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   if (!prefCode) {
     console.log(`[FATAL] Invalid \`properties.pref\` response from API: '${feature.properties.pref}'.`)
     Sentry.captureException(new Error(`Invalid \`properties.pref\` response from API: '${feature.properties.pref}'`))
-    return errorResponse(500, 'Internal Server Error.')
+    return errorResponse(500, 'Internal server error')
   }
 
   const addressObject = {
@@ -141,7 +141,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     console.error({ ZOOM, addressObject, apiKey, error })
     console.error('[FATAL] Something happend with DynamoDB connection.')
     Sentry.captureException(error)
-    return errorResponse(500, 'Internal Server Error.')
+    return errorResponse(500, 'Internal server error')
   }
 
   const ID = estateId.estateId
