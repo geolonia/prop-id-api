@@ -314,14 +314,13 @@ export const mergeEstateId = async (params: MergeEstateIdReq): Promise<MergeEsta
   }
 }
 
-export const getQuotaLimit = (quotaType: string, customQuotas: { [key: string]: number }): number|boolean => {
+export const getQuotaLimit = (quotaType: string, customQuotas: { [key: string]: number }): number => {
 
   const quotaLimits: { [key: string]: number } = {
     "id-req": 10000
   }
-
   if (!(quotaType in quotaLimits)) {
-    return false
+    return 0
   }
   let quotaLimit: number = quotaLimits[quotaType]
   if (quotaType in customQuotas) {
@@ -329,6 +328,19 @@ export const getQuotaLimit = (quotaType: string, customQuotas: { [key: string]: 
   }
 
   return quotaLimit
+}
+
+export const getResetQuotaTime = ( now:number, resetType:string ) => {
+  const date = new Date(now);
+  const year = date.getFullYear()
+
+  if (resetType === 'month') {
+    const nextMonth = `${date.getMonth() + 2}`.padStart(2, "0")
+    const resetDate = new Date(`${year}-${nextMonth}-01 00:00:00`)
+    return resetDate.toUTCString()
+  } else {
+    return false
+  }
 }
 
 export interface UsageQuotaParams {
@@ -346,7 +358,20 @@ export const _generateUsageQuotaKey = (apiKey: string, quotaType: string) => {
 
 }
 
-export const checkServiceUsageQuota = async (params: UsageQuotaParams): Promise<boolean> => {
+export interface UsageQuotaParams {
+  apiKey: string
+  quotaType: string
+  customQuotas: { [key: string]: number }
+}
+
+type UsageQuotaResponse = {
+  checkResult: boolean,
+  quotaLimit: number,
+  quotaRemaining: number,
+  quotaResetDate: string | false
+}
+
+export const checkServiceUsageQuota = async (params: UsageQuotaParams): Promise<UsageQuotaResponse> => {
   const { apiKey, quotaType, customQuotas } = params
 
   const usageKey = _generateUsageQuotaKey(apiKey, quotaType)
@@ -358,15 +383,20 @@ export const checkServiceUsageQuota = async (params: UsageQuotaParams): Promise<
     Key: { apiKey : usageKey },
   }
   const { Item: item } = await DB.get(getItemInput).promise()
+  const quotaUsed = (item?.c === undefined) ? 0 : item.c
+  const quotaRemaining = quotaLimit - parseInt(quotaUsed)
 
-  if (undefined === item){ // Initial request
-    return true
+  const resetType = 'month'
+  const now = new Date().getTime()
+  const quotaResetDate = getResetQuotaTime( now, resetType )
 
-  } else if (item && item.c < quotaLimit) {
-    return true
+  const checkResult = quotaUsed < quotaLimit
 
-  } else {
-    return false
+  return {
+    checkResult,
+    quotaLimit,
+    quotaRemaining,
+    quotaResetDate
   }
 }
 

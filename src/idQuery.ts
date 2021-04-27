@@ -14,18 +14,26 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return authenticationResult
   }
 
+  const quotaParams = {
+    quotaLimit: authenticationResult.quotaLimit,
+    quotaRemaining: authenticationResult.quotaRemaining,
+    quotaResetDate: authenticationResult.quotaResetDate,
+  }
+
   const estateId = event.pathParameters?.estateId
   if (!estateId) {
-    return errorResponse(400, 'Missing estate ID.')
+    return errorResponse(400, 'Missing estate ID.', quotaParams)
   }
 
   const estateIdObj = await getEstateId(estateId)
 
   if (!estateIdObj) {
     return json({
-      error: true,
-      error_description: "not_found",
-    }, 404)
+        error: true,
+        error_description: "not_found",
+      },
+      quotaParams,
+      404)
   }
 
   const idOut: any = {
@@ -35,7 +43,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   if (authenticationResult.plan === "paid") {
     const ipcResult = await incrementPGeocode(estateIdObj.address)
     if (!ipcResult) {
-      return errorResponse(500, 'Internal server error')
+      return errorResponse(500, 'Internal server error', quotaParams)
     }
 
     const {
@@ -55,7 +63,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     idOut.address = estateIdObj.address
   }
 
-  return json([ idOut ])
+  return json([ idOut ] ,quotaParams)
 }
 
 export const handler = Sentry.AWSLambda.wrapHandler(_handler)
