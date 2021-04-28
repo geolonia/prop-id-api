@@ -10,5 +10,6 @@ export default async () => {
       "addresses.test.ts"
     ],
     globalSetup: join(process.cwd(), "src", "test_setup.js"),
+    testEnvironment: "node",
   }
 }
