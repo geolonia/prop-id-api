@@ -1,5 +1,4 @@
-// @ts-ignore
-import fetch from 'node-fetch'
+import axios, { AxiosResponse } from 'axios'
 import * as crypto from 'crypto'
 import { promisify } from 'util'
 import prefs from './prefs.json'
@@ -25,9 +24,9 @@ export const coord2XY = (coord: [lat: number, lng: number], zoom: number): { x: 
 
 export type VerifyAddressResult = {
   body: any;
-  status: any;
-  ok: any;
-  headers: any;
+  status: number;
+  ok: boolean;
+  headers: { [key: string]: string };
 }
 export const verifyAddress: (addressListString: string) => Promise<VerifyAddressResult> = async (addressListString) => {
   // Use first address
@@ -36,11 +35,22 @@ export const verifyAddress: (addressListString: string) => Promise<VerifyAddress
   const endpoint = process.env.INCREMENTP_VERIFICATION_API_ENDPOINT
   const apiKey = process.env.INCREMENTP_VERIFICATION_API_KEY
   const url = `${endpoint}/${encodeURIComponent(address)}.json?geocode=true`
-  const headers = { 'x-api-key': apiKey }
+  const headers = {
+    'x-api-key': apiKey,
+    'user-agent': 'geolonia-prop-id/1.0',
+  }
 
-  const res = await fetch(url, { headers })
-  const body = await res.json()
-  return ({ body, status: res.status, ok: res.ok, headers: res.headers })
+  const res = await axios.get(url, {
+    headers,
+    validateStatus: status => ( status < 500 ),
+  })
+
+  return ({
+    body: res.data,
+    status: res.status,
+    ok: res.status === 200,
+    headers: res.headers
+  })
 }
 
 export type IncrementPGeocodeResult = {
@@ -75,7 +85,7 @@ export const incrementPGeocode: (address: string) => Promise<IncrementPGeocodeRe
 
   return {
     feature,
-    cacheHit: verifiedResult.headers.get('X-Cache') === 'Hit from cloudfront'
+    cacheHit: verifiedResult.headers['x-cache'] === 'Hit from cloudfront'
   }
 }
 

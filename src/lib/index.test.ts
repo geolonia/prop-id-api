@@ -148,11 +148,11 @@ describe('IncrementP Verification API', () => {
 })
 
 test('should throw if API request fails with network problem', async () => {
-  jest.mock('node-fetch')
-  const fetch = require('node-fetch')
-  fetch.mockImplementation(async () => { throw new Error('mocked network error') })
+  jest.mock('axios')
+  const axios = require('axios')
+  axios.get.mockImplementation(async () => { throw new Error('mocked network error') })
 
-  const error = await fetch().catch((err: Error) => err)
+  const error = await axios.get().catch((err: Error) => err)
   expect(error.message).toEqual('mocked network error')
 })
 
