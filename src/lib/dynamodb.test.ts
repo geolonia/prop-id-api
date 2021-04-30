@@ -193,3 +193,27 @@ describe('incrementServiceUsage', () => {
     expect(item.c).toStrictEqual(1)
   })
 })
+
+describe('getQuotaLimit', () => {
+  test('it works', async () => {
+
+    const quotaType = "id-req";
+    const customQuotas = {}
+    const quotaLimits = dynamodb.getQuotaLimit( quotaType, customQuotas )
+
+    // @ts-ignore
+    expect(quotaLimits).toStrictEqual(10000)
+  })
+
+  test('it works with customQuotas', async () => {
+
+    const quotaType = 'id-req';
+    const customQuotas = {
+      'id-req' : 500_000
+    }
+    const quotaLimits = dynamodb.getQuotaLimit( quotaType, customQuotas )
+
+    // @ts-ignore
+    expect(quotaLimits).toStrictEqual(500000)
+  })
+})
