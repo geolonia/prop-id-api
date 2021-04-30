@@ -314,6 +314,23 @@ export const mergeEstateId = async (params: MergeEstateIdReq): Promise<MergeEsta
   }
 }
 
+export const getQuotaLimit = (quotaType: string, customQuotas: { [key: string]: number }): number|boolean => {
+
+  const quotaLimits: { [key: string]: number } = {
+    "id-req": 10000
+  }
+
+  if (!(quotaType in quotaLimits)) {
+    return false
+  }
+  let quotaLimit: number = quotaLimits[quotaType]
+  if (quotaType in customQuotas) {
+    quotaLimit = customQuotas[quotaType]
+  }
+
+  return quotaLimit
+}
+
 export interface UsageQuotaParams {
   apiKey: string
   quotaType: string
@@ -331,19 +348,10 @@ export const _generateUsageQuotaKey = (apiKey: string, quotaType: string) => {
 
 export const checkServiceUsageQuota = async (params: UsageQuotaParams): Promise<boolean> => {
   const { apiKey, quotaType, customQuotas } = params
-  const quotaLimits: { [key: string]: number } = {
-    "id-req": 10000
-  }
+
   const usageKey = _generateUsageQuotaKey(apiKey, quotaType)
 
-  if (!(quotaType in quotaLimits)) {
-    return false
-  }
-
-  let quotaLimit: number = quotaLimits[quotaType]
-  if (quotaType in customQuotas) {
-    quotaLimit = customQuotas[quotaType]
-  }
+  const quotaLimit = getQuotaLimit( quotaType, customQuotas )
 
   const getItemInput: AWS.DynamoDB.DocumentClient.GetItemInput = {
     TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
