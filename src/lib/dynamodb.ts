@@ -331,6 +331,16 @@ export const getQuotaLimit = (quotaType: string, customQuotas: { [key: string]: 
   return quotaLimit
 }
 
+export const getServiceUsageQuotaItem = async ( usageKey:string ) =>{
+
+  const getItemInput: AWS.DynamoDB.DocumentClient.GetItemInput = {
+    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
+    Key: { apiKey : usageKey },
+  }
+  const { Item: item } = await DB.get(getItemInput).promise()
+  return item
+}
+
 export interface UsageQuotaParams {
   apiKey: string
   quotaType: string
@@ -353,11 +363,7 @@ export const checkServiceUsageQuota = async (params: UsageQuotaParams): Promise<
 
   const quotaLimit = getQuotaLimit( quotaType, customQuotas )
 
-  const getItemInput: AWS.DynamoDB.DocumentClient.GetItemInput = {
-    TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
-    Key: { apiKey : usageKey },
-  }
-  const { Item: item } = await DB.get(getItemInput).promise()
+  const item = await getServiceUsageQuotaItem(usageKey)
 
   if (undefined === item){ // Initial request
     return true

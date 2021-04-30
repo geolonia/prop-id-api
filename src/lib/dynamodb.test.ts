@@ -1,5 +1,5 @@
 import * as dynamodb from './dynamodb'
-import { _getServiceUsageQuotaItem, _updateServiceUsageQuota } from './dynamodb_test_helpers.test'
+import { _updateServiceUsageQuota } from './dynamodb_test_helpers.test'
 
 describe('mergeEstateId', () => {
   test('it works', async () => {
@@ -187,7 +187,7 @@ describe('incrementServiceUsage', () => {
 
     await dynamodb.incrementServiceUsage({ apiKey, quotaType })
 
-    const item = await _getServiceUsageQuotaItem(usageKey)
+    const item = await dynamodb.getServiceUsageQuotaItem(usageKey)
 
     // @ts-ignore
     expect(item.c).toStrictEqual(1)
@@ -216,4 +216,45 @@ describe('getQuotaLimit', () => {
     // @ts-ignore
     expect(quotaLimits).toStrictEqual(500000)
   })
+})
+
+describe('getServiceUsageQuotaItem', () => {
+
+  test('it works', async () => {
+
+    const { apiKey } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
+    const quotaType = "id-req";
+    const usageKey = dynamodb._generateUsageQuotaKey(apiKey, quotaType)
+
+    const item1 = await dynamodb.getServiceUsageQuotaItem(usageKey)
+
+    await dynamodb.incrementServiceUsage({ apiKey, quotaType })
+
+    const item2 = await dynamodb.getServiceUsageQuotaItem(usageKey)
+
+    // @ts-ignore
+    expect(item1).toStrictEqual(undefined)
+    // @ts-ignore
+    expect(item2.c).toStrictEqual(1)
+
+  })
+
+  test('it works with customQuota', async () => {
+
+    const { apiKey } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
+    const quotaType = "xxx";
+    const usageKey = dynamodb._generateUsageQuotaKey(apiKey, quotaType)
+
+    const item1 = await dynamodb.getServiceUsageQuotaItem(usageKey)
+
+    await dynamodb.incrementServiceUsage({ apiKey, quotaType })
+
+    const item2 = await dynamodb.getServiceUsageQuotaItem(usageKey)
+
+    // @ts-ignore
+    expect(item1).toStrictEqual(undefined)
+    // @ts-ignore
+    expect(item2.c).toStrictEqual(1)
+  })
+
 })
