@@ -66,6 +66,9 @@ const _findDuplicates = async (id: EstateId) => {
       type: "mrkdwn",
       text: `*重複項目*\n${dupAddrStr}${dupTileStr}`
     })
+  } else {
+    // No duplicates found -- exit here.
+    return
   }
 
   fields.push({
