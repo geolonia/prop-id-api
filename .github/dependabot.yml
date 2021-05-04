@@ -7,13 +7,4 @@ updates:
       time: "05:00"
       timezone: "Asia/Tokyo"
     allow:
-      - dependency-name: "@geolonia/normalize-japanese-addresses"
-
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      time: "05:00"
-      timezone: "Asia/Tokyo"
-    ignore:
-      - dependency-name: "@geolonia/normalize-japanese-addresses"
+      - dependency-type: production
