@@ -61,6 +61,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
     idOut.location = location
     idOut.address = estateIdObj.address
+    idOut.building = estateIdObj.building
   }
 
   return json([ idOut ] ,quotaParams)
