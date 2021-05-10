@@ -93,5 +93,90 @@ test('should get estate ID without details if authenticated with a free API key'
   const first2 = body2[0]
   expect(first2.ID).toBe(first1.ID)
   expect(first2.address).toBeUndefined()
+  expect(first2.building).toBeUndefined()
   expect(first2.location).toBeUndefined()
+})
+
+test('should get estate ID with details if authenticated with a paid API key', async () => {
+  const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID without details if authenticated with a free API key', { plan: "paid" })
+
+  const event1 = {
+    queryStringParameters: {
+      q: '東京都文京区小石川1-2-2',
+      building: '東京第一ビル',
+      'api-key': apiKey,
+    },
+    headers: {
+      'X-Access-Token': accessToken,
+    }
+  }
+  // @ts-ignore
+  const lambdaResult1 = await publicHandler(event1) as APIGatewayProxyResult
+  const body1 = JSON.parse(lambdaResult1.body)
+
+  const first1 = body1[0]
+  expect(first1).toHaveProperty('ID')
+  expect(first1).toHaveProperty('address')
+
+  const event2 = {
+    queryStringParameters: {
+      'api-key': apiKey,
+    },
+    pathParameters: {
+      estateId: first1.ID,
+    },
+    headers: {
+      'X-Access-Token': accessToken,
+    }
+  }
+  // @ts-ignore
+  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult
+  expect(lambdaResult2.statusCode).toBe(200)
+
+  const body2 = JSON.parse(lambdaResult2.body)
+
+  const first2 = body2[0]
+  expect(first2.ID).toBe(first1.ID)
+  expect(first2.address).toStrictEqual('東京都文京区小石川一丁目2-2')
+  expect(first2.building).toStrictEqual('東京第一ビル')
+  expect(first2.location.geocoding_level).toStrictEqual('8')
+  expect(first2.location).toHaveProperty('lat')
+  expect(first2.location).toHaveProperty('lng')
+})
+
+test('should not return building name with empty building name parameter', async () => {
+  const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID without details if authenticated with a free API key', { plan: "paid" })
+
+  const event1 = {
+    queryStringParameters: {
+      q: '東京都文京区小石川1-2-2',
+      'api-key': apiKey,
+    },
+    headers: {
+      'X-Access-Token': accessToken,
+    }
+  }
+  // @ts-ignore
+  const lambdaResult1 = await publicHandler(event1) as APIGatewayProxyResult
+  const body1 = JSON.parse(lambdaResult1.body)
+  const first1 = body1[0]
+
+  const event2 = {
+    queryStringParameters: {
+      'api-key': apiKey,
+    },
+    pathParameters: {
+      estateId: first1.ID,
+    },
+    headers: {
+      'X-Access-Token': accessToken,
+    }
+  }
+  // @ts-ignore
+  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult
+  expect(lambdaResult2.statusCode).toBe(200)
+  const body2 = JSON.parse(lambdaResult2.body)
+
+  const first2 = body2[0]
+  expect(first2.building).toStrictEqual(undefined)
 })
