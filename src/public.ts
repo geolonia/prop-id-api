@@ -26,8 +26,14 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return authenticationResult
   }
 
+  const quotaParams = {
+    quotaLimit: authenticationResult.quotaLimit,
+    quotaRemaining: authenticationResult.quotaRemaining,
+    quotaResetDate: authenticationResult.quotaResetDate,
+  }
+
   if(!address) {
-    return errorResponse(400, 'Missing querystring parameter `q`.')
+    return errorResponse(400, 'Missing querystring parameter `q`.', quotaParams)
   }
 
   Sentry.setContext("query", {
@@ -49,11 +55,13 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   if (prenormalizedAddress.level < 2) {
     const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalizedAddress.level]
     return json({
-      error: true,
-      error_code: `normalization_failed`,
-      error_code_detail,
-      address,
-    }, 400)
+        error: true,
+        error_code: `normalization_failed`,
+        error_code_detail,
+        address
+      },
+      quotaParams,
+      400)
   }
 
   const normalizedBuilding = normalizeBuilding(building)
@@ -72,7 +80,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     await ipcNormalizationErrorReport('normFailNoIPCGeomNull', {
       input: normalizedAddressNJA
     })
-    return errorResponse(500, 'Internal server error')
+    return errorResponse(500, 'Internal server error', quotaParams)
   }
 
   const {
@@ -96,10 +104,12 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     ])
 
     return json({
-      error: true,
-      error_code: `address_not_verified`,
-      address,
-    }, 404)
+        error: true,
+        error_code: `address_not_verified`,
+        address,
+      },
+      quotaParams,
+      404)
   }
 
   const [lng, lat] = feature.geometry.coordinates as [number, number]
@@ -117,7 +127,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   if (!prefCode) {
     console.log(`[FATAL] Invalid \`properties.pref\` response from API: '${feature.properties.pref}'.`)
     Sentry.captureException(new Error(`Invalid \`properties.pref\` response from API: '${feature.properties.pref}'`))
-    return errorResponse(500, 'Internal server error')
+    return errorResponse(500, 'Internal server error', quotaParams)
   }
 
   const addressObject = {
@@ -159,7 +169,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     console.error({ ZOOM, addressObject, apiKey, error })
     console.error('[FATAL] Something happend with DynamoDB connection.')
     Sentry.captureException(error)
-    return errorResponse(500, 'Internal server error')
+    return errorResponse(500, 'Internal server error', quotaParams)
   }
 
   const ID = estateId.estateId
@@ -174,14 +184,15 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   if (event.isDebugMode === true) {
     // aggregate debug info
     return json({
-      internallyNormalized: prenormalizedAddress,
-      externallyNormalized: feature,
-      cacheHit,
-      tileInfo: { xy: `${x}/${y}`, serial: estateId!.serial, ZOOM },
-      apiResponse: [ body ]
-    })
+        internallyNormalized: prenormalizedAddress,
+        externallyNormalized: feature,
+        cacheHit,
+        tileInfo: { xy: `${x}/${y}`, serial: estateId!.serial, ZOOM },
+        apiResponse: [ body ]
+      },
+      quotaParams)
   } else {
-    return json([ body ])
+    return json([ body ],quotaParams)
   }
 }
 

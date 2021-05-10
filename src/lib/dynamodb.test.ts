@@ -160,7 +160,7 @@ describe('checkServiceUsageQuota', () => {
     const quotaType = "id-req"
     const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas: {} })
 
-    expect(res).toStrictEqual(true)
+    expect(res.checkResult).toStrictEqual(true)
   })
 
   test('it fails with QuotaType id-req and requests over 10000', async () => {
@@ -174,7 +174,24 @@ describe('checkServiceUsageQuota', () => {
 
     const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas: {} })
 
-    expect(res).toStrictEqual(false)
+    expect(res.checkResult).toStrictEqual(false)
+  })
+
+  test('it should return checkResult, quotaLimit, quotaRemaining, quotaResetDate', async () => {
+
+    const { apiKey } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
+    const quotaType = "id-req"
+    const usageKey = dynamodb._generateUsageQuotaKey(apiKey, quotaType)
+
+    // Add 10000 for requested count
+    await _updateServiceUsageQuota(usageKey, 5000)
+
+    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas: {} })
+
+    expect(res.checkResult).toStrictEqual(true)
+    expect(res.quotaLimit).toStrictEqual(10000)
+    expect(res.quotaRemaining).toStrictEqual(5000)
+    expect(res.quotaResetDate).not.toBe(false)
   })
 })
 
@@ -204,8 +221,7 @@ describe('getQuotaLimit', () => {
     // @ts-ignore
     expect(quotaLimits).toStrictEqual(10000)
   })
-
-  test('it works with customQuotas', async () => {
+  test('it works with customQuotas', () => {
 
     const quotaType = 'id-req';
     const customQuotas = {
@@ -215,5 +231,32 @@ describe('getQuotaLimit', () => {
 
     // @ts-ignore
     expect(quotaLimits).toStrictEqual(500000)
+  })
+
+  test('it should return 0 with invalid quotaType', () => {
+
+    const quotaType = "xxx";
+    const customQuotas = {}
+    const quotaLimits = dynamodb.getQuotaLimit( quotaType, customQuotas )
+
+    // @ts-ignore
+    expect(quotaLimits).toStrictEqual(0)
+  })
+
+})
+
+describe('getResetQuotaTime', () => {
+  test('it works', () => {
+    const resetType = 'month'
+    const date = new Date('2021-05-06 11:51:38')
+    const now = date.getTime()
+
+    const nextMonth = new Date('2021-06-01 00:00:00')
+    const expectedResetTime = nextMonth.toUTCString()
+
+    const actualResetTime = dynamodb.getResetQuotaTime( now, resetType )
+
+    // @ts-ignore
+    expect(actualResetTime).toStrictEqual(expectedResetTime)
   })
 })

@@ -23,7 +23,10 @@ export type AuthenticationPlanIdentifier = "paid" | "free"
 
 export type AuthenticationResult = {
   valid: true
-  plan: AuthenticationPlanIdentifier
+  plan: AuthenticationPlanIdentifier,
+  quotaLimit: number,
+  quotaRemaining: number,
+  quotaResetDate: string | false
 }
 
 export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: string): Promise<APIGatewayProxyResult | AuthenticationResult> => {
@@ -31,7 +34,7 @@ export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: st
 
   // authentication is skipped when in demo mode
   if (event.isDemoMode) {
-    return { valid: true, plan: "paid" }
+    return { valid: true, plan: "paid", quotaLimit: 10000, quotaRemaining: 10000, quotaResetDate:"" }
   }
 
   if (!apiKey || !accessToken) {
@@ -63,8 +66,15 @@ export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: st
     quotaType,
     customQuotas,
   })
-  if (!checkServiceUsageQuotaResult) {
-    return errorResponse(429, `Exceed requests limit.`)
+
+  const quotaParams = {
+    quotaLimit: checkServiceUsageQuotaResult.quotaLimit,
+    quotaRemaining: checkServiceUsageQuotaResult.quotaRemaining,
+    quotaResetDate: checkServiceUsageQuotaResult.quotaResetDate,
+  }
+
+  if (!checkServiceUsageQuotaResult.checkResult) {
+    return errorResponse(429, `Exceed requests limit.`, quotaParams)
   }
 
   // 3000ms "too frequent request" 制限は解除中
@@ -80,6 +90,9 @@ export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: st
     incrementServiceUsage({ apiKey, quotaType }),
     updateTimestamp(apiKey, Date.now()),
   ])
-
-  return { valid: true, plan }
+  return {
+    valid: true,
+    plan,
+    ...quotaParams
+  }
 }
