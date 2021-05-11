@@ -245,7 +245,8 @@ Name
         "prefecture": "東京都",
         "city": "千代田区",
         "address1": "永田町１丁目",
-        "address2": "7-1"
+        "address2": "7-1",
+        "other": "xxx ビル"
       }
     },
     "location": {
