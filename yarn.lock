@@ -305,14 +305,14 @@
     minimist "^1.2.0"
 
 "@geolonia/japanese-numeral@^0.1.11":
-  version "0.1.14"
-  resolved "https://registry.yarnpkg.com/@geolonia/japanese-numeral/-/japanese-numeral-0.1.14.tgz#c87a3c764d44e2a5d865b62b69774e331c8a2b06"
-  integrity sha512-LO1f4Bw/UF5OIWAavX9CyclxYCsHPDe6h/CWL/1RInc3QLMkEGicZp++qyfjodDsPKMCs84GReJapQnPWl3ZUQ==
+  version "0.1.15"
+  resolved "https://registry.yarnpkg.com/@geolonia/japanese-numeral/-/japanese-numeral-0.1.15.tgz#e6e476e403efac60e6b3270fd19c46afb8200b91"
+  integrity sha512-g8xizIJH7sfd5JSJyN6pCbNNWVkasMpw84gpYQZJ09VDuTT5qzT5cKhr3+pFyS4SpfwQ9rrsJBmeD6z3vI2bjA==
 
 "@geolonia/normalize-japanese-addresses@*":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-1.0.6.tgz#40f81b65bd001d2cf8e638f9bcc2b94c230b81b4"
-  integrity sha512-fFYaPYhxNsP3oTKII/LL5fPb8OYYYML3z7285+7dPO1UILjhX0MAR7JrO6DoYQhSmD8baUn87RpquGqAX6mOMQ==
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-1.0.8.tgz#706f11375db779f5a82001865014c35e4cf23824"
+  integrity sha512-HHRDzYGUcPzDkkQKxbvBHer5LSMMfFjbXqtsPFWFoy/gAthSFs0nP6QNGJPvepF8Xrhh8D5UgRUv+VSACXVutA==
   dependencies:
     "@geolonia/japanese-numeral" "^0.1.11"
     axios "^0.21.1"
@@ -1925,7 +1925,7 @@ axios-cache-adapter@^2.7.3:
 
 axios@^0.21.1:
   version "0.21.1"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.1.tgz"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
   integrity sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==
   dependencies:
     follow-redirects "^1.10.0"
@@ -3798,15 +3798,10 @@ flat@^5.0.2:
   resolved "https://registry.yarnpkg.com/flat/-/flat-5.0.2.tgz"
   integrity sha512-b6suED+5/3rTpUBdG1gupIl8MPFCAMA0QXwmljLhvCUKcUvdE4gWky9zpuGCcXHOsz4J9wPGNWq6OKpmIzz3hQ==
 
-follow-redirects@^1.10.0:
-  version "1.13.3"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.13.3.tgz"
-  integrity sha512-DUgl6+HDzB0iEptNQEXLx/KhTmDb8tZUHSeLqpnjpknR70H0nC2t9N73BK6fN4hOvJ84pKlIQVQ4k5FFlBedKA==
-
-follow-redirects@^1.13.3:
-  version "1.14.0"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.0.tgz#f5d260f95c5f8c105894491feee5dc8993b402fe"
-  integrity sha512-0vRwd7RKQBTt+mgu87mtYeofLFZpTas2S9zY+jIeuLJMNvudIgF52nr19q40HOwH5RrhWIPuj9puybzSJiRrVg==
+follow-redirects@^1.10.0, follow-redirects@^1.13.3:
+  version "1.14.1"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.1.tgz#d9114ded0a1cfdd334e164e6662ad02bfd91ff43"
+  integrity sha512-HWqDgT7ZEkqRzBvc2s64vSZ/hfOceEol3ac/7tKwzuvEyWx3/4UegXh5oBOIotkGsObyk3xznnSRVADBgWSQVg==
 
 for-in@^1.0.2:
   version "1.0.2"
