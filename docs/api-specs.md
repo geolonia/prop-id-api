@@ -281,10 +281,48 @@ Name
 ]
 ```
 
+## レート制限
+
+有料及び、無料ユーザーは、不動産共通ID取得API及び、不動産共通ID参照APIの合計リクエスト数が、10,000件/月に制限されています。
+所定のリクエスト数を超過すると、APIからエラーが返されます。
+
+各APIは現在のレート制限状況を確認できる、レスポンスヘッダーを返します。制限を超えた場合はこのヘッダーを確認して、いつ再試行できるかを判断できます。
+
+```
+$ curl -D /dev/stderr -G \
+-H "x-access-token: <アクセストークン>" \
+--data-urlencode "q=東京都千代田区永田町１丁目７−１" \
+--data-urlencode "building=国会議事堂" \
+--data-urlencode "api-key=<APIキー>" \
+"https://api.propid.jp/v1/" | jq .
+> x-ratelimit-limit: 10000
+> x-ratelimit-remaining: 9938
+> x-ratelimit-reset: Tue, 01 Jun 2021 00:00:00 GMT
+```
+
+<table>
+  <tr>
+    <td style="min-width: 110px;">ヘッダー名</td>
+    <td>説明</td>
+  </tr>
+  <tr>
+    <td><code>x-ratelimit-limit</code></td>
+    <td>一ヶ月当たりのリクエスト上限回数</td>
+  </tr>
+  <tr>
+    <td><code>x-ratelimit-remaining</code></td>
+    <td>リクエスト残数</td>
+  </tr>
+  <tr>
+    <td><code>x-ratelimit-reset</code></td>
+    <td>次にレート制限がリセットされる予定時刻（[IMF-fixdate format](https://tools.ietf.org/id/draft-polli-ratelimit-headers-00.html#ratelimit-reset-header)）</td>
+  </tr>
+</table>
+
 
 ## エラー
 
-不動産共通ID及び、不動産共通ID取得APIが リクエストの処理に成功すると、API はステータスコード「200」を返します。リクエストでエラーが発生すると、エラーの種類に基づいて HTTP ステータスコード、理由を含むレスポンスが API から返されます。 レスポンスの本文には、エラーの原因についての詳しい説明が記述されています。
+不動産共通ID取得API及び、不動産共通ID参照APIが リクエストの処理に成功すると、API はステータスコード「200」を返します。リクエストでエラーが発生すると、エラーの種類に基づいて HTTP ステータスコード、理由を含むレスポンスが API から返されます。 レスポンスの本文には、エラーの原因についての詳しい説明が記述されています。
 
 ## 標準エラーレスポンス
 <table>
