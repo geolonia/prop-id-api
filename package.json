@@ -1,6 +1,6 @@
 {
   "name": "estate-id-api",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "main": "serverless.yml",
   "license": "MIT",
   "private": true,
