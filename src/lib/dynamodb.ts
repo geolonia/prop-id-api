@@ -1,6 +1,7 @@
 import AWS from 'aws-sdk'
 import { AuthenticationPlanIdentifier } from './authentication'
 import { hashToken, hashTokenV2, hashXY, randomToken } from './index'
+import { DateTime } from "luxon";
 
 const REDIRECT_MAX = 4
 export const DB = process.env.TEST === "1" ? (
@@ -330,14 +331,9 @@ export const getQuotaLimit = (quotaType: string, customQuotas: { [key: string]: 
   return quotaLimit
 }
 
-export const getResetQuotaTime = ( now:number, resetType:string ) => {
-  const date = new Date(now);
-  const year = date.getFullYear()
-
+export const getResetQuotaTime = ( now:DateTime, resetType:string ) => {
   if (resetType === 'month') {
-    const nextMonth = `${date.getMonth() + 2}`.padStart(2, "0")
-    const resetDate = new Date(`${year}-${nextMonth}-01 00:00:00`)
-    return resetDate.toUTCString()
+    return now.startOf('month').plus({months: 1}).toISO()
   } else {
     return false
   }
@@ -350,9 +346,9 @@ export interface UsageQuotaParams {
 }
 
 export const _generateUsageQuotaKey = (apiKey: string, quotaType: string) => {
-  const now = new Date()
-  const month = `${now.getMonth() + 1}`.padStart(2, "0")
-  const year = now.getFullYear()
+  const now = DateTime.now().setZone('Asia/Tokyo');
+  const month = `${now.month}`.padStart(2, "0")
+  const year = now.year
 
   return `USAGE#${apiKey}#${quotaType}#${year}${month}`
 
@@ -387,7 +383,7 @@ export const checkServiceUsageQuota = async (params: UsageQuotaParams): Promise<
   const quotaRemaining = quotaLimit - parseInt(quotaUsed)
 
   const resetType = 'month'
-  const now = new Date().getTime()
+  const now = DateTime.now().setZone('Asia/Tokyo');
   const quotaResetDate = getResetQuotaTime( now, resetType )
 
   const checkResult = quotaUsed < quotaLimit

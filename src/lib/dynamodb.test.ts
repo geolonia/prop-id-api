@@ -1,5 +1,6 @@
 import * as dynamodb from './dynamodb'
 import { _getServiceUsageQuotaItem, _updateServiceUsageQuota } from './dynamodb_test_helpers.test'
+import { DateTime } from "luxon";
 
 describe('mergeEstateId', () => {
   test('it works', async () => {
@@ -248,15 +249,10 @@ describe('getQuotaLimit', () => {
 describe('getResetQuotaTime', () => {
   test('it works', () => {
     const resetType = 'month'
-    const date = new Date('2021-05-06 11:51:38')
-    const now = date.getTime()
-
-    const nextMonth = new Date('2021-06-01 00:00:00')
-    const expectedResetTime = nextMonth.toUTCString()
-
+    const now = DateTime.local(2021, 5, 6, 8, 0).setZone('Asia/Tokyo')
     const actualResetTime = dynamodb.getResetQuotaTime( now, resetType )
 
     // @ts-ignore
-    expect(actualResetTime).toStrictEqual(expectedResetTime)
+    expect(actualResetTime).toStrictEqual('2021-06-01T00:00:00.000+09:00')
   })
 })
