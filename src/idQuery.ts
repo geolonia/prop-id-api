@@ -60,7 +60,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       lng: lng.toString()
     }
 
-    const prenormalizedAddress = await normalize(estateIdObj.address)
+    const prenormalizedAddress = await normalize(estateIdObj.rawAddress)
     const addressObject = {
       ja: {
         prefecture: prenormalizedAddress.pref,
