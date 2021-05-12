@@ -5,6 +5,7 @@ import { extractApiKey, authenticateEvent } from './lib/authentication'
 import { getEstateId } from './lib/dynamodb'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
+import { normalize } from '@geolonia/normalize-japanese-addresses'
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const quotaType = "id-req"
@@ -59,9 +60,19 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       lng: lng.toString()
     }
 
+    const prenormalizedAddress = await normalize(estateIdObj.rawAddress)
+    const addressObject = {
+      ja: {
+        prefecture: prenormalizedAddress.pref,
+        city: prenormalizedAddress.city,
+        address1: prenormalizedAddress.town,
+        address2: prenormalizedAddress.addr,
+        other: estateIdObj.building ? estateIdObj.building : ""
+      },
+    }
+
     idOut.location = location
-    idOut.address = estateIdObj.address
-    idOut.building = estateIdObj.building
+    idOut.address = addressObject
   }
 
   return json([ idOut ] ,quotaParams)
