@@ -289,7 +289,7 @@ Name
 $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-urlencode "q=東京都千代田区永田町１丁目７−１" --data-urlencode "building=国会議事堂" --data-urlencode "api-key=<APIキー>" "https://api.propid.jp/v1/"
 > x-ratelimit-limit: 10000
 > x-ratelimit-remaining: 9938
-> x-ratelimit-reset: Tue, 01 Jun 2021 00:00:00 GMT
+> x-ratelimit-reset: 2021-06-01T00:00:00.000+09:00
 ```
 
 <table>
