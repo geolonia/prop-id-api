@@ -337,7 +337,7 @@ export const getResetQuotaTime = ( now:number, resetType:string ) => {
   if (resetType === 'month') {
     const nextMonth = `${date.getMonth() + 2}`.padStart(2, "0")
     const resetDate = new Date(`${year}-${nextMonth}-01 00:00:00`)
-    return resetDate.toUTCString()
+    return resetDate.getTime().toString()
   } else {
     return false
   }

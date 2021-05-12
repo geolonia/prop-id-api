@@ -252,7 +252,7 @@ describe('getResetQuotaTime', () => {
     const now = date.getTime()
 
     const nextMonth = new Date('2021-06-01 00:00:00')
-    const expectedResetTime = nextMonth.toUTCString()
+    const expectedResetTime = nextMonth.getTime().toString()
 
     const actualResetTime = dynamodb.getResetQuotaTime( now, resetType )
 

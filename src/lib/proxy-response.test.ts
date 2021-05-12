@@ -26,7 +26,7 @@ describe('createHeaders', () => {
       'Cache-Control': 'no-store, max-age=0',
       'X-RateLimit-Limit': '10000',
       'X-RateLimit-Remaining': '9999',
-      'X-RateLimit-Reset': `${resetDate.toUTCString()}`
+      'X-RateLimit-Reset': `${resetDate.getTime()}`
     }
 
     // @ts-ignore
