@@ -1,5 +1,6 @@
 import * as proxyResponse from './proxy-response'
 import * as dynamodb from './dynamodb'
+import { DateTime } from "luxon";
 
 describe('createHeaders', () => {
 
@@ -9,15 +10,11 @@ describe('createHeaders', () => {
     const quotaType = "id-req";
     const customQuotas = {}
 
-    const date = new Date();
-    const year = date.getFullYear()
-    const nextMonth = `${date.getMonth() + 2}`.padStart(2, "0")
-    const resetDate = new Date(`${year}-${nextMonth}-01 00:00:00`)
-
+    const resetDate = DateTime.now().setZone('Asia/Tokyo').startOf('month').plus({months: 1}).toISO()
     await dynamodb.incrementServiceUsage({ apiKey, quotaType })
 
     const { quotaLimit, quotaRemaining, quotaResetDate} = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas })
-    const headers = await proxyResponse.createHeaders( { quotaLimit, quotaRemaining, quotaResetDate })
+    const headers = proxyResponse.createHeaders( { quotaLimit, quotaRemaining, quotaResetDate })
 
     const expected = {
       'Content-Type': 'application/json',
@@ -26,7 +23,7 @@ describe('createHeaders', () => {
       'Cache-Control': 'no-store, max-age=0',
       'X-RateLimit-Limit': '10000',
       'X-RateLimit-Remaining': '9999',
-      'X-RateLimit-Reset': `${resetDate.toUTCString()}`
+      'X-RateLimit-Reset': `${resetDate}`
     }
 
     // @ts-ignore
@@ -44,7 +41,7 @@ describe('createHeaders', () => {
     await dynamodb.incrementServiceUsage({ apiKey, quotaType })
 
     const { quotaLimit, quotaRemaining, quotaResetDate} = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas })
-    const headers = await proxyResponse.createHeaders( { quotaLimit, quotaRemaining, quotaResetDate })
+    const headers = proxyResponse.createHeaders( { quotaLimit, quotaRemaining, quotaResetDate })
 
     // @ts-ignore
     expect(headers['X-RateLimit-Limit']).toStrictEqual('500000')
