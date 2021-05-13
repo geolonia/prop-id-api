@@ -48,6 +48,8 @@ test('should get estate ID with details if authenticated', async () => {
 
   expect(body).toEqual([
     expect.objectContaining({
+      "normalization_level": "3",
+      "geocoding_level": "8",
       "address": {
         "ja": {
             "address1": "盛岡駅西通二丁目",
@@ -58,7 +60,6 @@ test('should get estate ID with details if authenticated', async () => {
         },
       },
       "location": {
-        "geocoding_level": "8",
         "lat": "39.701281",
         "lng": "141.13366",
       },
@@ -112,6 +113,8 @@ describe("preauthenticatedUserId", () => {
 
     expect(lambdaResult.statusCode).toBe(200)
     expect(body[0].ID).toBeDefined()
+    expect(body[0].normalization_level).toStrictEqual('3')
+    expect(body[0].geocoding_level).toBeUndefined()
     expect(body[0].location).toBeUndefined()
   })
 
@@ -135,8 +138,9 @@ describe("preauthenticatedUserId", () => {
 
     expect(lambdaResult.statusCode).toBe(200)
     expect(body[0].ID).toBeDefined()
+    expect(body[0].normalization_level).toStrictEqual("3")
+    expect(body[0].geocoding_level).toStrictEqual("8")
     expect(body[0].location).toMatchObject({
-      "geocoding_level": "8",
       "lat": "39.701281",
       "lng": "141.13366",
     })
@@ -167,6 +171,7 @@ describe("preauthenticatedUserId", () => {
 
     expect(lambdaResult.statusCode).toBe(403)
     expect(body[0]?.ID).toBeUndefined()
+    expect(body[0]?.geocoding_level).toBeUndefined()
   })
 })
 
@@ -187,6 +192,8 @@ test('[Not Recommended request type] should get estate ID with details if authen
   const body = JSON.parse(lambdaResult.body)
   expect(body).toEqual([
     expect.objectContaining({
+      "normalization_level": "3",
+      "geocoding_level": "8",
       "address": {
         "ja": {
             "address1": "盛岡駅西通二丁目",
@@ -197,7 +204,6 @@ test('[Not Recommended request type] should get estate ID with details if authen
         },
       },
       "location": {
-        "geocoding_level": "8",
         "lat": "39.701281",
         "lng": "141.13366",
       },
@@ -227,6 +233,8 @@ test('should get estate ID without details if authenticated with a free API key'
 
   const first = body[0]
   expect(first).toHaveProperty("ID")
+  expect(first.normalization_level).toStrictEqual("3")
+  expect(first.geocoding_level).toBeUndefined()
   expect(first.address).toBeUndefined()
   expect(first.location).toBeUndefined()
 })
@@ -250,6 +258,8 @@ test('should get estate ID with details if authenticated with 和歌山県東牟
 
   expect(body).toEqual([
     expect.objectContaining({
+      "normalization_level": "3",
+      "geocoding_level": "3",
       "address": {
         "ja": {
           "address1": "田並",
@@ -260,7 +270,6 @@ test('should get estate ID with details if authenticated with 和歌山県東牟
         },
       },
       "location": {
-        "geocoding_level": "3",
         "lat": "33.488638",
         "lng": "135.714765",
       },
