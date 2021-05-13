@@ -140,7 +140,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     },
   }
   const location = {
-    geocoding_level: geocoding_level.toString(),
     lat: lat.toString(),
     lng: lng.toString()
   }
@@ -173,12 +172,14 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   }
 
   const ID = estateId.estateId
+  const normalizationLevel = prenormalizedAddress.level.toString()
+  const geocodingLevel = geocoding_level.toString()
 
   let body: any
   if (authenticationResult.plan === "paid" || event.isDemoMode) {
-    body = { ID, address: addressObject, location }
+    body = { ID, normalization_level: normalizationLevel, geocoding_level: geocodingLevel, address: addressObject, location }
   } else {
-    body = { ID }
+    body = { ID, normalization_level: normalizationLevel }
   }
 
   if (event.isDebugMode === true) {

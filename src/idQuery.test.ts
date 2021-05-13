@@ -48,12 +48,13 @@ test('it works', async () => {
   const body2 = JSON.parse(lambdaResult2.body)
 
   expect(body2[0].ID).toBe(body1[0].ID)
+  expect(body2[0].normalization_level).toBe(body1[0].normalization_level)
+  expect(body2[0].geocoding_level).toBe(body1[0].geocoding_level)
   expect(body2[0].address.ja.prefecture).toStrictEqual('東京都')
   expect(body2[0].address.ja.city).toStrictEqual('文京区')
   expect(body2[0].address.ja.address1).toStrictEqual('小石川一丁目')
   expect(body2[0].address.ja.address2).toStrictEqual('2-1')
   expect(body2[0].address.ja.other).toStrictEqual('')
-  expect(body2[0].location.geocoding_level).toBe(body1[0].location.geocoding_level)
 })
 
 test('should get estate ID without details if authenticated with a free API key', async () => {
@@ -75,6 +76,8 @@ test('should get estate ID without details if authenticated with a free API key'
 
   const first1 = body1[0]
   expect(first1).toHaveProperty("ID")
+  expect(first1.normalization_level).toStrictEqual('3')
+  expect(first1.geocoding_level).toBeUndefined()
   expect(first1.address).toBeUndefined()
   expect(first1.location).toBeUndefined()
 
@@ -97,6 +100,8 @@ test('should get estate ID without details if authenticated with a free API key'
 
   const first2 = body2[0]
   expect(first2.ID).toBe(first1.ID)
+  expect(first2.normalization_level).toStrictEqual('3')
+  expect(first2.geocoding_level).toBeUndefined()
   expect(first2.address).toBeUndefined()
   expect(first2.building).toBeUndefined()
   expect(first2.location).toBeUndefined()
@@ -142,12 +147,13 @@ test('should get estate ID with details if authenticated with a paid API key', a
 
   const first2 = body2[0]
   expect(first2.ID).toBe(first1.ID)
+  expect(first2.normalization_level).toStrictEqual('3')
+  expect(first2.geocoding_level).toStrictEqual('8')
   expect(first2.address.ja.prefecture).toStrictEqual('東京都')
   expect(first2.address.ja.city).toStrictEqual('文京区')
   expect(first2.address.ja.address1).toStrictEqual('小石川一丁目')
   expect(first2.address.ja.address2).toStrictEqual('2-2')
   expect(first2.address.ja.other).toStrictEqual('東京第一ビル')
-  expect(first2.location.geocoding_level).toStrictEqual('8')
   expect(first2.location).toHaveProperty('lat')
   expect(first2.location).toHaveProperty('lng')
 })

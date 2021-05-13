@@ -37,8 +37,11 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       404)
   }
 
+  const prenormalizedAddress = await normalize(estateIdObj.rawAddress)
+
   const idOut: any = {
     ID: estateIdObj.estateId,
+    normalization_level: prenormalizedAddress.level.toString()
   }
 
   if (authenticationResult.plan === "paid") {
@@ -55,12 +58,10 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     const { geocoding_level } = feature.properties
 
     const location = {
-      geocoding_level: geocoding_level.toString(),
       lat: lat.toString(),
       lng: lng.toString()
     }
 
-    const prenormalizedAddress = await normalize(estateIdObj.rawAddress)
     const addressObject = {
       ja: {
         prefecture: prenormalizedAddress.pref,
@@ -71,6 +72,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       },
     }
 
+    idOut.geocoding_level = geocoding_level.toString(),
     idOut.location = location
     idOut.address = addressObject
   }

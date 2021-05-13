@@ -166,7 +166,8 @@ Name
 ```
 [
   {
-    "ID": "xxxx-xxxx-xxxx-xxxx"
+    "ID": "xxxx-xxxx-xxxx-xxxx",
+    "normalization_level": 0-3
   }
 ]
 ```
@@ -180,6 +181,8 @@ Name
 [
   {
     "ID": "xxxx-xxxx-xxxx-xxxx",
+    "normalization_level": 0-3,
+    "geocoding_level": 1-9,
     "address": {
       "ja": {
         "prefecture": "東京都",
@@ -190,7 +193,6 @@ Name
       }
     },
     "location": {
-      "geocoding_level": 1-9,
       "lat": "緯度",
       "lng": "経度"
     }
@@ -240,6 +242,8 @@ Name
 [
   {
     "ID": "xxxx-xxxx-xxxx-xxxx",
+    "normalization_level": 0-3,
+    "geocoding_level": 1-9,
     "address": {
       "ja": {
         "prefecture": "東京都",
@@ -250,7 +254,6 @@ Name
       }
     },
     "location": {
-      "geocoding_level": 1-9,
       "lat": "緯度",
       "lng": "経度"
     }
@@ -282,6 +285,84 @@ Name
 ]
 ```
 
+## 解析レベル
+不動産共通ID取得API及び、不動産共通ID参照APIのレスポンスは、住所の解析レベル情報を含みます。
+無料版では `normalization_level` のみ、有料版ではより詳細な解析レベルの `geocoding_level` も含みます。
+
+### normalization_level
+<table>
+  <tr>
+    <td style="min-width: 110px;">解析レベルの数字</td>
+    <td>説明</td>
+  </tr>
+  <tr>
+    <td>0</td>
+    <td>都道府県も判別できなかった</td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>都道府県まで判別できた</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>市区町村まで判別できた</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>都道府県も判別できなかった</td>
+  </tr>
+</table>
+
+### geocoding_level
+<table>
+  <tr>
+    <td style="min-width: 110px;">解析レベル</td>
+    <td style="min-width: 110px;">レベルの数字</td>
+    <td>説明</td>
+  </tr>
+  <tr>
+    <td>都道府県</td>
+    <td>1</td>
+    <td>県レベルでマッチしました</td>
+  </tr>
+  <tr>
+    <td>市区町村</td>
+    <td>2</td>
+    <td>市区町村レベルでマッチしました</td>
+  </tr>
+  <tr>
+    <td>町域 (大字)	</td>
+    <td>3</td>
+    <td>町域レベルでマッチしました</td>
+  </tr>
+  <tr>
+    <td>丁目 / 小字	</td>
+    <td>4</td>
+    <td>丁目または小字レベルでマッチしました</td>
+  </tr>
+  <tr>
+    <td>番地（番）</td>
+    <td>5</td>
+    <td>番地（番）レベルでマッチしました</td>
+  </tr>
+  <tr>
+    <td>号情報が存在しない番地</td>
+    <td>7</td>
+    <td>番地（番）レベルでマッチしました（号情報が存在しない地域）</td>
+  </tr>
+  <tr>
+    <td>号</td>
+    <td>8</td>
+    <td>号レベルでマッチしました</td>
+  </tr>
+  <tr>
+    <td>不明</td>
+    <td>-1</td>
+    <td>不明</td>
+  </tr>
+</table>
+
+
 ## レート制限
 
 各APIは現在のレート制限状況を確認できる、レスポンスヘッダーを返します。制限を超えた場合はこのヘッダーを確認して、いつ再試行できるかを判断できます。
@@ -308,7 +389,7 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
   </tr>
   <tr>
     <td style="min-width: 210px;"><code>x-ratelimit-reset</code></td>
-    <td>次にレート制限がリセットされる予定時刻 (<a href="https://tools.ietf.org/id/draft-polli-ratelimit-headers-00.html#ratelimit-reset-header" target="_blank" rel="noopener noreferrer">IMF-fixdate format</a>)</td>
+    <td>次にレート制限がリセットされる予定時刻 (<a href="https://ja.wikipedia.org/wiki/%E6%97%A5%E6%9C%AC%E6%A8%99%E6%BA%96%E6%99%82" target="_blank" rel="noopener noreferrer">JST</a> <a href="https://ja.wikipedia.org/wiki/ISO_8601" target="_blank" rel="noopener noreferrer">ISO8601</a>形式)</td>
   </tr>
 </table>
 
