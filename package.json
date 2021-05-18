@@ -43,7 +43,7 @@
   "dependencies": {
     "@geolonia/normalize-japanese-addresses": "*",
     "@slack/webhook": "^6.0.0",
-    "auth0": "^2.34.2",
+    "auth0": "^2.35.0",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.0.3",
     "luxon": "^1.26.0",
