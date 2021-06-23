@@ -3,11 +3,13 @@ import { EstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './lib/
 import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult, incrementPGeocode, normalizeBuilding } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
-import { normalize, NormalizeResult } from '@geolonia/normalize-japanese-addresses'
+import { normalize, NormalizeResult, config as NJAConfig } from '@geolonia/normalize-japanese-addresses'
 import { Handler, APIGatewayProxyResult } from 'aws-lambda'
 import { authenticateEvent, extractApiKey } from './lib/authentication'
 import { createLog } from './lib/dynamodb_logs'
 import { ipcNormalizationErrorReport } from './outerApiErrorReport'
+
+NJAConfig.japaneseAddressesApi = "https://japanese-addresses.geolonia.com/previous-master/ja"
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   "prefecture_not_recognized",
