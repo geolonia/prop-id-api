@@ -317,9 +317,9 @@
   integrity sha512-g8xizIJH7sfd5JSJyN6pCbNNWVkasMpw84gpYQZJ09VDuTT5qzT5cKhr3+pFyS4SpfwQ9rrsJBmeD6z3vI2bjA==
 
 "@geolonia/normalize-japanese-addresses@*":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-1.1.0.tgz#f236006538a41c019bfa4ccd80dd0d68a69ef464"
-  integrity sha512-jrmeLcONfQBHYo1N4NZACjmwHkYAmgFqVNfZQ7EC3Zy0BzFNwmWiMG200Ea/RQ0MPG3n5H2vEtldSCbXIOKPKw==
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-2.0.0.tgz#e607f24eeacc7973c459583b547f0f871cb93366"
+  integrity sha512-jKW9lwNOVE5Ucav8mk4ZJNLGShsi7+qmJDH1lFAqHL6fSpIRazJ4De5RM+/Z0lXEbpdWWjCKS/TS3ONh07hqOA==
   dependencies:
     "@geolonia/japanese-numeral" "^0.1.11"
     axios "^0.21.1"
