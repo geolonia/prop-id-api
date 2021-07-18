@@ -47,7 +47,7 @@
     "@slack/webhook": "^6.0.0",
     "auth0": "^2.35.0",
     "jsonwebtoken": "^8.5.1",
-    "jwks-rsa": "^2.0.3",
+    "jwks-rsa": "^2.0.4",
     "luxon": "^1.27.0",
     "ulid": "^2.3.0"
   }
