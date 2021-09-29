@@ -1,15 +1,15 @@
 import '.'
-import { EstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './lib/dynamodb'
+import { BaseEstateId, EstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './lib/dynamodb'
 import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult, incrementPGeocode, normalizeBuilding } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
-import { normalize, NormalizeResult, config as NJAConfig } from '@geolonia/normalize-japanese-addresses'
+import { normalize } from '@geolonia/normalize-japanese-addresses'
 import { Handler, APIGatewayProxyResult } from 'aws-lambda'
 import { authenticateEvent, extractApiKey } from './lib/authentication'
 import { createLog } from './lib/dynamodb_logs'
 import { ipcNormalizationErrorReport } from './outerApiErrorReport'
 
-NJAConfig.japaneseAddressesApi = "https://japanese-addresses.geolonia.com/previous-master/ja"
+// NJAConfig.japaneseAddressesApi = "https://japanese-addresses.geolonia.com/previous-master/ja"
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   "prefecture_not_recognized",
@@ -146,13 +146,12 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     lng: lng.toString()
   }
 
-  let estateId: EstateId
+  let rawEstateIds: BaseEstateId[];
   try {
-    const existingEstateId = await getEstateIdForAddress(normalizedAddressNJA, normalizedBuilding)
-    if (existingEstateId) {
-      estateId = existingEstateId
+    const existingEstateIds = await getEstateIdForAddress(normalizedAddressNJA, normalizedBuilding)
+    if (existingEstateIds.length > 0) {
+      rawEstateIds = existingEstateIds;
     } else {
-
       const storeParams: StoreEstateIdReq = {
         zoom: ZOOM,
         tileXY: `${x}/${y}`,
@@ -161,10 +160,12 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
         prefCode,
       }
       if (building) {
-        storeParams.rawBuilding = building
-        storeParams.building = normalizedBuilding
+        storeParams.rawBuilding = building;
+        storeParams.building = normalizedBuilding;
       }
-      estateId = await store(storeParams)
+      rawEstateIds = [
+        await store(storeParams),
+      ];
     }
   } catch (error) {
     console.error({ ZOOM, addressObject, apiKey, error })
@@ -173,29 +174,44 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(500, 'Internal server error', quotaParams)
   }
 
-  const ID = estateId.estateId
+  const richIdResp = !!(authenticationResult.plan === "paid" || event.isDemoMode);
   const normalizationLevel = prenormalizedAddress.level.toString()
   const geocodingLevel = geocoding_level.toString()
 
-  let body: any
-  if (authenticationResult.plan === "paid" || event.isDemoMode) {
-    body = { ID, normalization_level: normalizationLevel, geocoding_level: geocodingLevel, address: addressObject, location }
-  } else {
-    body = { ID, normalization_level: normalizationLevel }
-  }
+  const apiResponse = rawEstateIds.map((estateId) => {
+    const baseResp: { [key: string]: any } = {
+      ID: estateId.estateId,
+      normalization_level: normalizationLevel,
+    }
+    if (richIdResp) {
+      baseResp.geocoding_level = geocodingLevel;
+      baseResp.address = addressObject;
+      baseResp.location = location;
+    }
+    return baseResp;
+  })
 
   if (event.isDebugMode === true) {
     // aggregate debug info
-    return json({
+    return json(
+      {
         internallyNormalized: prenormalizedAddress,
         externallyNormalized: feature,
         cacheHit,
-        tileInfo: { xy: `${x}/${y}`, serial: estateId!.serial, ZOOM },
-        apiResponse: [ body ]
+        tileInfo: {
+          xy: `${x}/${y}`,
+          serial: rawEstateIds.map(({serial}) => serial),
+          ZOOM,
+        },
+        apiResponse,
       },
-      quotaParams)
+      quotaParams,
+    )
   } else {
-    return json([ body ],quotaParams)
+    return json(
+      apiResponse,
+      quotaParams,
+    )
   }
 }
 

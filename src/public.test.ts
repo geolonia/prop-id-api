@@ -403,5 +403,4 @@ test('should get same estate ID by normalization', async () => {
   const body2 = JSON.parse(lambdaResult2.body)
 
   expect(body1[0].ID).toEqual(body2[0].ID)
-
 })

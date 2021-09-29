@@ -17,7 +17,7 @@ export const DB = process.env.TEST === "1" ? (
   new AWS.DynamoDB.DocumentClient()
 )
 
-interface BaseEstateId {
+export interface BaseEstateId {
   estateId: string
   address: string
   serial: number
@@ -133,40 +133,31 @@ export const updateTimestamp = async (apiKey:string, timestamp: number) => {
   return await DB.update(updateItemInput).promise()
 }
 
-export const getEstateIdForAddress = async (address: string, building?: string | undefined ): Promise<BaseEstateId | null> => {
-
-  const ExpressionAttributeNames =  { '#a': 'address', '#b': 'building' }
-  const ExpressionAttributeValues: { ':a':string, ':b'?:string } =  { ':a': address }
-  const KeyConditionExpression = '#a = :a'
-  let FilterExpression;
-  if (building) {
-    ExpressionAttributeValues[':b'] = building
-    FilterExpression = '#b = :b'
-  } else {
-    FilterExpression = 'attribute_not_exists(#b)'
-  }
-
-  const queryInputForExactMatch: AWS.DynamoDB.DocumentClient.QueryInput = {
+export const getEstateIdForAddress = async (address: string, building?: string | undefined ): Promise<BaseEstateId[]> => {
+  const queryInput: AWS.DynamoDB.DocumentClient.QueryInput = {
     TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
     IndexName: 'address-index',
-    ExpressionAttributeNames,
-    ExpressionAttributeValues,
-    KeyConditionExpression,
-    FilterExpression,
+    ExpressionAttributeNames: { '#a': 'address' },
+    ExpressionAttributeValues: { ':a': address },
+    KeyConditionExpression: '#a = :a',
   }
-  const { Items: exactMatchItems = [] } = await DB.query(queryInputForExactMatch).promise()
+  const { Items = [] } = await DB.query(queryInput).promise()
+  const items = Items as EstateId[];
 
-  if (exactMatchItems.length === 0) {
-    return null
-  }
-
-  const item = exactMatchItems[0] as EstateId
-  if ('canonicalId' in item) {
-    return getEstateId(item.canonicalId, 1)
+  if (items.length === 0) {
+    return []
   }
 
-  return item
-}
+  const consolidatedItems = await Promise.all(items.map(async (item: EstateId) => {
+    if ('canonicalId' in item) {
+      return await getEstateId(item.canonicalId, 1);
+    }
+    return item;
+  }));
+  const filteredConsolidated = consolidatedItems.filter((value) => value !== null) as BaseEstateId[];
+
+  return filteredConsolidated;
+};
 
 export const getEstateId = async (id: string, redirectCount: number = 0): Promise<BaseEstateId | null> => {
   if (redirectCount > REDIRECT_MAX) {
@@ -229,7 +220,7 @@ export const store = async (idObj: StoreEstateIdReq) => {
       }
       await DB.put(putItemInput).promise()
       successfulItem = Item
-    } catch (e) {
+    } catch (e: any) {
       if (e.code === "ConditionalCheckFailedException") {
         // Try again
       } else {

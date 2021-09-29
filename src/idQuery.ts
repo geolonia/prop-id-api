@@ -5,9 +5,9 @@ import { extractApiKey, authenticateEvent } from './lib/authentication'
 import { getEstateId } from './lib/dynamodb'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
-import { normalize, config as NJAConfig } from '@geolonia/normalize-japanese-addresses'
+import { normalize } from '@geolonia/normalize-japanese-addresses'
 
-NJAConfig.japaneseAddressesApi = "https://japanese-addresses.geolonia.com/previous-master/ja"
+// NJAConfig.japaneseAddressesApi = "https://japanese-addresses.geolonia.com/previous-master/ja"
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const quotaType = "id-req"
@@ -31,12 +31,14 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   const estateIdObj = await getEstateId(estateId)
 
   if (!estateIdObj) {
-    return json({
+    return json(
+      {
         error: true,
         error_description: "not_found",
       },
       quotaParams,
-      404)
+      404
+    )
   }
 
   const prenormalizedAddress = await normalize(estateIdObj.rawAddress)
