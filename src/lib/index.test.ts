@@ -58,6 +58,7 @@ describe('IncrementP Verification API', () => {
             "properties": {
               "query": "盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F",
               "place_name": "岩手県盛岡市盛岡駅西通2丁目 9-1 マリオス10F",
+              "not_normalized": "",
               "pref": "岩手県",
               "pref_kana": "イワテケン",
               "city": "盛岡市",
@@ -109,7 +110,8 @@ describe('IncrementP Verification API', () => {
             zipcode: '',
             geocoding_level: -1,
             geocoding_level_desc: 'マッチレベルが不明です(-1)',
-            log: 'NF001:都道府県情報を取得できませんでした | NF002:市区町村情報を取得できませんでした | ZJ005:郵便番号が存在しない住所情報です'
+            log: 'NF001:都道府県情報を取得できませんでした | NF002:市区町村情報を取得できませんでした | ZJ005:郵便番号が存在しない住所情報です',
+            "not_normalized": "===Not exisiting address. This string should not be verified via API.===",
           }
         }
       ],
@@ -130,7 +132,7 @@ describe('IncrementP Verification API', () => {
     expect(result.body.message).toEqual("addr is not specified")
   })
 
-  test('shouls return 403 if no api key specified.', async () => {
+  test('should return 403 if no api key specified.', async () => {
     // @ts-ignore
     const TEMP_API_KEY = process.env.INCREMENTP_VERIFICATION_API_KEY
     // @ts-ignore

@@ -4,9 +4,9 @@ import { _getServiceUsageQuotaItem, _updateServiceUsageQuota } from './lib/dynam
 import { _handler as handler } from './public'
 
 test('should specify the ZOOM environmental variable.', () => {
-    const ZOOM = parseInt(process.env.ZOOM, 10)
-    expect(ZOOM).not.toBe(NaN)
-    expect(typeof ZOOM).toBe('number')
+  const ZOOM = parseInt(process.env.ZOOM, 10)
+  expect(ZOOM).not.toBe(NaN)
+  expect(typeof ZOOM).toBe('number')
 })
 
 test('should get same estate ID for multiple queries to same address', async () => {
@@ -82,15 +82,44 @@ test('should return the same ID for query with empty building', async () => {
     },
   }
   // @ts-ignore
-  const lambdaResult1 = await handler(event1) as APIGatewayProxyResult
-  const body1 = JSON.parse(lambdaResult1.body)
+  const lambdaResult1 = await handler(event1) as APIGatewayProxyResult;
+  const body1 = JSON.parse(lambdaResult1.body);
+  expect(body1.length).toStrictEqual(1);
 
   // @ts-ignore
-  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult
-  const body2 = JSON.parse(lambdaResult2.body)
+  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult;
+  const body2 = JSON.parse(lambdaResult2.body);
+  expect(body1.length).toStrictEqual(1);
 
-  expect(body1[0].ID).toEqual(body2[0].ID)
+  expect(body1[0].ID).toEqual(body2[0].ID);
 })
+
+test('should return the same ID for queries with a different building name', async () => {
+  const event1 = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地10号',
+    },
+  }
+  const event2 = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地10号',
+      building: 'おはようビル2.9.10棟',
+    },
+  }
+  // @ts-ignore
+  const lambdaResult1 = await handler(event1) as APIGatewayProxyResult;
+  const body1 = JSON.parse(lambdaResult1.body);
+  expect(body1.length).toStrictEqual(1);
+
+  // @ts-ignore
+  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult;
+  const body2 = JSON.parse(lambdaResult2.body);
+  expect(body1.length).toStrictEqual(1);
+
+  expect(body1[0].ID).toEqual(body2[0].ID);
+});
 
 describe("preauthenticatedUserId", () => {
   test('should get estate ID if preauthenticated', async () => {

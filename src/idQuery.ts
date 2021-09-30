@@ -5,9 +5,7 @@ import { extractApiKey, authenticateEvent } from './lib/authentication'
 import { getEstateId } from './lib/dynamodb'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
-import { normalize } from '@geolonia/normalize-japanese-addresses'
-
-// NJAConfig.japaneseAddressesApi = "https://japanese-addresses.geolonia.com/previous-master/ja"
+import { normalize } from './lib/nja';
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const quotaType = "id-req"

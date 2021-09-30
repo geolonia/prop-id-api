@@ -3,13 +3,11 @@ import { BaseEstateId, EstateId, getEstateIdForAddress, store, StoreEstateIdReq 
 import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult, incrementPGeocode, normalizeBuilding } from './lib/index'
 import { errorResponse, json } from './lib/proxy-response'
 import Sentry from './lib/sentry'
-import { normalize } from '@geolonia/normalize-japanese-addresses'
+import { normalize } from './lib/nja';
 import { Handler, APIGatewayProxyResult } from 'aws-lambda'
 import { authenticateEvent, extractApiKey } from './lib/authentication'
 import { createLog } from './lib/dynamodb_logs'
 import { ipcNormalizationErrorReport } from './outerApiErrorReport'
-
-// NJAConfig.japaneseAddressesApi = "https://japanese-addresses.geolonia.com/previous-master/ja"
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   "prefecture_not_recognized",
@@ -44,7 +42,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   })
   Sentry.setUser({
     id: event.isDemoMode ? "demo" : apiKey
-  })
+  });
 
   // Internal normalization
   const prenormalizedAddress = await normalize(address)
@@ -52,21 +50,23 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     input: address,
     level: prenormalizedAddress.level,
     normalized: JSON.stringify(prenormalizedAddress),
-  })
+  });
 
   if (prenormalizedAddress.level < 2) {
     const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalizedAddress.level]
-    return json({
+    return json(
+      {
         error: true,
         error_code: `normalization_failed`,
         error_code_detail,
-        address
+        address,
       },
       quotaParams,
-      400)
+      400
+    );
   }
 
-  const normalizedBuilding = normalizeBuilding(building)
+  const normalizedBuilding = normalizeBuilding(building);
 
   if (!prenormalizedAddress.town || prenormalizedAddress.town === '') {
     await createLog('normFailNoTown', {
@@ -105,13 +105,15 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       }),
     ])
 
-    return json({
+    return json(
+      {
         error: true,
         error_code: `address_not_verified`,
         address,
       },
       quotaParams,
-      404)
+      404,
+    )
   }
 
   const [lng, lat] = feature.geometry.coordinates as [number, number]
