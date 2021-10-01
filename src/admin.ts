@@ -27,6 +27,7 @@ const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (even
     console.log('Couldn\'t find authorization header.');
     return errorResponse(401, 'Not authenticated');
   }
+
   const token = tokenHeader.substr(7);
   const decodedToken = jwt.decode(token, { complete: true });
   const kid = decodedToken?.header.kid;

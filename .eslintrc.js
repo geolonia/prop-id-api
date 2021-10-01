@@ -6,14 +6,14 @@ module.exports = {
     node: true,
     jest: true,
   },
-  parserOptions: {
-    project: ['tsconfig.json'],
-  },
   overrides: [
     {
       files: ['**/*.ts'],
       rules: {
         'no-console': 'off',
+      },
+      parserOptions: {
+        project: ['tsconfig.json'],
       },
     },
   ],

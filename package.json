@@ -5,6 +5,7 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.34.0",
     "@geolonia/eslint-config": "^0.0.1",
     "@sentry/serverless": "^6.2.3",
     "@shelf/jest-dynamodb": "^2.1.0",
@@ -33,7 +34,7 @@
   },
   "scripts": {
     "preinstall": "npx only-allow yarn",
-    "test": "ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest --config jest-default.config.mjs",
+    "test": "ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest",
     "test:ipc": "jest ./src/__tests__/ipc.test.ts",
     "test:addresses": "node ./src/test_download-data.js && ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest ./src/addresses.test.ts",
     "lint": "eslint --ext .ts --ext .js src --cache",
@@ -41,8 +42,7 @@
     "start": "TEST=1 sls offline --stage=local --httpPort 3000",
     "deploy:dev": "sls deploy --stage=dev",
     "deploy:v1": "sls deploy --stage=v1",
-    "deploy:cdn:dev": "sls deploy -c serverless.cdn.yml --stage=dev",
-    "start-local-dynamodb": "docker run -d -p 8000:8000 --name local-dynamodb amazon/dynamodb-local -jar DynamoDBLocal.jar -port 8000"
+    "deploy:cdn:dev": "sls deploy -c serverless.cdn.yml --stage=dev"
   },
   "jest": {
     "preset": "ts-jest"

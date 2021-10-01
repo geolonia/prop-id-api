@@ -6,8 +6,9 @@ import { DateTime } from 'luxon';
 const REDIRECT_MAX = 4;
 export const DB = process.env.TEST === '1' ? (
   new AWS.DynamoDB.DocumentClient({
-    endpoint: 'http://127.0.0.1:8000',
-    region: 'us-west-2',
+    endpoint: 'http://localhost:8000',
+    region: 'local-env',
+    sslEnabled: false,
     credentials: {
       accessKeyId: 'XXX',
       secretAccessKey: 'XXX',
