@@ -65,7 +65,7 @@ test('should get estate ID with details if authenticated', async () => {
       },
     })
   ])
-})
+});
 
 test('should return the same ID for query with empty building', async () => {
   const event1 = {
@@ -80,7 +80,7 @@ test('should return the same ID for query with empty building', async () => {
       q: '岩手県盛岡市盛岡駅西通２丁目９番地2号',
       building: '',
     },
-  }
+  };
   // @ts-ignore
   const lambdaResult1 = await handler(event1) as APIGatewayProxyResult;
   const body1 = JSON.parse(lambdaResult1.body);
@@ -92,7 +92,7 @@ test('should return the same ID for query with empty building', async () => {
   expect(body1.length).toStrictEqual(1);
 
   expect(body1[0].ID).toEqual(body2[0].ID);
-})
+});
 
 test('should return the same ID for queries with a different building name', async () => {
   const event1 = {
