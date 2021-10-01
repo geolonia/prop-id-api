@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 declare global {
   interface PublicHandlerEvent extends APIGatewayProxyEvent {
@@ -11,11 +11,11 @@ declare global {
     userId: string
   }
 
-  type AdminHandler = (event: AdminHandlerEvent) => Promise<APIGatewayProxyResult>
+  type AdminHandler = (event: AdminHandlerEvent) => Promise<APIGatewayProxyResult>;
 
   namespace NodeJS {
     export interface ProcessEnv {
-      readonly STAGE: "local" | "v1" | "dev"
+      readonly STAGE: 'local' | 'v1' | 'dev'
       readonly ZOOM: string
       readonly AWS_DYNAMODB_API_KEY_TABLE_NAME: string
       readonly AWS_DYNAMODB_ESTATE_ID_TABLE_NAME: string
