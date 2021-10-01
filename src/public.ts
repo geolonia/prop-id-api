@@ -184,10 +184,17 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     const baseResp: { [key: string]: any } = {
       ID: estateId.estateId,
       normalization_level: normalizationLevel,
+      address: {
+        ja: {
+          // all addresses should be the same.
+          ...addressObject.ja,
+          // ... but all buildings may not be the same.
+          other: estateId.building || '',
+        },
+      },
     };
     if (richIdResp) {
       baseResp.geocoding_level = geocodingLevel;
-      baseResp.address = addressObject;
       baseResp.location = location;
     }
     return baseResp;
