@@ -46,7 +46,7 @@ const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (even
       ],
     }) as { [key: string]: any };
     userId = verifiedToken.sub;
-  } catch (e) {
+  } catch (e: any) {
     if (
       e.name !== 'JsonWebTokenError' &&
       e.name !== 'NotBeforeError' &&

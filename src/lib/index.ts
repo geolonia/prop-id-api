@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import * as crypto from 'crypto';
 import { promisify } from 'util';
 import prefs from './prefs.json';
@@ -118,6 +118,7 @@ export const zen2hanAscii = (str: string) => {
   return str.replace(/[Ａ-Ｚａ-ｚ０-９！＂＃＄％＆＇（）＊＋，－．／：；＜＝＞？＠［＼］＾＿｀｛｜｝]/g, (s) => {
     return String.fromCharCode(s.charCodeAt(0) - 0xfee0);
   })
+    // eslint-disable-next-line no-irregular-whitespace
     .replace(/　/g, ' '); // 全角スペースを半角スペースに変換
 };
 

@@ -1,3 +1,5 @@
+// import/no-extraneous-dependencies is disabled because @sentry/serverless is vended via a Lambda Layer
+// eslint-disable-next-line import/no-extraneous-dependencies
 import * as Sentry from '@sentry/serverless';
 
 const initOptions: Sentry.AWSLambda.NodeOptions = {

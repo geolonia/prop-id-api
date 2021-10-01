@@ -1,7 +1,7 @@
 import '.';
 import { Handler, APIGatewayProxyResult } from 'aws-lambda';
 import { incrementPGeocode } from './lib';
-import { extractApiKey, authenticateEvent } from './lib/authentication';
+import { authenticateEvent } from './lib/authentication';
 import { getEstateId } from './lib/dynamodb';
 import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
@@ -9,7 +9,6 @@ import { normalize } from './lib/nja';
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const quotaType = 'id-req';
-  // const { apiKey } = extractApiKey(event)
   const authenticationResult = await authenticateEvent(event, quotaType);
   if ('statusCode' in authenticationResult) {
     return authenticationResult;

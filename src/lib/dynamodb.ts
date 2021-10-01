@@ -133,7 +133,7 @@ export const updateTimestamp = async (apiKey:string, timestamp: number) => {
   return await DB.update(updateItemInput).promise();
 };
 
-export const getEstateIdForAddress = async (address: string, building?: string | undefined ): Promise<BaseEstateId[]> => {
+export const getEstateIdForAddress = async (address: string, _building?: string | undefined ): Promise<BaseEstateId[]> => {
   const queryInput: AWS.DynamoDB.DocumentClient.QueryInput = {
     TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
     IndexName: 'address-index',

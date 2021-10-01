@@ -10,7 +10,11 @@ export const sendSlackNotification = async (payload: IncomingWebhookSendArgument
       Name: '/propid/slack/main',
       WithDecryption: true,
     }).promise();
-    cachedWebhookUrl = parameterResp.Parameter?.Value!;
+    cachedWebhookUrl = parameterResp.Parameter?.Value;
+
+    if (!cachedWebhookUrl) {
+      throw new Error('Slack Webhook URL was not found in parameter store. Please check: /propid/slack/main');
+    }
   }
 
   const webhook = new IncomingWebhook(cachedWebhookUrl);

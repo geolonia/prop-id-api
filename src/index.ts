@@ -13,6 +13,7 @@ declare global {
 
   type AdminHandler = (event: AdminHandlerEvent) => Promise<APIGatewayProxyResult>;
 
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
     export interface ProcessEnv {
       readonly STAGE: 'local' | 'v1' | 'dev'

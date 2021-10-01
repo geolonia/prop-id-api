@@ -9,4 +9,12 @@ module.exports = {
   parserOptions: {
     project: ['tsconfig.json'],
   },
+  overrides: [
+    {
+      files: ['**/*.ts'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+  ],
 };

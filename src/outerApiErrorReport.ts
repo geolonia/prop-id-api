@@ -1,6 +1,6 @@
 
 import { sendSlackNotification } from './lib/slack';
-import { PlainTextElement, MrkdwnElement } from '@slack/types';
+import type { PlainTextElement, MrkdwnElement } from '@slack/types';
 
 export const ipcNormalizationErrorReport = async (identifier: string, metadata: { [key: string]: any }) => {
 

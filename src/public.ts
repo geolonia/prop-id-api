@@ -1,6 +1,6 @@
 import '.';
-import { BaseEstateId, EstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './lib/dynamodb';
-import { verifyAddress, coord2XY, getPrefCode, VerifyAddressResult, incrementPGeocode, normalizeBuilding } from './lib/index';
+import { BaseEstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './lib/dynamodb';
+import { coord2XY, getPrefCode, incrementPGeocode, normalizeBuilding } from './lib/index';
 import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
 import { normalize } from './lib/nja';

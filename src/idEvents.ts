@@ -4,7 +4,7 @@ import AWS from 'aws-sdk';
 import Sentry from './lib/sentry';
 import { EstateId, DB } from './lib/dynamodb';
 import { sendSlackNotification } from './lib/slack';
-import { PlainTextElement, MrkdwnElement } from '@slack/types';
+import type { PlainTextElement, MrkdwnElement } from '@slack/types';
 
 const _findDuplicateAddress = async (estateId: EstateId) => {
   const resp = await DB.query({
@@ -118,7 +118,12 @@ const _findDuplicates = async (id: EstateId) => {
 const _recordHandler = async (record: DynamoDBRecord) => {
   // We only will consider inserts. This means that modified records will not be processed twice.
   if (record.eventName !== 'INSERT') { return; }
-  const newImage = AWS.DynamoDB.Converter.unmarshall(record.dynamodb?.NewImage!) as EstateId;
+  const newImageRaw = record.dynamodb?.NewImage;
+  if (!newImageRaw) {
+    console.error(record);
+    throw new Error('New image was not available in record');
+  }
+  const newImage = AWS.DynamoDB.Converter.unmarshall(newImageRaw) as EstateId;
   // This notification doesn't work on redirected IDs yet.
   if ('canonicalId' in newImage) { return; }
 
