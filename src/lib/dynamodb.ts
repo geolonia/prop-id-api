@@ -4,7 +4,7 @@ import { hashToken, hashTokenV2, hashXY, randomToken } from './index';
 import { DateTime } from 'luxon';
 
 const REDIRECT_MAX = 4;
-export const DB = process.env.TEST === '1' ? (
+export const DB = process.env.JEST_WORKER_ID ? (
   new AWS.DynamoDB.DocumentClient({
     endpoint: 'http://localhost:8000',
     region: 'local-env',
