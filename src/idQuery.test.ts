@@ -62,7 +62,7 @@ test('should get estate ID without details if authenticated with a free API key'
 
   const event1 = {
     queryStringParameters: {
-      q: '東京都文京区小石川1-2-2',
+      q: '東京都文京区小石川1-2-3',
       building: 'おはようビル',
       'api-key': apiKey,
     },
@@ -78,7 +78,15 @@ test('should get estate ID without details if authenticated with a free API key'
   expect(first1).toHaveProperty("ID")
   expect(first1.normalization_level).toStrictEqual('3')
   expect(first1.geocoding_level).toBeUndefined()
-  expect(first1.address).toBeUndefined()
+  expect(first1.address).toMatchObject({
+    "ja": {
+      "prefecture": "東京都",
+      "city": "文京区",
+      "address1": "小石川一丁目",
+      "address2": "2-3",
+      "other": "おはようビル",
+    }
+  })
   expect(first1.location).toBeUndefined()
 
   const event2 = {
@@ -112,7 +120,7 @@ test('should get estate ID with details if authenticated with a paid API key', a
 
   const event1 = {
     queryStringParameters: {
-      q: '東京都文京区小石川1-2-2',
+      q: '東京都文京区小石川1-2-4',
       building: '東京第一ビル',
       'api-key': apiKey,
     },
@@ -152,7 +160,7 @@ test('should get estate ID with details if authenticated with a paid API key', a
   expect(first2.address.ja.prefecture).toStrictEqual('東京都')
   expect(first2.address.ja.city).toStrictEqual('文京区')
   expect(first2.address.ja.address1).toStrictEqual('小石川一丁目')
-  expect(first2.address.ja.address2).toStrictEqual('2-2')
+  expect(first2.address.ja.address2).toStrictEqual('2-4')
   expect(first2.address.ja.other).toStrictEqual('東京第一ビル')
   expect(first2.location).toHaveProperty('lat')
   expect(first2.location).toHaveProperty('lng')
@@ -163,7 +171,7 @@ test('should not return building name with empty building name parameter', async
 
   const event1 = {
     queryStringParameters: {
-      q: '東京都文京区小石川1-2-2',
+      q: '東京都文京区小石川1-2-5',
       'api-key': apiKey,
     },
     headers: {

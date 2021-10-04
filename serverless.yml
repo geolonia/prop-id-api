@@ -3,6 +3,7 @@ frameworkVersion: '2'
 
 plugins:
   - serverless-offline
+  - serverless-export-env
   - serverless-plugin-typescript
 
 provider:

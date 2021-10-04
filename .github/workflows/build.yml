@@ -19,11 +19,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 14
-      - name: Start DynamoDB
-        uses: rrainn/dynamodb-action@v2.0.0
-        with:
-          port: 8000
-          cors: '*'
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -35,6 +30,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn
+      - run: yarn lint
       - run: yarn build
       - run: yarn test
         env:

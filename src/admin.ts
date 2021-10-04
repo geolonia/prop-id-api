@@ -1,42 +1,43 @@
-import '.'
-import Sentry from './lib/sentry'
-import { APIGatewayProxyResult, Handler } from 'aws-lambda'
-import { errorResponse } from './lib/proxy-response'
-import jwt from "jsonwebtoken"
-import jwks from "jwks-rsa"
+import '.';
+import Sentry from './lib/sentry';
+import { APIGatewayProxyResult, Handler } from 'aws-lambda';
+import { errorResponse } from './lib/proxy-response';
+import jwt from 'jsonwebtoken';
+import jwks from 'jwks-rsa';
 
-import * as keys from "./admin/keys"
-import { _handler as publicHandler } from './public'
-import { _handler as idQueryHandler } from './idQuery'
+import * as keys from './admin/keys';
+import { _handler as publicHandler } from './public';
+import { _handler as idQueryHandler } from './idQuery';
 
-import { decapitalize } from './lib'
-import { AUTH0_DOMAIN, AUTH0_MGMT_DOMAIN } from './lib/auth0_client'
+import { decapitalize } from './lib';
+import { AUTH0_DOMAIN, AUTH0_MGMT_DOMAIN } from './lib/auth0_client';
 
 const jwksClient = jwks({
   cache: true,
   cacheMaxAge: 600000,
   rateLimit: true,
   jwksRequestsPerMinute: 5,
-  jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`
-})
+  jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`,
+});
 
 const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event, context, callback) => {
-  const headers = decapitalize(event.headers)
-  const tokenHeader = headers['authorization']
+  const headers = decapitalize(event.headers);
+  const tokenHeader = headers['authorization'];
   if (!tokenHeader || !tokenHeader.match(/^bearer /i)) {
-    console.log("Couldn't find authorization header.")
-    return errorResponse(401, 'Not authenticated')
+    console.log('Couldn\'t find authorization header.');
+    return errorResponse(401, 'Not authenticated');
   }
-  const token = tokenHeader.substr(7)
-  const decodedToken = jwt.decode(token, { complete: true })
-  const kid = decodedToken?.header.kid
+
+  const token = tokenHeader.substr(7);
+  const decodedToken = jwt.decode(token, { complete: true });
+  const kid = decodedToken?.header.kid;
   if (!kid) {
-    console.log("Token couldn't be decoded")
-    return errorResponse(401, 'Not authenticated')
+    console.log('Token couldn\'t be decoded');
+    return errorResponse(401, 'Not authenticated');
   }
-  let userId: string | undefined = undefined
+  let userId: string | undefined = undefined;
   try {
-    const signingKey = await jwksClient.getSigningKey(kid)
+    const signingKey = await jwksClient.getSigningKey(kid);
     const verifiedToken = jwt.verify(token, signingKey.getPublicKey(), {
       audience: 'https://api.propid.jp',
       algorithms: ['RS256'],
@@ -44,43 +45,43 @@ const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (even
         `https://${AUTH0_DOMAIN}/`,
         `https://${AUTH0_MGMT_DOMAIN}/`,
       ],
-    }) as { [key: string]: any }
-    userId = verifiedToken.sub
-  } catch (e) {
+    }) as { [key: string]: any };
+    userId = verifiedToken.sub;
+  } catch (e: any) {
     if (
-      e.name !== "JsonWebTokenError" &&
-      e.name !== "NotBeforeError" &&
-      e.name !== "TokenExpiredError"
+      e.name !== 'JsonWebTokenError' &&
+      e.name !== 'NotBeforeError' &&
+      e.name !== 'TokenExpiredError'
     ) {
-      throw e
+      throw e;
     }
-    console.log("Token verification error: ", e.name, JSON.stringify(e))
+    console.log('Token verification error: ', e.name, JSON.stringify(e));
   }
   if (!userId) {
-    return errorResponse(401, 'Not authenticated')
+    return errorResponse(401, 'Not authenticated');
   }
 
   const adminEvent: AdminHandlerEvent = {
     ...event,
-    userId
-  }
+    userId,
+  };
 
-  if (event.resource === "/admin/keys" && event.httpMethod === "GET") {
-    return keys.list(adminEvent)
-  } else if (event.resource === "/admin/keys" && event.httpMethod === "POST") {
-    return keys.create(adminEvent)
-  } else if (event.resource === "/admin/keys/{keyId}/reissue" && event.httpMethod === "PATCH") {
-    return keys.reissue(adminEvent)
-  } else if (event.resource === "/admin/query" && event.httpMethod === "GET") {
-    event.preauthenticatedUserId = userId
-    event.isDebugMode = event.queryStringParameters?.debug === 'true'
-    return await publicHandler(event, context, callback) as APIGatewayProxyResult
-  } else if (event.resource === "/admin/query/{estateId}" && event.httpMethod === "GET") {
-    event.preauthenticatedUserId = userId
-    event.isDebugMode = event.queryStringParameters?.debug === 'true'
-    return await idQueryHandler(event, context, callback) as APIGatewayProxyResult
+  if (event.resource === '/admin/keys' && event.httpMethod === 'GET') {
+    return keys.list(adminEvent);
+  } else if (event.resource === '/admin/keys' && event.httpMethod === 'POST') {
+    return keys.create(adminEvent);
+  } else if (event.resource === '/admin/keys/{keyId}/reissue' && event.httpMethod === 'PATCH') {
+    return keys.reissue(adminEvent);
+  } else if (event.resource === '/admin/query' && event.httpMethod === 'GET') {
+    event.preauthenticatedUserId = userId;
+    event.isDebugMode = event.queryStringParameters?.debug === 'true';
+    return await publicHandler(event, context, callback) as APIGatewayProxyResult;
+  } else if (event.resource === '/admin/query/{estateId}' && event.httpMethod === 'GET') {
+    event.preauthenticatedUserId = userId;
+    event.isDebugMode = event.queryStringParameters?.debug === 'true';
+    return await idQueryHandler(event, context, callback) as APIGatewayProxyResult;
   }
-  return errorResponse(404, 'Not found')
-}
+  return errorResponse(404, 'Not found');
+};
 
-export const handler = Sentry.AWSLambda.wrapHandler(_handler)
+export const handler = Sentry.AWSLambda.wrapHandler(_handler);

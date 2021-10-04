@@ -104,8 +104,8 @@ describe('mergeEstateId', () => {
 })
 
 describe('getEstateIdForAddress', () => {
-  test('it returns different IDs for different buildings and addresses without buildings', async () => {
-    const address = `getEstateIdForAddress - return different ID`
+  test('it returns all IDs with the same normalized address', async () => {
+    const address = `getEstateIdForAddress - multiple address`
     const [
       id1,
       id2,
@@ -148,9 +148,18 @@ describe('getEstateIdForAddress', () => {
       dynamodb.getEstateIdForAddress(address, "国会議事堂B棟"),
     ])
 
-    expect(queryResp1).toMatchObject(id1)
-    expect(queryResp2).toMatchObject(id2)
-    expect(queryResp3).toMatchObject(id3)
+    // All three responses should contain all three IDs
+    expect(queryResp1).toContainEqual(id1)
+    expect(queryResp1).toContainEqual(id2)
+    expect(queryResp1).toContainEqual(id3)
+
+    expect(queryResp2).toContainEqual(id1)
+    expect(queryResp2).toContainEqual(id2)
+    expect(queryResp2).toContainEqual(id3)
+
+    expect(queryResp3).toContainEqual(id1)
+    expect(queryResp3).toContainEqual(id2)
+    expect(queryResp3).toContainEqual(id3)
   })
 })
 
