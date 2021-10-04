@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import jwks from 'jwks-rsa';
 
 import * as keys from './admin/keys';
+import * as feedback from './admin/feedback';
 import { _handler as publicHandler } from './public';
 import { _handler as idQueryHandler } from './idQuery';
 
@@ -80,6 +81,8 @@ const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (even
     event.preauthenticatedUserId = userId;
     event.isDebugMode = event.queryStringParameters?.debug === 'true';
     return await idQueryHandler(event, context, callback) as APIGatewayProxyResult;
+  } else if (event.resource === '/admin/feedback' && event.httpMethod === 'POST') {
+    return feedback.create(adminEvent);
   }
   return errorResponse(404, 'Not found');
 };

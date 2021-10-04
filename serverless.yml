@@ -253,6 +253,11 @@ functions:
                 estateId: true
           cors: *default_cors
 
+      - http:
+          path: '/admin/feedback'
+          method: post
+          cors: *default_cors
+
   demo:
     handler: src/demo.handler
     events:
