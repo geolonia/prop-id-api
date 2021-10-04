@@ -23,6 +23,7 @@
     "only-allow": "^1.0.0",
     "rimraf": "^3.0.2",
     "serverless": "^2.60.0",
+    "serverless-export-env": "arabold/serverless-export-env",
     "serverless-offline": "^8.0.0",
     "serverless-plugin-typescript": "^2.0.0",
     "ts-jest": "^26.5.5",
@@ -39,7 +40,7 @@
     "test:addresses": "node ./src/test_download-data.js && ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest ./src/addresses.test.ts",
     "lint": "eslint --ext .ts --ext .js src --cache",
     "build": "tsc",
-    "start": "TEST=1 sls offline --stage=local --httpPort 3000",
+    "start": "TEST=1 sls offline --stage=dev --httpPort 3000",
     "deploy:dev": "sls deploy --stage=dev",
     "deploy:v1": "sls deploy --stage=v1",
     "deploy:cdn:dev": "sls deploy -c serverless.cdn.yml --stage=dev"

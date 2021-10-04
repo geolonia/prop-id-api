@@ -3127,6 +3127,14 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
+cfn-resolver-lib@^1.1.7:
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/cfn-resolver-lib/-/cfn-resolver-lib-1.1.7.tgz#9d13b0e7dee0a136d7325e0ff53946bf26b6393b"
+  integrity sha512-iG6mXFMBfdwcyC46+6eqCbJUrwU5NOYOVBz6tduB+dcoln+TovI9XsWulm6WxwI5kNde4LrudA9nCC5BP2UcPQ==
+  dependencies:
+    lodash "^4.17.15"
+    traverse "^0.6.6"
+
 chainsaw@~0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/chainsaw/-/chainsaw-0.1.0.tgz#5eab50b28afe58074d0d58291388828b5e5fbc98"
@@ -6900,7 +6908,7 @@ lodash.union@^4.6.0:
   resolved "https://registry.yarnpkg.com/lodash.union/-/lodash.union-4.6.0.tgz#48bb5088409f16f1821666641c44dd1aaae3cd88"
   integrity sha1-SLtQiECfFvGCFmZkHETdGqrjzYg=
 
-lodash@4.17.x, lodash@4.x, lodash@^4.17.11, lodash@^4.17.12, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.21, lodash@^4.17.4, lodash@^4.7.0:
+lodash@4.17.x, lodash@4.x, lodash@^4.17.11, lodash@^4.17.12, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.21, lodash@^4.17.4, lodash@^4.7.0:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -8785,6 +8793,14 @@ sentence-case@^1.1.1, sentence-case@^1.1.2:
   integrity sha1-gDSq/CFFdy06vhUJqkLJ4QQtwTk=
   dependencies:
     lower-case "^1.1.1"
+
+serverless-export-env@arabold/serverless-export-env:
+  version "2.0.0"
+  resolved "https://codeload.github.com/arabold/serverless-export-env/tar.gz/1921b14e9029592aa710e9e5b3136545dd04a602"
+  dependencies:
+    bluebird "^3.7.2"
+    cfn-resolver-lib "^1.1.7"
+    lodash "^4.17.20"
 
 serverless-offline@^8.0.0:
   version "8.2.0"
