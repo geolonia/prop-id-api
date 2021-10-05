@@ -46,11 +46,23 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   // Internal normalization
   const prenormalizedAddress = await normalize(address);
-  await createLog('normLogsNJA', {
-    input: address,
-    level: prenormalizedAddress.level,
-    normalized: JSON.stringify(prenormalizedAddress),
-  });
+  const normalizedAddressNJA = `${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`;
+  const normalizedBuilding = normalizeBuilding(building);
+
+  await Promise.all([
+    createLog('normLogsNJA', {
+      input: address,
+      level: prenormalizedAddress.level,
+      nja: normalizedAddressNJA,
+      normalized: JSON.stringify(prenormalizedAddress),
+    }),
+    building ? createLog('buildingLogs', {
+      level: prenormalizedAddress.level,
+      nja: normalizedAddressNJA,
+      normalized: JSON.stringify(prenormalizedAddress),
+      building,
+    }) : Promise.resolve(),
+  ]);
 
   if (prenormalizedAddress.level < 2) {
     const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalizedAddress.level];
@@ -66,15 +78,12 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     );
   }
 
-  const normalizedBuilding = normalizeBuilding(building);
-
   if (!prenormalizedAddress.town || prenormalizedAddress.town === '') {
     await createLog('normFailNoTown', {
       input: address,
     });
   }
 
-  const normalizedAddressNJA = `${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`;
   const ipcResult = await incrementPGeocode(normalizedAddressNJA);
 
   if (!ipcResult) {
