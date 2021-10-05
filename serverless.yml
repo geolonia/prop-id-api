@@ -3,6 +3,7 @@ frameworkVersion: '2'
 
 plugins:
   - serverless-offline
+  - serverless-export-env
   - serverless-plugin-typescript
 
 provider:
@@ -250,6 +251,11 @@ functions:
             parameters:
               paths:
                 estateId: true
+          cors: *default_cors
+
+      - http:
+          path: '/admin/feedback'
+          method: post
           cors: *default_cors
 
   demo:

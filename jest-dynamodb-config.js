@@ -1,21 +1,12 @@
-const AWS = require("aws-sdk")
+const STAGE = "test";
 
-module.exports = async () => {
-  process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME = "estate-id-api-key-local"
-  process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME = "estate-id-local"
-  process.env.AWS_DYNAMODB_LOG_TABLE_NAME = "estate-id-log-local"
+process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME = `estate-id-api-key-${STAGE}`;
+process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME = `estate-id-${STAGE}`;
+process.env.AWS_DYNAMODB_LOG_TABLE_NAME = `estate-id-log-${STAGE}`;
 
-  const DB = new AWS.DynamoDB({ endpoint: "http://127.0.0.1:8000", region: "us-west-2" })
-  try {
-    await DB.describeTable({
-      TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME
-    }).promise()
-    await DB.deleteTable({
-      TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME
-    }).promise()
-  } catch (e) {
-  } finally {
-    await DB.createTable({
+module.exports = {
+  tables: [
+    {
       TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
       ProvisionedThroughput: {
         ReadCapacityUnits: 10,
@@ -63,20 +54,8 @@ module.exports = async () => {
           },
         },
       ],
-    }).promise()
-    console.log("Created", process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME)
-  }
-
-  try {
-    await DB.describeTable({
-      TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME
-    }).promise()
-    await DB.deleteTable({
-      TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME
-    }).promise()
-  } catch (e) {
-  } finally {
-    await DB.createTable({
+    },
+    {
       TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
       ProvisionedThroughput: {
         ReadCapacityUnits: 10,
@@ -144,20 +123,8 @@ module.exports = async () => {
           },
         }
       ],
-    }).promise()
-    console.log("Created", process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME)
-  }
-
-  try {
-    await DB.describeTable({
-      TableName: process.env.AWS_DYNAMODB_LOG_TABLE_NAME
-    }).promise()
-    await DB.deleteTable({
-      TableName: process.env.AWS_DYNAMODB_LOG_TABLE_NAME
-    }).promise()
-  } catch (e) {
-  } finally {
-    await DB.createTable({
+    },
+    {
       TableName: process.env.AWS_DYNAMODB_LOG_TABLE_NAME,
       ProvisionedThroughput: {
         ReadCapacityUnits: 10,
@@ -182,9 +149,7 @@ module.exports = async () => {
           "AttributeName": "SK",
           "KeyType": "RANGE"
         }
-      ]
-    }).promise()
-    console.log("Created", process.env.AWS_DYNAMODB_LOG_TABLE_NAME)
-  }
-
-}
+      ],
+    },
+  ],
+};

@@ -1,0 +1,9 @@
+/.build
+/dist
+/node_modules
+
+.eslintrc.js
+/**/*.config.mjs
+/**/*.test.ts
+/src/__tests__/**/*
+/src/**/*.js

@@ -1,8 +1,6 @@
 # 不動産共通ID仕様（β）
 
-
 ## API 共通仕様
-
 
 ### 不動産共通IDのフォーマット
 
@@ -12,85 +10,32 @@
 
 例: `13-xxxx-xxxx-xxxx-xxxx`
 
-
 ### 認証
-
 
 #### 認証用パラメータ
 
-
 <table>
   <tr>
-   <td><h4>Name</h4>
-
-
-   </td>
-   <td>
-<h4>Type</h4>
-
-
-   </td>
-   <td>
-<h4>In</h4>
-
-
-   </td>
-   <td>
-<h4>Description</h4>
-
-
-   </td>
+    <th>Name</th>
+    <th>Type</th>
+    <th>In</th>
+    <th>Description</th>
   </tr>
   <tr>
-   <td>
-<h4>api-key</h4>
-
-
-   </td>
-   <td>
-<h4>string</h4>
-
-
-   </td>
-   <td>
-<h4>query</h4>
-
-
-   </td>
-   <td>
-<h4>API キー</h4>
-
-
-   </td>
+    <td>api-key</td>
+    <td>string</td>
+    <td>query</td>
+    <td>API キー</td>
   </tr>
   <tr>
-   <td>
-<h4>x-access-token</h4>
-
-
-   </td>
-   <td>
-<h4>string</h4>
-
-
-   </td>
-   <td>
-<h4>header</h4>
-
-
-   </td>
-   <td>
-<h4>アクセストークン</h4>
-
-
-   </td>
+    <td>x-access-token</td>
+    <td>string</td>
+    <td>header</td>
+    <td>アクセストークン</td>
   </tr>
 </table>
 
-
-
 #### リクエスト例
-
 
 ```
 GET /v1/?api-key={api-key}
@@ -99,23 +44,17 @@ X-Access-Token: {access-token}
 Content-Type: application/json
 ```
 
-
 ## 不動産共通ID取得API
 
 住所から不動産共通IDを取得します。有料プラン向けには正規化後の住所や位置情報などもレスポンスに追加されます。
 
-
 ### エンドポイント
-
 
 ```
 https://api.propid.jp/v1
 ```
 
-
-
 ### リクエスト
-
 
 ```
 [GET] /?api-key={api-key}&q={address}&building={building}
@@ -123,59 +62,48 @@ https://api.propid.jp/v1
 
 <table>
   <tr>
-   <td>
-Name
-   </td>
-   <td>Type
-   </td>
-   <td>In
-   </td>
-   <td>Description
-   </td>
+    <th>Name</th>
+    <th>Type</th>
+    <th>In</th>
+    <th>Description</th>
   </tr>
   <tr>
-   <td>address
-   </td>
-   <td>string
-   </td>
-   <td>query
-   </td>
-   <td>物件の住所
-   </td>
+    <td>address</td>
+    <td>string</td>
+    <td>query</td>
+    <td>物件の住所</td>
   </tr>
   <tr>
-   <td>building
-   </td>
-   <td>string
-   </td>
-   <td>query
-   </td>
-   <td>（任意）建物の名称
-   </td>
+    <td>building</td>
+    <td>string</td>
+    <td>query</td>
+    <td>（任意）建物の名称</td>
   </tr>
 </table>
 
-
-
 ### レスポンス
 
-
 #### 無料プラン
-
 
 ```
 [
   {
     "ID": "xxxx-xxxx-xxxx-xxxx",
-    "normalization_level": 0-3
+    "normalization_level": 0-3,
+    "address": {
+      "ja": {
+        "prefecture": "東京都",
+        "city": "千代田区",
+        "address1": "永田町一丁目",
+        "address2": "7-1",
+        "other": "xxx ビル"
+      }
+    }
   }
 ]
 ```
 
-
-
 #### 有料プラン
-
 
 ```
 [
@@ -187,7 +115,7 @@ Name
       "ja": {
         "prefecture": "東京都",
         "city": "千代田区",
-        "address1": "永田町１丁目",
+        "address1": "永田町一丁目",
         "address2": "7-1",
         "other": "xxx ビル"
       }
@@ -204,24 +132,21 @@ Name
 
 不動産共通IDから物件情報を取得することができます。有料プランでのご提供です。
 
-
 ```
 [GET] https://api.propid.jp/v1/{id}?api-key={api-key}&lang={language}
 ```
-
-
 
 #### パラメータ
 
 <table>
   <tr>
-    <td>Name</td>
-    <td>Type</td>
-    <td>In</td>
-    <td>Description</td>
+    <th>Name</th>
+    <th>Type</th>
+    <th>In</th>
+    <th>Description</th>
   </tr>
   <tr>
-    <td> id</td>
+    <td>id</td>
     <td>string</td>
     <td>path</td>
     <td>不動産共通ID</td>
@@ -234,9 +159,7 @@ Name
   </tr>
 </table>
 
-
 #### レスポンス
-
 
 ```
 [
@@ -248,7 +171,7 @@ Name
       "ja": {
         "prefecture": "東京都",
         "city": "千代田区",
-        "address1": "永田町１丁目",
+        "address1": "永田町一丁目",
         "address2": "7-1",
         "other": "xxx ビル"
       }
@@ -261,20 +184,15 @@ Name
 ]
 ```
 
-
-
 ## 不動産共通ID統合時の仕様
 
 地名変更等で不動産共通IDが統合された時、レスポンスの ID は統合先のIDを返します。
-
 
 #### 例
 
 地名変更で、東京府千代田区永田町1丁目7-1（ID：`xxxx-xxxx-xxxx-xxxx`）が、東京都千代田区永田町1丁目7-2（ID：`zzzz-zzzz-zzzz-zzzz`）に統合。
 
-
 #### レスポンス
-
 
 ```
 [
@@ -289,11 +207,12 @@ Name
 不動産共通ID取得API及び、不動産共通ID参照APIのレスポンスは、住所の解析レベル情報を含みます。
 無料版では `normalization_level` のみ、有料版ではより詳細な解析レベルの `geocoding_level` も含みます。
 
-### normalization_level
+### `normalization_level`
+
 <table>
   <tr>
-    <td style="min-width: 110px;">解析レベルの数字</td>
-    <td>説明</td>
+    <th>解析レベルの数字</th>
+    <th>説明</th>
   </tr>
   <tr>
     <td>0</td>
@@ -313,12 +232,13 @@ Name
   </tr>
 </table>
 
-### geocoding_level
+### `geocoding_level`
+
 <table>
   <tr>
-    <td style="min-width: 110px;">解析レベル</td>
-    <td style="min-width: 110px;">レベルの数字</td>
-    <td>説明</td>
+    <th>解析レベル</th>
+    <th>レベルの数字</th>
+    <th>説明</th>
   </tr>
   <tr>
     <td>都道府県</td>
@@ -362,13 +282,12 @@ Name
   </tr>
 </table>
 
-
 ## レート制限
 
 各APIは現在のレート制限状況を確認できる、レスポンスヘッダーを返します。制限を超えた場合はこのヘッダーを確認して、いつ再試行できるかを判断できます。
 
 ```
-$ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-urlencode "q=東京都千代田区永田町１丁目７−１" --data-urlencode "building=国会議事堂" --data-urlencode "api-key=<APIキー>" "https://api.propid.jp/v1/"
+$ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-urlencode "q=東京都千代田区永田町1-7-1" --data-urlencode "building=国会議事堂" --data-urlencode "api-key=<APIキー>" "https://api.propid.jp/v1/"
 > x-ratelimit-limit: 10000
 > x-ratelimit-remaining: 9938
 > x-ratelimit-reset: 2021-06-01T00:00:00.000+09:00
@@ -376,8 +295,8 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
 
 <table>
   <tr>
-    <td style="min-width: 210px;">ヘッダー名</td>
-    <td>説明</td>
+    <th>ヘッダー名</th>
+    <th>説明</th>
   </tr>
   <tr>
     <td style="min-width: 210px;"><code>x-ratelimit-limit</code></td>
@@ -393,17 +312,17 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
   </tr>
 </table>
 
-
 ## エラー
 
 不動産共通ID取得API及び、不動産共通ID参照APIが リクエストの処理に成功すると、API はステータスコード「200」を返します。リクエストでエラーが発生すると、エラーの種類に基づいて HTTP ステータスコード、理由を含むレスポンスが API から返されます。 レスポンスの本文には、エラーの原因についての詳しい説明が記述されています。
 
 ## 標準エラーレスポンス
+
 <table>
   <tr>
-    <td style="min-width: 110px;">ステータス</td>
-    <td>説明</td>
-    <td>メッセージ</td>
+    <th>ステータス</th>
+    <th>説明</th>
+    <th>メッセージ</th>
   </tr>
   <tr>
     <td>403</td>
@@ -417,14 +336,13 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
   </tr>
 </table>
 
-
 ## 不動産共通ID取得API
 
 <table>
   <tr>
-    <td style="min-width: 110px;">ステータス</td>
-    <td>説明</td>
-    <td>メッセージ</td>
+    <th>ステータス</th>
+    <th>説明</th>
+    <th>メッセージ</th>
   </tr>
   <tr>
     <td>400</td>
@@ -448,14 +366,13 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
   </tr>
 </table>
 
-
 ## 不動産共通ID参照API
 
 <table>
   <tr>
-    <td style="min-width: 110px;">ステータス</td>
-    <td>説明</td>
-    <td>メッセージ</td>
+    <th>ステータス</th>
+    <th>説明</th>
+    <th>メッセージ</th>
   </tr>
   <tr>
     <td>404</td>
