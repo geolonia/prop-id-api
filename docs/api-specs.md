@@ -89,7 +89,16 @@ https://api.propid.jp/v1
 [
   {
     "ID": "xxxx-xxxx-xxxx-xxxx",
-    "normalization_level": 0-3
+    "normalization_level": 0-3,
+    "address": {
+      "ja": {
+        "prefecture": "東京都",
+        "city": "千代田区",
+        "address1": "永田町一丁目",
+        "address2": "7-1",
+        "other": "xxx ビル"
+      }
+    }
   }
 ]
 ```
@@ -106,7 +115,7 @@ https://api.propid.jp/v1
       "ja": {
         "prefecture": "東京都",
         "city": "千代田区",
-        "address1": "永田町１丁目",
+        "address1": "永田町一丁目",
         "address2": "7-1",
         "other": "xxx ビル"
       }
@@ -122,7 +131,6 @@ https://api.propid.jp/v1
 ## 不動産共通ID参照API
 
 不動産共通IDから物件情報を取得することができます。有料プランでのご提供です。
-
 
 ```
 [GET] https://api.propid.jp/v1/{id}?api-key={api-key}&lang={language}
@@ -163,7 +171,7 @@ https://api.propid.jp/v1
       "ja": {
         "prefecture": "東京都",
         "city": "千代田区",
-        "address1": "永田町１丁目",
+        "address1": "永田町一丁目",
         "address2": "7-1",
         "other": "xxx ビル"
       }
@@ -279,7 +287,7 @@ https://api.propid.jp/v1
 各APIは現在のレート制限状況を確認できる、レスポンスヘッダーを返します。制限を超えた場合はこのヘッダーを確認して、いつ再試行できるかを判断できます。
 
 ```
-$ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-urlencode "q=東京都千代田区永田町１丁目７−１" --data-urlencode "building=国会議事堂" --data-urlencode "api-key=<APIキー>" "https://api.propid.jp/v1/"
+$ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-urlencode "q=東京都千代田区永田町1-7-1" --data-urlencode "building=国会議事堂" --data-urlencode "api-key=<APIキー>" "https://api.propid.jp/v1/"
 > x-ratelimit-limit: 10000
 > x-ratelimit-remaining: 9938
 > x-ratelimit-reset: 2021-06-01T00:00:00.000+09:00
