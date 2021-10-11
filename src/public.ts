@@ -36,6 +36,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(400, 'Missing querystring parameter `q`.', quotaParams);
   }
 
+  const background: Promise<any>[] = [];
   Sentry.setContext('query', {
     address,
     debug: event.isDebugMode,
@@ -49,23 +50,24 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   const normalizedAddressNJA = `${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`;
   const normalizedBuilding = normalizeBuilding(building);
 
-  await Promise.all([
-    createLog('normLogsNJA', {
-      input: address,
-      level: prenormalizedAddress.level,
-      nja: normalizedAddressNJA,
-      normalized: JSON.stringify(prenormalizedAddress),
-    }),
-    building ? createLog('buildingLogs', {
+  background.push(createLog('normLogsNJA', {
+    input: address,
+    level: prenormalizedAddress.level,
+    nja: normalizedAddressNJA,
+    normalized: JSON.stringify(prenormalizedAddress),
+  }));
+  if (building) {
+    background.push(createLog('buildingLogs', {
       level: prenormalizedAddress.level,
       nja: normalizedAddressNJA,
       normalized: JSON.stringify(prenormalizedAddress),
       building,
-    }) : Promise.resolve(),
-  ]);
+    }));
+  }
 
   if (prenormalizedAddress.level < 2) {
     const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalizedAddress.level];
+    await Promise.all(background);
     return json(
       {
         error: true,
@@ -79,18 +81,19 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   }
 
   if (!prenormalizedAddress.town || prenormalizedAddress.town === '') {
-    await createLog('normFailNoTown', {
+    background.push(createLog('normFailNoTown', {
       input: address,
-    });
+    }));
   }
 
   const ipcResult = await incrementPGeocode(normalizedAddressNJA);
 
   if (!ipcResult) {
     Sentry.captureException(new Error('IPC result null'));
-    await ipcNormalizationErrorReport('normFailNoIPCGeomNull', {
+    background.push(ipcNormalizationErrorReport('normFailNoIPCGeomNull', {
       input: normalizedAddressNJA,
-    });
+    }));
+    await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
@@ -103,17 +106,16 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   if (!feature || feature.geometry === null) {
     Sentry.captureException(new Error(`The address '${address}' is not verified.`));
 
-    await Promise.all([
-      createLog('normFailNoIPCGeom', {
-        input: address,
-        prenormalized: normalizedAddressNJA,
-        ipcResult: JSON.stringify(ipcResult),
-      }),
-      ipcNormalizationErrorReport('normFailNoIPCGeom', {
-        prenormalized: normalizedAddressNJA,
-      }),
-    ]);
+    background.push(createLog('normFailNoIPCGeom', {
+      input: address,
+      prenormalized: normalizedAddressNJA,
+      ipcResult: JSON.stringify(ipcResult),
+    }));
+    background.push(ipcNormalizationErrorReport('normFailNoIPCGeom', {
+      prenormalized: normalizedAddressNJA,
+    }));
 
+    await Promise.all(background);
     return json(
       {
         error: true,
@@ -131,15 +133,16 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   const { x, y } = coord2XY([lat, lng], ZOOM);
 
   if (geocoding_level <= 4 ) {
-    await ipcNormalizationErrorReport('normLogsIPCGeom', {
+    background.push(ipcNormalizationErrorReport('normLogsIPCGeom', {
       prenormalized: normalizedAddressNJA,
       geocoding_level: geocoding_level,
-    });
+    }));
   }
 
   if (!prefCode) {
     console.log(`[FATAL] Invalid \`properties.pref\` response from API: '${feature.properties.pref}'.`);
     Sentry.captureException(new Error(`Invalid \`properties.pref\` response from API: '${feature.properties.pref}'`));
+    await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
@@ -182,6 +185,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     console.error({ ZOOM, addressObject, apiKey, error });
     console.error('[FATAL] Something happend with DynamoDB connection.');
     Sentry.captureException(error);
+    await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
@@ -210,6 +214,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   });
 
   if (event.isDebugMode === true) {
+    await Promise.all(background);
     // aggregate debug info
     return json(
       {
@@ -226,6 +231,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       quotaParams,
     );
   } else {
+    await Promise.all(background);
     return json(
       apiResponse,
       quotaParams,
