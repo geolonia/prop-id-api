@@ -30,20 +30,24 @@ export const ipcNormalizationErrorReport = async (identifier: string, metadata: 
     text: `*入力住所*\n${prenormalized}`,
   });
 
-  await sendSlackNotification({
-    channel: 'dev-ipc-normalize-errors-notifications',
-    blocks: [
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*${title}*`,
+  try {
+    await sendSlackNotification({
+      channel: 'dev-ipc-normalize-errors-notifications',
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*${title}*`,
+          },
         },
-      },
-      {
-        type: 'section',
-        fields,
-      },
-    ],
-  });
+        {
+          type: 'section',
+          fields,
+        },
+      ],
+    });
+  } catch (e: any) {
+    console.log('Slack notification failed with error: ', e);
+  }
 };
