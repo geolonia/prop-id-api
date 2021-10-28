@@ -2653,12 +2653,12 @@ atob@^2.1.2:
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.1.2.tgz#6d9517eb9e030d2436666651e86bd9f6f13533c9"
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
-auth0@^2.35.0:
-  version "2.36.2"
-  resolved "https://registry.yarnpkg.com/auth0/-/auth0-2.36.2.tgz#9d3222467fb5ee424738d797e4e871d0ebc346ba"
-  integrity sha512-kgs3l3c2RKO79hn8VAwTXwKy2+9uf054zrBj2YYUgMEKvyIhxStS8pTMovUbQP2TVy1cjGfllfQT6M0xS8VWxg==
+auth0@^2.37.0:
+  version "2.37.0"
+  resolved "https://registry.yarnpkg.com/auth0/-/auth0-2.37.0.tgz#7147ead0e6bbbeada96bb4d5113eac3011ba7ea4"
+  integrity sha512-6Kz/+7d3PRb1zKR6O7CVt0EHAu+dphLFbJcvCEn7z9mUyjM0kJp/RnkALfFLfVzmSsaWeBqQNi2uZmdjReCjzQ==
   dependencies:
-    axios "^0.21.3"
+    axios "^0.21.4"
     es6-promisify "^6.1.1"
     form-data "^3.0.1"
     jsonwebtoken "^8.5.1"
@@ -2692,7 +2692,7 @@ aws4@^1.8.0:
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.11.0.tgz#d61f46d83b2519250e2784daf5b09479a8b41c59"
   integrity sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==
 
-axios@^0.21.1, axios@^0.21.3:
+axios@^0.21.1, axios@^0.21.4:
   version "0.21.4"
   resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.4.tgz#c67b90dc0568e5c1cf2b0b858c43ba28e2eda575"
   integrity sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==
