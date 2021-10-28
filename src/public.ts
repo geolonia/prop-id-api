@@ -1,6 +1,6 @@
 import '.';
 import { BaseEstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './lib/dynamodb';
-import { coord2XY, getPrefCode, incrementPGeocode, normalizeBuilding } from './lib/index';
+import { coord2XY, getPrefCode, incrementPGeocode } from './lib/index';
 import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
 import { normalize } from './lib/nja';
@@ -12,11 +12,11 @@ import { ipcNormalizationErrorReport } from './outerApiErrorReport';
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   'prefecture_not_recognized',
   'city_not_recognized',
+  'neighborhood_not_recognized',
 ];
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const address = event.queryStringParameters?.q;
-  const building = event.queryStringParameters?.building;
   const ZOOM = parseInt(process.env.ZOOM, 10);
   const quotaType = 'id-req';
 
@@ -48,7 +48,9 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   // Internal normalization
   const prenormalizedAddress = await normalize(address);
   const normalizedAddressNJA = `${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`;
-  const normalizedBuilding = normalizeBuilding(building);
+
+  // building は今のところパラメータとして受け付けていない
+  const normalizedBuilding = '';
 
   background.push(createLog('normLogsNJA', {
     input: address,
@@ -56,16 +58,8 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     nja: normalizedAddressNJA,
     normalized: JSON.stringify(prenormalizedAddress),
   }));
-  if (building) {
-    background.push(createLog('buildingLogs', {
-      level: prenormalizedAddress.level,
-      nja: normalizedAddressNJA,
-      normalized: JSON.stringify(prenormalizedAddress),
-      building,
-    }));
-  }
 
-  if (prenormalizedAddress.level < 2) {
+  if (prenormalizedAddress.level <= 2) {
     const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalizedAddress.level];
     await Promise.all(background);
     return json(
@@ -173,10 +167,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
         address: normalizedAddressNJA,
         prefCode,
       };
-      if (building) {
-        storeParams.rawBuilding = building;
-        storeParams.building = normalizedBuilding;
-      }
       rawEstateIds = [
         await store(storeParams),
       ];

@@ -57,7 +57,7 @@ https://api.propid.jp/v1
 ### リクエスト
 
 ```
-[GET] /?api-key={api-key}&q={address}&building={building}
+[GET] /?api-key={api-key}&q={address}
 ```
 
 <table>
@@ -72,12 +72,6 @@ https://api.propid.jp/v1
     <td>string</td>
     <td>query</td>
     <td>物件の住所</td>
-  </tr>
-  <tr>
-    <td>building</td>
-    <td>string</td>
-    <td>query</td>
-    <td>（任意）建物の名称</td>
   </tr>
 </table>
 
@@ -287,7 +281,7 @@ https://api.propid.jp/v1
 各APIは現在のレート制限状況を確認できる、レスポンスヘッダーを返します。制限を超えた場合はこのヘッダーを確認して、いつ再試行できるかを判断できます。
 
 ```
-$ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-urlencode "q=東京都千代田区永田町1-7-1" --data-urlencode "building=国会議事堂" --data-urlencode "api-key=<APIキー>" "https://api.propid.jp/v1/"
+$ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-urlencode "q=東京都千代田区永田町1-7-1" --data-urlencode "api-key=<APIキー>" "https://api.propid.jp/v1/"
 > x-ratelimit-limit: 10000
 > x-ratelimit-remaining: 9938
 > x-ratelimit-reset: 2021-06-01T00:00:00.000+09:00

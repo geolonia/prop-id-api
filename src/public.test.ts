@@ -55,7 +55,7 @@ test('should get estate ID with details if authenticated', async () => {
             "address1": "盛岡駅西通二丁目",
             "address2": "9-1",
             "city": "盛岡市",
-            "other": "マリオス10F",
+            "other": "",
             "prefecture": "岩手県",
         },
       },
@@ -270,7 +270,7 @@ test('should get estate ID without details if authenticated with a free API key'
       "city": "盛岡市",
       "address1": "盛岡駅西通二丁目",
       "address2": "9-1",
-      "other": "マリオス10F",
+      "other": "",
     }
   })
   expect(first.location).toBeUndefined()
