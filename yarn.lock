@@ -968,9 +968,9 @@
   integrity sha512-g8xizIJH7sfd5JSJyN6pCbNNWVkasMpw84gpYQZJ09VDuTT5qzT5cKhr3+pFyS4SpfwQ9rrsJBmeD6z3vI2bjA==
 
 "@geolonia/normalize-japanese-addresses@*":
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-2.3.2.tgz#701d331a02ecf1bc22b3c806b5076e040b53e5ee"
-  integrity sha512-fxVivCKUYYSLbvH3DFoQWbQ/FjfVMO+bHqhm2w8vGBJ0TYJ6k/g8IrxGtIOUON9wNYJLvUklpH2+RBHNSZnWYg==
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-2.3.3.tgz#8c418daa4f9530e6dde883714336c28e0210a925"
+  integrity sha512-FrtvxQUBkNHvccsA1pSpyB9pCHDbKIUhU+wClCrUyPGagElblC1Th1WHlv0flkQhJzlSL2SaF8tNhqn8xIBHsA==
   dependencies:
     "@geolonia/japanese-numeral" "^0.1.15"
     isomorphic-unfetch "^3.1.0"
