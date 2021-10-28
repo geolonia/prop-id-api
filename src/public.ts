@@ -12,6 +12,7 @@ import { ipcNormalizationErrorReport } from './outerApiErrorReport';
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   'prefecture_not_recognized',
   'city_not_recognized',
+  'neighborhood_not_recognized',
 ];
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
@@ -58,7 +59,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     normalized: JSON.stringify(prenormalizedAddress),
   }));
 
-  if (prenormalizedAddress.level < 2) {
+  if (prenormalizedAddress.level <= 2) {
     const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalizedAddress.level];
     await Promise.all(background);
     return json(
