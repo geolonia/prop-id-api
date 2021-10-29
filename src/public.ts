@@ -192,7 +192,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
           // all addresses should be the same.
           ...addressObject.ja,
           // ... but all buildings may not be the same.
-          other: estateId.building || '',
+          other: estateId.rawBuilding || '',
         },
       },
     };

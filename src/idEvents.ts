@@ -97,22 +97,26 @@ const _findDuplicates = async (id: EstateId) => {
     v1: 'dev-propid-id-notifications',
   };
 
-  await sendSlackNotification({
-    channel: channels[process.env.STAGE],
-    blocks: [
-      {
-        type: 'section',
-        text: {
-          type: 'plain_text',
-          text: '重複する可能性がある不動産共通ID新規作成されました。',
+  try {
+    await sendSlackNotification({
+      channel: channels[process.env.STAGE],
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'plain_text',
+            text: '重複する可能性がある不動産共通ID新規作成されました。',
+          },
         },
-      },
-      {
-        type: 'section',
-        fields,
-      },
-    ],
-  });
+        {
+          type: 'section',
+          fields,
+        },
+      ],
+    });
+  } catch (e: any) {
+    console.log('Slack notification failed with error: ', e);
+  }
 };
 
 const _recordHandler = async (record: DynamoDBRecord) => {
