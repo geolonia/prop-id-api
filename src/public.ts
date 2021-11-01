@@ -138,14 +138,12 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   const prefCode = getPrefCode(feature.properties.pref);
   const { x, y } = coord2XY([lat, lng], ZOOM);
 
-  if (geocoding_level_int <= 4 ) {
+  if (geocoding_level_int <= 6) {
     background.push(ipcNormalizationErrorReport('normLogsIPCGeom', {
       prenormalized: normalizedAddressNJA,
       geocoding_level: geocoding_level,
     }));
-  }
 
-  if (geocoding_level_int <= 6) {
     const error_code_detail = (
       IPC_NORMALIZATION_ERROR_CODE_DETAILS[geocoding_level_int.toString()]
       || IPC_NORMALIZATION_ERROR_CODE_DETAILS['-1']
