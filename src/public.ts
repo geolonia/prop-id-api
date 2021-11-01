@@ -6,7 +6,7 @@ import Sentry from './lib/sentry';
 import { normalize } from './lib/nja';
 import { Handler, APIGatewayProxyResult } from 'aws-lambda';
 import { authenticateEvent, extractApiKey } from './lib/authentication';
-import { createLog } from './lib/dynamodb_logs';
+import { createLog, withLock } from './lib/dynamodb_logs';
 import { ipcNormalizationErrorReport } from './outerApiErrorReport';
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
@@ -156,21 +156,24 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   let rawEstateIds: BaseEstateId[];
   try {
-    const existingEstateIds = await getEstateIdForAddress(normalizedAddressNJA, normalizedBuilding);
-    if (existingEstateIds.length > 0) {
-      rawEstateIds = existingEstateIds;
-    } else {
-      const storeParams: StoreEstateIdReq = {
-        zoom: ZOOM,
-        tileXY: `${x}/${y}`,
-        rawAddress: address,
-        address: normalizedAddressNJA,
-        prefCode,
-      };
-      rawEstateIds = [
-        await store(storeParams),
-      ];
-    }
+    const lockId = `${normalizedAddressNJA}/${normalizedBuilding}`;
+    rawEstateIds = await withLock(lockId, async () => {
+      const existingEstateIds = await getEstateIdForAddress(normalizedAddressNJA, normalizedBuilding);
+      if (existingEstateIds.length > 0) {
+        return existingEstateIds;
+      } else {
+        const storeParams: StoreEstateIdReq = {
+          zoom: ZOOM,
+          tileXY: `${x}/${y}`,
+          rawAddress: address,
+          address: normalizedAddressNJA,
+          prefCode,
+        };
+        return [
+          await store(storeParams),
+        ];
+      }
+    });
   } catch (error) {
     console.error({ ZOOM, addressObject, apiKey, error });
     console.error('[FATAL] Something happend with DynamoDB connection.');

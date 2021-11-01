@@ -1,4 +1,5 @@
 import * as dynamodb_logs from './dynamodb_logs'
+import { sleep } from './util';
 import { DB } from './dynamodb'
 
 describe('createLog', () => {
@@ -24,3 +25,26 @@ describe('createLog', () => {
     })
   })
 })
+
+describe('withLock', () => {
+  test('it returns the result value of inner', async () => {
+    const lockId = 'XYZ1';
+    const output = await dynamodb_logs.withLock(lockId, async () => {
+      return 'hello';
+    });
+    expect(output).toStrictEqual('hello');
+  });
+
+  test('it disallows a new lock to be created', async () => {
+    const lockId = 'XYZ2';
+    const output = dynamodb_logs.withLock(lockId, async () => {
+      await sleep(600);
+    });
+
+    await expect(dynamodb_logs.withLock(lockId, async () => {
+      console.error('this should never be reached');
+    })).rejects.toThrow(/lock XYZ2 could not be acquired after \d+ tries/);
+
+    await output;
+  });
+});
