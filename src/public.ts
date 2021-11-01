@@ -15,6 +15,17 @@ const NORMALIZATION_ERROR_CODE_DETAILS = [
   'neighborhood_not_recognized',
 ];
 
+const IPC_NORMALIZATION_ERROR_CODE_DETAILS: { [key: string]: string } = {
+  '1': 'geo_prefecture',
+  '2': 'geo_city',
+  '3': 'geo_oaza',
+  '4': 'geo_koaza',
+  '5': 'geo_banchi',
+  '7': 'geo_ok_no_go',
+  '8': 'geo_ok_go',
+  '-1': 'geo_undefined',
+};
+
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const address = event.queryStringParameters?.q;
   const ZOOM = parseInt(process.env.ZOOM, 10);
@@ -123,14 +134,33 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   const [lng, lat] = feature.geometry.coordinates as [number, number];
   const { geocoding_level } = feature.properties;
+  const geocoding_level_int = parseInt(geocoding_level, 10);
   const prefCode = getPrefCode(feature.properties.pref);
   const { x, y } = coord2XY([lat, lng], ZOOM);
 
-  if (geocoding_level <= 4 ) {
+  if (geocoding_level_int <= 4 ) {
     background.push(ipcNormalizationErrorReport('normLogsIPCGeom', {
       prenormalized: normalizedAddressNJA,
       geocoding_level: geocoding_level,
     }));
+  }
+
+  if (geocoding_level_int <= 6) {
+    const error_code_detail = (
+      IPC_NORMALIZATION_ERROR_CODE_DETAILS[geocoding_level_int.toString()]
+      || IPC_NORMALIZATION_ERROR_CODE_DETAILS['-1']
+    );
+    await Promise.all(background);
+    return json(
+      {
+        error: true,
+        error_code: 'normalization_failed',
+        error_code_detail,
+        address,
+      },
+      quotaParams,
+      400
+    );
   }
 
   if (!prefCode) {
