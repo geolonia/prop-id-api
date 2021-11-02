@@ -198,10 +198,10 @@ export interface StoreEstateIdReq {
   prefCode: string
 }
 
-export const store = async (idObj: StoreEstateIdReq) => {
+export const store = async (idObj: StoreEstateIdReq): Promise<EstateId> => {
   let successfulItem: EstateId | false = false, tries = 0;
 
-  while (successfulItem === false && tries < 10) {
+  while (successfulItem === false && tries < 3) {
     try {
       tries += 1;
       const serial = _generateSerial();

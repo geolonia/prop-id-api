@@ -6,7 +6,7 @@ import Sentry from './lib/sentry';
 import { normalize } from './lib/nja';
 import { Handler, APIGatewayProxyResult } from 'aws-lambda';
 import { authenticateEvent, extractApiKey } from './lib/authentication';
-import { createLog } from './lib/dynamodb_logs';
+import { createLog, withLock } from './lib/dynamodb_logs';
 import { ipcNormalizationErrorReport } from './outerApiErrorReport';
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
@@ -14,6 +14,17 @@ const NORMALIZATION_ERROR_CODE_DETAILS = [
   'city_not_recognized',
   'neighborhood_not_recognized',
 ];
+
+const IPC_NORMALIZATION_ERROR_CODE_DETAILS: { [key: string]: string } = {
+  '1': 'geo_prefecture',
+  '2': 'geo_city',
+  '3': 'geo_oaza',
+  '4': 'geo_koaza',
+  '5': 'geo_banchi',
+  '7': 'geo_ok_no_go',
+  '8': 'geo_ok_go',
+  '-1': 'geo_undefined',
+};
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const address = event.queryStringParameters?.q;
@@ -123,14 +134,31 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   const [lng, lat] = feature.geometry.coordinates as [number, number];
   const { geocoding_level } = feature.properties;
+  const geocoding_level_int = parseInt(geocoding_level, 10);
   const prefCode = getPrefCode(feature.properties.pref);
   const { x, y } = coord2XY([lat, lng], ZOOM);
 
-  if (geocoding_level <= 4 ) {
+  if (geocoding_level_int <= 6) {
     background.push(ipcNormalizationErrorReport('normLogsIPCGeom', {
       prenormalized: normalizedAddressNJA,
       geocoding_level: geocoding_level,
     }));
+
+    const error_code_detail = (
+      IPC_NORMALIZATION_ERROR_CODE_DETAILS[geocoding_level_int.toString()]
+      || IPC_NORMALIZATION_ERROR_CODE_DETAILS['-1']
+    );
+    await Promise.all(background);
+    return json(
+      {
+        error: true,
+        error_code: 'normalization_failed',
+        error_code_detail,
+        address,
+      },
+      quotaParams,
+      400
+    );
   }
 
   if (!prefCode) {
@@ -156,21 +184,24 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   let rawEstateIds: BaseEstateId[];
   try {
-    const existingEstateIds = await getEstateIdForAddress(normalizedAddressNJA, normalizedBuilding);
-    if (existingEstateIds.length > 0) {
-      rawEstateIds = existingEstateIds;
-    } else {
-      const storeParams: StoreEstateIdReq = {
-        zoom: ZOOM,
-        tileXY: `${x}/${y}`,
-        rawAddress: address,
-        address: normalizedAddressNJA,
-        prefCode,
-      };
-      rawEstateIds = [
-        await store(storeParams),
-      ];
-    }
+    const lockId = `${normalizedAddressNJA}/${normalizedBuilding}`;
+    rawEstateIds = await withLock(lockId, async () => {
+      const existingEstateIds = await getEstateIdForAddress(normalizedAddressNJA, normalizedBuilding);
+      if (existingEstateIds.length > 0) {
+        return existingEstateIds;
+      } else {
+        const storeParams: StoreEstateIdReq = {
+          zoom: ZOOM,
+          tileXY: `${x}/${y}`,
+          rawAddress: address,
+          address: normalizedAddressNJA,
+          prefCode,
+        };
+        return [
+          await store(storeParams),
+        ];
+      }
+    });
   } catch (error) {
     console.error({ ZOOM, addressObject, apiKey, error });
     console.error('[FATAL] Something happend with DynamoDB connection.');

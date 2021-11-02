@@ -84,6 +84,12 @@ provider:
               - ""
               - - !GetAtt apiKeyTable.Arn
                 - "/index/*"
+
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:DeleteItem
+          Resource:
             - !GetAtt logTable.Arn
 
 custom:
@@ -194,6 +200,9 @@ resources:
             KeyType: HASH
           - AttributeName: SK
             KeyType: RANGE
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
         BillingMode: PAY_PER_REQUEST
 
 functions:

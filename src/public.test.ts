@@ -71,25 +71,27 @@ test('should return the same ID for query with empty building', async () => {
   const event1 = {
     isDemoMode: true,
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地2号',
+      q: '岩手県盛岡市盛岡駅西通２丁目6番地5号',
     },
   }
   const event2 = {
     isDemoMode: true,
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地2号',
+      q: '岩手県盛岡市盛岡駅西通２丁目6番地5号',
       building: '',
     },
   };
   // @ts-ignore
   const lambdaResult1 = await handler(event1) as APIGatewayProxyResult;
   const body1 = JSON.parse(lambdaResult1.body);
+  expect(body1.error).not.toStrictEqual(true);
   expect(body1.length).toStrictEqual(1);
 
   // @ts-ignore
   const lambdaResult2 = await handler(event2) as APIGatewayProxyResult;
   const body2 = JSON.parse(lambdaResult2.body);
-  expect(body1.length).toStrictEqual(1);
+  expect(body2.error).not.toStrictEqual(true);
+  expect(body2.length).toStrictEqual(1);
 
   expect(body1[0].ID).toEqual(body2[0].ID);
 });
@@ -98,25 +100,27 @@ test('should return the same ID for queries with a different building name', asy
   const event1 = {
     isDemoMode: true,
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地10号',
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地1号',
     },
   }
   const event2 = {
     isDemoMode: true,
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地10号',
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地1号',
       building: 'おはようビル2.9.10棟',
     },
   }
   // @ts-ignore
   const lambdaResult1 = await handler(event1) as APIGatewayProxyResult;
   const body1 = JSON.parse(lambdaResult1.body);
+  expect(body1.error).not.toStrictEqual(true);
   expect(body1.length).toStrictEqual(1);
 
   // @ts-ignore
   const lambdaResult2 = await handler(event2) as APIGatewayProxyResult;
   const body2 = JSON.parse(lambdaResult2.body);
-  expect(body1.length).toStrictEqual(1);
+  expect(body2.error).not.toStrictEqual(true);
+  expect(body2.length).toStrictEqual(1);
 
   expect(body1[0].ID).toEqual(body2[0].ID);
 });
@@ -276,13 +280,13 @@ test('should get estate ID without details if authenticated with a free API key'
   expect(first.location).toBeUndefined()
 })
 
-test('should get estate ID with details if authenticated with 和歌山県東牟婁郡串本町田並1500', async () => {
+test('should get estate ID with details if authenticated with 和歌山県東牟婁郡串本町田並1300', async () => {
   const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
 
   const event = {
     isDemoMode: true,
     queryStringParameters: {
-      q: '和歌山県東牟婁郡串本町田並1500',
+      q: '和歌山県東牟婁郡串本町田並1300',
       'api-key': apiKey
     },
     headers: {
@@ -296,23 +300,57 @@ test('should get estate ID with details if authenticated with 和歌山県東牟
   expect(body).toEqual([
     expect.objectContaining({
       "normalization_level": "3",
-      "geocoding_level": "3",
+      "geocoding_level": "7",
       "address": {
         "ja": {
           "address1": "田並",
-          "address2": "1500",
+          "address2": "1300",
           "city": "東牟婁郡串本町",
           "other": "",
           "prefecture": "和歌山県",
         },
       },
       "location": {
-        "lat": "33.488638",
-        "lng": "135.714765",
+        "lat": "33.49016",
+        "lng": "135.716715",
       },
     })
   ])
 })
+
+test('should return identical estate ID if two addresses were requested in parallel', async () => {
+  const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
+
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '東京都文京区春日１丁目１６ー２１',
+      'api-key': apiKey
+    },
+    headers: {
+      'X-Access-Token': accessToken,
+    }
+  };
+
+  const responses = await Promise.all([...Array(4).keys()].map(async () => {
+    // @ts-ignore
+    return await handler(event) as APIGatewayProxyResult;
+  }));
+
+  const respSummaries = responses.map(lambdaResult => {
+    const body = JSON.parse(lambdaResult.body);
+    return {
+      id: body[0].ID,
+      length: body.length,
+    };
+  });
+
+  const ids = new Set(respSummaries.map(({id}) => id));
+  expect(ids.size).toStrictEqual(1);
+  for (const {length} of respSummaries) {
+    expect(length).toStrictEqual(1);
+  }
+});
 
 describe("normalization error cases",  () => {
   test('should return 400 with insufficient address.', async () => {
@@ -321,6 +359,8 @@ describe("normalization error cases",  () => {
       ['和歌山県aoeu', 'city_not_recognized'],
       ['和歌県', 'prefecture_not_recognized'],
       ['おはよう', 'prefecture_not_recognized'],
+      ['東京都千代田区飯田橋１丁目', 'geo_koaza'],
+      ['東京都千代田区飯田橋１丁目３', 'geo_banchi'],
     ]
 
     for (const addressData of addresses) {
