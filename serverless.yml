@@ -84,6 +84,12 @@ provider:
               - ""
               - - !GetAtt apiKeyTable.Arn
                 - "/index/*"
+
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:DeleteItem
+          Resource:
             - !GetAtt logTable.Arn
 
 custom:

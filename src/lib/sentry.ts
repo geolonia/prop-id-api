@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/serverless';
 
 const initOptions: Sentry.AWSLambda.NodeOptions = {
   dsn: process.env.SENTRY_DSN,
-  tracesSampleRate: 1.0,
+  tracesSampleRate: 0.05,
   release: process.env.RELEASE_VER,
 };
 

@@ -37,7 +37,7 @@ export const withLock = async <T = any>(lockId: string, inner: () => Promise<T>)
           // We are going to delete it ourselves, but there's a very slight chance
           // that our script gets interrupted before the lock is deleted.
           // Using the ttl makes sure we don't have any dangling locks.
-          ttl: (new Date().getTime() / 1000) + 30,
+          ttl: Math.trunc((new Date().getTime() / 1000) + 30),
         },
         ConditionExpression: 'attribute_not_exists(#pk)',
         ExpressionAttributeNames: {
