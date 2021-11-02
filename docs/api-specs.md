@@ -205,23 +205,33 @@ https://api.propid.jp/v1
 
 <table>
   <tr>
+    <th>解析レベル</th>
     <th>解析レベルの数字</th>
+    <th>エラー時の値</th>
     <th>説明</th>
   </tr>
   <tr>
+    <td>解析できません</td>
     <td>0</td>
+    <td><code>prefecture_not_recognized</code></td>
     <td>都道府県も判別できなかった</td>
   </tr>
   <tr>
+    <td>都道府県</td>
     <td>1</td>
+    <td><code>city_not_recognized</code></td>
     <td>都道府県まで判別できた</td>
   </tr>
   <tr>
+    <td>市区町村</td>
     <td>2</td>
+    <td><code>neighborhood_not_recognized</code></td>
     <td>市区町村まで判別できた</td>
   </tr>
   <tr>
+    <td>町丁目</td>
     <td>3</td>
+    <td></td>
     <td>町丁目まで判別できた</td>
   </tr>
 </table>
@@ -232,46 +242,55 @@ https://api.propid.jp/v1
   <tr>
     <th>解析レベル</th>
     <th>レベルの数字</th>
+    <th>エラー時の値</th>
     <th>説明</th>
   </tr>
   <tr>
     <td>都道府県</td>
     <td>1</td>
+    <td><code>geo_prefecture</code><td>
     <td>県レベルでマッチしました</td>
   </tr>
   <tr>
     <td>市区町村</td>
     <td>2</td>
+    <td><code>geo_city</code><td>
     <td>市区町村レベルでマッチしました</td>
   </tr>
   <tr>
     <td>町域 (大字)	</td>
     <td>3</td>
+    <td><code>geo_oaza</code><td>
     <td>町域レベルでマッチしました</td>
   </tr>
   <tr>
     <td>丁目 / 小字	</td>
     <td>4</td>
+    <td><code>geo_koaza</code><td>
     <td>丁目または小字レベルでマッチしました</td>
   </tr>
   <tr>
     <td>番地（番）</td>
     <td>5</td>
+    <td><code>geo_banchi</code><td>
     <td>番地（番）レベルでマッチしました</td>
   </tr>
   <tr>
     <td>号情報が存在しない番地</td>
     <td>7</td>
+    <td><code>geo_ok_no_go</code><td>
     <td>番地（番）レベルでマッチしました（号情報が存在しない地域）</td>
   </tr>
   <tr>
     <td>号</td>
     <td>8</td>
+    <td><code>geo_ok_go</code><td>
     <td>号レベルでマッチしました</td>
   </tr>
   <tr>
     <td>不明</td>
     <td>-1</td>
+    <td><code>geo_undefined</code><td>
     <td>不明</td>
   </tr>
 </table>
