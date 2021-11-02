@@ -318,6 +318,40 @@ test('should get estate ID with details if authenticated with 和歌山県東牟
   ])
 })
 
+test('should return identical estate ID if two addresses were requested in parallel', async () => {
+  const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
+
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '東京都文京区春日１丁目１６ー２１',
+      'api-key': apiKey
+    },
+    headers: {
+      'X-Access-Token': accessToken,
+    }
+  };
+
+  const responses = await Promise.all([...Array(4).keys()].map(async () => {
+    // @ts-ignore
+    return await handler(event) as APIGatewayProxyResult;
+  }));
+
+  const respSummaries = responses.map(lambdaResult => {
+    const body = JSON.parse(lambdaResult.body);
+    return {
+      id: body[0].ID,
+      length: body.length,
+    };
+  });
+
+  const ids = new Set(respSummaries.map(({id}) => id));
+  expect(ids.size).toStrictEqual(1);
+  for (const {length} of respSummaries) {
+    expect(length).toStrictEqual(1);
+  }
+});
+
 describe("normalization error cases",  () => {
   test('should return 400 with insufficient address.', async () => {
     const addresses = [
