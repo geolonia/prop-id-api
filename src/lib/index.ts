@@ -125,10 +125,3 @@ export const zen2hanAscii = (str: string) => {
 export const yokobo2zenchoonSymbol = (str: string) => {
   return str.replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/gi, 'ー'); // 長音記号に変換
 };
-
-export const normalizeBuilding = (building?: string ): string | undefined => {
-  if (typeof building === 'undefined' || building.trim() === '') {
-    return undefined;
-  }
-  return yokobo2zenchoonSymbol(zen2hanAscii(building.trim()));
-};

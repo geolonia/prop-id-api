@@ -37,8 +37,9 @@ describe('withLock', () => {
 
   test('it disallows a new lock to be created', async () => {
     const lockId = 'XYZ2';
+
     const output = dynamodb_logs.withLock(lockId, async () => {
-      await sleep(600);
+      await sleep(1500);
     });
 
     await expect(dynamodb_logs.withLock(lockId, async () => {
