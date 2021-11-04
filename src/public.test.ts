@@ -14,8 +14,7 @@ test('should get same estate ID for multiple queries to same address', async () 
   const event = {
     isDemoMode: true,
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
-      building: 'マリオス10F',
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス',
     },
   }
   // @ts-ignore
@@ -27,15 +26,58 @@ test('should get same estate ID for multiple queries to same address', async () 
   const body2 = JSON.parse(lambdaResult2.body)
 
   expect(body1[0].ID).toEqual(body2[0].ID)
-
 })
+
+test('should get the same ID for multiple queries to same address with different buildings', async () => {
+  const buildings = [
+    '',
+    ' 文京区役所',
+    ' 10F',
+    ' 10階',
+    ' 文京区役所10F',
+    ' 文京区役所10階',
+    ' 文京区役所12階',
+    ' 文京区役所12階 区民課',
+    '文京区役所',
+    '-10F',
+    '-10階',
+    '文京区役所10F',
+    '文京区役所10階',
+    '文京区役所12階',
+    '文京区役所12階 区民課',
+  ];
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '東京都文京区春日1-16-21',
+    },
+  };
+
+  // @ts-ignore
+  const lambdaResult1 = await handler(event) as APIGatewayProxyResult
+  const body1 = JSON.parse(lambdaResult1.body)
+
+  for (const building of buildings) {
+    const event2 = {
+      ...event,
+      queryStringParameters: {
+        ...event.queryStringParameters,
+      },
+    };
+    event2.queryStringParameters.q = event2.queryStringParameters.q + building;
+    // @ts-ignore
+    const lambdaResult2 = await handler(event2) as APIGatewayProxyResult;
+    const body2 = JSON.parse(lambdaResult2.body);
+
+    expect(body1[0].ID).toEqual(body2[0].ID);
+  }
+});
 
 test('should get estate ID with details if authenticated', async () => {
   const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
   const event = {
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
-      building: 'マリオス10F',
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号マリオス',
       'api-key': apiKey,
   },
     headers: {
@@ -55,7 +97,7 @@ test('should get estate ID with details if authenticated', async () => {
             "address1": "盛岡駅西通二丁目",
             "address2": "9-1",
             "city": "盛岡市",
-            "other": "",
+            "other": "マリオス",
             "prefecture": "岩手県",
         },
       },
@@ -67,47 +109,17 @@ test('should get estate ID with details if authenticated', async () => {
   ])
 });
 
-test('should return the same ID for query with empty building', async () => {
-  const event1 = {
-    isDemoMode: true,
-    queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目6番地5号',
-    },
-  }
-  const event2 = {
-    isDemoMode: true,
-    queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目6番地5号',
-      building: '',
-    },
-  };
-  // @ts-ignore
-  const lambdaResult1 = await handler(event1) as APIGatewayProxyResult;
-  const body1 = JSON.parse(lambdaResult1.body);
-  expect(body1.error).not.toStrictEqual(true);
-  expect(body1.length).toStrictEqual(1);
-
-  // @ts-ignore
-  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult;
-  const body2 = JSON.parse(lambdaResult2.body);
-  expect(body2.error).not.toStrictEqual(true);
-  expect(body2.length).toStrictEqual(1);
-
-  expect(body1[0].ID).toEqual(body2[0].ID);
-});
-
 test('should return the same ID for queries with a different building name', async () => {
   const event1 = {
     isDemoMode: true,
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地1号',
+      q: '鹿児島県熊毛郡屋久島町安房187番地1',
     },
   }
   const event2 = {
     isDemoMode: true,
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地1号',
-      building: 'おはようビル2.9.10棟',
+      q: '鹿児島県熊毛郡屋久島町安房187番地1 おはようビル2.9.10棟',
     },
   }
   // @ts-ignore
@@ -134,8 +146,7 @@ describe("preauthenticatedUserId", () => {
     })
     const event = {
       queryStringParameters: {
-        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
-        building: 'マリオス10F',
+        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス',
         'api-key': apiKey,
       },
       preauthenticatedUserId: userId,
@@ -159,8 +170,7 @@ describe("preauthenticatedUserId", () => {
     })
     const event = {
       queryStringParameters: {
-        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
-        building: 'マリオス10F',
+        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス',
         'api-key': apiKey,
       },
       preauthenticatedUserId: userId,
@@ -192,8 +202,7 @@ describe("preauthenticatedUserId", () => {
     })
     const event = {
       queryStringParameters: {
-        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
-        building: 'マリオス10F',
+        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス',
         'api-key': apiKey,
       },
       preauthenticatedUserId: userId2,
@@ -208,11 +217,11 @@ describe("preauthenticatedUserId", () => {
   })
 })
 
-test('[Not Recommended request type] should get estate ID with details if authenticated and Building name in q query. ', async () => {
+test('should get estate ID with details if authenticated and Building name', async () => {
   const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
   const event = {
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F',
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス',
       'api-key': apiKey,
   },
     headers: {
@@ -230,9 +239,9 @@ test('[Not Recommended request type] should get estate ID with details if authen
       "address": {
         "ja": {
             "address1": "盛岡駅西通二丁目",
-            "address2": "9-1 マリオス10F",
+            "address2": "9-1",
             "city": "盛岡市",
-            "other": "",
+            "other": "マリオス",
             "prefecture": "岩手県",
         },
       },
@@ -249,8 +258,7 @@ test('should get estate ID without details if authenticated with a free API key'
   const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID without details if authenticated with a free API key', { plan: "free" })
 
   const queryStringParameters = {
-    q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
-    building: 'マリオス10F',
+    q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス',
     'api-key': apiKey,
   }
 
@@ -274,7 +282,7 @@ test('should get estate ID without details if authenticated with a free API key'
       "city": "盛岡市",
       "address1": "盛岡駅西通二丁目",
       "address2": "9-1",
-      "other": "",
+      "other": "マリオス",
     }
   })
   expect(first.location).toBeUndefined()
@@ -397,8 +405,7 @@ describe("normalization error cases",  () => {
 test('should return 403 if not authenticated.', async () => {
   const event = {
     queryStringParameters: {
-      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
-      building: 'マリオス10F',
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス',
     },
   }
   // @ts-ignore
@@ -435,8 +442,7 @@ test('should return 403 if request exceeds request limit, or  200 if request dos
 
     const event = {
       queryStringParameters: {
-        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
-        building: 'マリオス10F',
+        q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス',
         'api-key': apiKey,
       },
       headers: {
@@ -453,12 +459,10 @@ test('should return 403 if request exceeds request limit, or  200 if request dos
 test('should get same estate ID by normalization', async () => {
 
   const queryPattern1 = {
-    q: '岩手県盛岡市盛岡駅西通２丁目９番地１号',
-    building: 'マリオス１０Ｆ',
+    q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス',
   }
   const queryPattern2 = {
-    q: '岩手県盛岡市盛岡駅西通2-９-１',
-    building: 'マリオス10F',
+    q: '岩手県盛岡市盛岡駅西通2-９-１マリオス',
   }
 
   const event1 = {

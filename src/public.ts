@@ -3,11 +3,12 @@ import { BaseEstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './
 import { coord2XY, getPrefCode, incrementPGeocode } from './lib/index';
 import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
-import { normalize } from './lib/nja';
+import { joinNormalizeResult, normalize } from './lib/nja';
 import { Handler, APIGatewayProxyResult } from 'aws-lambda';
 import { authenticateEvent, extractApiKey } from './lib/authentication';
 import { createLog, withLock } from './lib/dynamodb_logs';
 import { ipcNormalizationErrorReport } from './outerApiErrorReport';
+import { extractBuildingName, normalizeBuildingName } from './lib/building_normalization';
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   'prefecture_not_recognized',
@@ -58,10 +59,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   // Internal normalization
   const prenormalizedAddress = await normalize(address);
-  const normalizedAddressNJA = `${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`;
-
-  // building は今のところパラメータとして受け付けていない
-  const normalizedBuilding = '';
+  const normalizedAddressNJA = joinNormalizeResult(prenormalizedAddress);
 
   background.push(createLog('normLogsNJA', {
     input: address,
@@ -106,6 +104,11 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     feature,
     cacheHit,
   } = ipcResult;
+
+  // console.log(JSON.stringify({
+  //   ipcResult,
+  //   prenormalizedAddress,
+  // }, undefined, 2));
 
   // Features not found
   if (!feature || feature.geometry === null) {
@@ -168,13 +171,21 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
+  const [prenormalizedAddress2, extractedBuilding] = extractBuildingName(
+    address,
+    prenormalizedAddress,
+    ipcResult,
+  );
+  const normalizedAddressNJA2 = joinNormalizeResult(prenormalizedAddress2);
+  const normalizedBuilding = normalizeBuildingName(extractedBuilding);
+
   const addressObject = {
     ja: {
-      prefecture: prenormalizedAddress.pref,
-      city: prenormalizedAddress.city,
-      address1: prenormalizedAddress.town,
-      address2: prenormalizedAddress.addr,
-      other: normalizedBuilding ? normalizedBuilding : '',
+      prefecture: prenormalizedAddress2.pref,
+      city: prenormalizedAddress2.city,
+      address1: prenormalizedAddress2.town,
+      address2: prenormalizedAddress2.addr,
+      other: extractedBuilding,
     },
   };
   const location = {
@@ -184,9 +195,9 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   let rawEstateIds: BaseEstateId[];
   try {
-    const lockId = `${normalizedAddressNJA}/${normalizedBuilding}`;
+    const lockId = `${normalizedAddressNJA2}/${normalizedBuilding}`;
     rawEstateIds = await withLock(lockId, async () => {
-      const existingEstateIds = await getEstateIdForAddress(normalizedAddressNJA, normalizedBuilding);
+      const existingEstateIds = await getEstateIdForAddress(normalizedAddressNJA2, normalizedBuilding);
       if (existingEstateIds.length > 0) {
         return existingEstateIds;
       } else {
@@ -194,7 +205,9 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
           zoom: ZOOM,
           tileXY: `${x}/${y}`,
           rawAddress: address,
-          address: normalizedAddressNJA,
+          address: normalizedAddressNJA2,
+          rawBuilding: extractedBuilding,
+          building: normalizedBuilding,
           prefCode,
         };
         return [
@@ -211,7 +224,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   }
 
   const richIdResp = !!(authenticationResult.plan === 'paid' || event.isDemoMode);
-  const normalizationLevel = prenormalizedAddress.level.toString();
+  const normalizationLevel = prenormalizedAddress2.level.toString();
   const geocodingLevel = geocoding_level.toString();
 
   const apiResponse = rawEstateIds.map((estateId) => {

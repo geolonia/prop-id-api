@@ -23,7 +23,8 @@ export const createLog = async (identifier: string, metadata: { [key: string]: a
 export const withLock = async <T = any>(lockId: string, inner: () => Promise<T>): Promise<T> => {
   // Get lock
   let tries = 0, lockAcquired = false;
-  while (tries < 6) {
+  // 15 tries * 50ms = we'll keep trying to acquire the lock for about 750ms
+  while (tries <= 15) {
     tries++;
     try {
       await DB.put({
