@@ -71,7 +71,7 @@ test('should get the same ID for multiple queries to same address with different
 
     expect(body1[0].ID).toEqual(body2[0].ID);
   }
-});
+}, 30_000); // 30s timeout; there are a lot of queries to process here
 
 test('should get estate ID with details if authenticated', async () => {
   const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
