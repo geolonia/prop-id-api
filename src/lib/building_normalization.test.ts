@@ -39,6 +39,9 @@ describe('extractBuildingName', () => {
     { addr: '和歌山県東牟婁郡串本町田並1300', expected: '' },
     { addr: '和歌山県東牟婁郡串本町田並1300串本西中学校', expected: '串本西中学校' },
     { addr: '和歌山県東牟婁郡串本町田並1300 串本西中学校', expected: '串本西中学校' },
+    { addr: '東京都文京区大塚４－５１－１平澤三陽ビル', expected: '平澤三陽ビル'},
+    { addr: '東京都足立区島根２丁目22-10南篠崎二丁目住宅', expected: '南篠崎二丁目住宅'},
+    { addr: '東京都新宿区高田馬場１－３１－８東池袋５丁目マンション', expected: '東池袋５丁目マンション'},
   ];
   for (const d of testData) {
     test(`should extract '${d.expected}' from '${d.addr}'`, async () => {
