@@ -3,11 +3,12 @@ import { BaseEstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './
 import { coord2XY, getPrefCode, incrementPGeocode } from './lib/index';
 import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
-import { normalize } from './lib/nja';
+import { joinNormalizeResult, normalize } from './lib/nja';
 import { Handler, APIGatewayProxyResult } from 'aws-lambda';
 import { authenticateEvent, extractApiKey } from './lib/authentication';
 import { createLog, withLock } from './lib/dynamodb_logs';
 import { ipcNormalizationErrorReport } from './outerApiErrorReport';
+import { extractBuildingName, normalizeBuildingName } from './lib/building_normalization';
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   'prefecture_not_recognized',
@@ -57,21 +58,18 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   });
 
   // Internal normalization
-  const prenormalizedAddress = await normalize(address);
-  const normalizedAddressNJA = `${prenormalizedAddress.pref}${prenormalizedAddress.city}${prenormalizedAddress.town}${prenormalizedAddress.addr}`;
-
-  // building は今のところパラメータとして受け付けていない
-  const normalizedBuilding = '';
+  const prenormalizedResult = await normalize(address);
+  const prenormalizedAddress = joinNormalizeResult(prenormalizedResult);
 
   background.push(createLog('normLogsNJA', {
     input: address,
-    level: prenormalizedAddress.level,
-    nja: normalizedAddressNJA,
-    normalized: JSON.stringify(prenormalizedAddress),
+    level: prenormalizedResult.level,
+    nja: prenormalizedAddress,
+    normalized: JSON.stringify(prenormalizedResult),
   }));
 
-  if (prenormalizedAddress.level <= 2) {
-    const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalizedAddress.level];
+  if (prenormalizedResult.level <= 2) {
+    const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalizedResult.level];
     await Promise.all(background);
     return json(
       {
@@ -85,18 +83,18 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     );
   }
 
-  if (!prenormalizedAddress.town || prenormalizedAddress.town === '') {
+  if (!prenormalizedResult.town || prenormalizedResult.town === '') {
     background.push(createLog('normFailNoTown', {
       input: address,
     }));
   }
 
-  const ipcResult = await incrementPGeocode(normalizedAddressNJA);
+  const ipcResult = await incrementPGeocode(prenormalizedAddress);
 
   if (!ipcResult) {
     Sentry.captureException(new Error('IPC result null'));
     background.push(ipcNormalizationErrorReport('normFailNoIPCGeomNull', {
-      input: normalizedAddressNJA,
+      input: prenormalizedAddress,
     }));
     await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
@@ -113,11 +111,11 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
     background.push(createLog('normFailNoIPCGeom', {
       input: address,
-      prenormalized: normalizedAddressNJA,
+      prenormalized: prenormalizedAddress,
       ipcResult: JSON.stringify(ipcResult),
     }));
     background.push(ipcNormalizationErrorReport('normFailNoIPCGeom', {
-      prenormalized: normalizedAddressNJA,
+      prenormalized: prenormalizedAddress,
     }));
 
     await Promise.all(background);
@@ -140,7 +138,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   if (geocoding_level_int <= 6) {
     background.push(ipcNormalizationErrorReport('normLogsIPCGeom', {
-      prenormalized: normalizedAddressNJA,
+      prenormalized: prenormalizedAddress,
       geocoding_level: geocoding_level,
     }));
 
@@ -168,13 +166,21 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
+  const [prenormalizedResultWoBuilding, extractedBuilding] = extractBuildingName(
+    address,
+    prenormalizedResult,
+    ipcResult,
+  );
+  const prenormalizedAddressWoBuilding = joinNormalizeResult(prenormalizedResultWoBuilding);
+  const normalizedBuilding = normalizeBuildingName(extractedBuilding);
+
   const addressObject = {
     ja: {
-      prefecture: prenormalizedAddress.pref,
-      city: prenormalizedAddress.city,
-      address1: prenormalizedAddress.town,
-      address2: prenormalizedAddress.addr,
-      other: normalizedBuilding ? normalizedBuilding : '',
+      prefecture: prenormalizedResultWoBuilding.pref,
+      city: prenormalizedResultWoBuilding.city,
+      address1: prenormalizedResultWoBuilding.town,
+      address2: prenormalizedResultWoBuilding.addr,
+      other: extractedBuilding,
     },
   };
   const location = {
@@ -184,9 +190,9 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   let rawEstateIds: BaseEstateId[];
   try {
-    const lockId = `${normalizedAddressNJA}/${normalizedBuilding}`;
+    const lockId = `${prenormalizedAddressWoBuilding}/${normalizedBuilding}`;
     rawEstateIds = await withLock(lockId, async () => {
-      const existingEstateIds = await getEstateIdForAddress(normalizedAddressNJA, normalizedBuilding);
+      const existingEstateIds = await getEstateIdForAddress(prenormalizedAddressWoBuilding, normalizedBuilding);
       if (existingEstateIds.length > 0) {
         return existingEstateIds;
       } else {
@@ -194,7 +200,9 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
           zoom: ZOOM,
           tileXY: `${x}/${y}`,
           rawAddress: address,
-          address: normalizedAddressNJA,
+          address: prenormalizedAddressWoBuilding,
+          rawBuilding: extractedBuilding,
+          building: normalizedBuilding,
           prefCode,
         };
         return [
@@ -211,7 +219,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   }
 
   const richIdResp = !!(authenticationResult.plan === 'paid' || event.isDemoMode);
-  const normalizationLevel = prenormalizedAddress.level.toString();
+  const normalizationLevel = prenormalizedResultWoBuilding.level.toString();
   const geocodingLevel = geocoding_level.toString();
 
   const apiResponse = rawEstateIds.map((estateId) => {
@@ -239,7 +247,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     // aggregate debug info
     return json(
       {
-        internallyNormalized: prenormalizedAddress,
+        internallyNormalized: prenormalizedResult,
         externallyNormalized: feature,
         cacheHit,
         tileInfo: {
