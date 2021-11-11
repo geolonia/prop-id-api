@@ -6,7 +6,7 @@ import Sentry from './lib/sentry';
 import { joinNormalizeResult, normalize } from './lib/nja';
 import { Handler, APIGatewayProxyResult } from 'aws-lambda';
 import { authenticateEvent, extractApiKey } from './lib/authentication';
-import { createLog, withLock } from './lib/dynamodb_logs';
+import { createLog, normalizeBanchiGo, withLock } from './lib/dynamodb_logs';
 import { ipcNormalizationErrorReport } from './outerApiErrorReport';
 import { extractBuildingName, normalizeBuildingName } from './lib/building_normalization';
 
@@ -136,6 +136,15 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   const prefCode = getPrefCode(feature.properties.pref);
   const { x, y } = coord2XY([lat, lng], ZOOM);
 
+  if (geocoding_level_int === 4 || geocoding_level_int === 5) {
+    /* IPC からの返答が 4 または 5 の場合（つまり、番地が認識できなったまたは、
+     * 番地は認識できたけど号が認識できなかった）は、自分のデータベースを問い合わせ、
+     * 実在するかの確認を取ります。
+     */
+    const internalBGNormalized = await normalizeBanchiGo(prenormalizedResult);
+
+  }
+
   if (geocoding_level_int <= 6) {
     background.push(ipcNormalizationErrorReport('normLogsIPCGeom', {
       prenormalized: prenormalizedAddress,
@@ -166,21 +175,21 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
-  const [prenormalizedResultWoBuilding, extractedBuilding] = extractBuildingName(
+  const prenormalizedResultWithBuilding = extractBuildingName(
     address,
     prenormalizedResult,
     ipcResult,
   );
-  const prenormalizedAddressWoBuilding = joinNormalizeResult(prenormalizedResultWoBuilding);
-  const normalizedBuilding = normalizeBuildingName(extractedBuilding);
+  const prenormalizedAddressWithBuilding = joinNormalizeResult(prenormalizedResultWithBuilding);
+  const normalizedBuilding = normalizeBuildingName(prenormalizedResultWithBuilding.building || '');
 
   const addressObject = {
     ja: {
-      prefecture: prenormalizedResultWoBuilding.pref,
-      city: prenormalizedResultWoBuilding.city,
-      address1: prenormalizedResultWoBuilding.town,
-      address2: prenormalizedResultWoBuilding.addr,
-      other: extractedBuilding,
+      prefecture: prenormalizedResultWithBuilding.pref,
+      city: prenormalizedResultWithBuilding.city,
+      address1: prenormalizedResultWithBuilding.town,
+      address2: prenormalizedResultWithBuilding.addr,
+      other: prenormalizedResultWithBuilding.building,
     },
   };
   const location = {
@@ -190,9 +199,9 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   let rawEstateIds: BaseEstateId[];
   try {
-    const lockId = `${prenormalizedAddressWoBuilding}/${normalizedBuilding}`;
+    const lockId = `${prenormalizedAddressWithBuilding}/${normalizedBuilding}`;
     rawEstateIds = await withLock(lockId, async () => {
-      const existingEstateIds = await getEstateIdForAddress(prenormalizedAddressWoBuilding, normalizedBuilding);
+      const existingEstateIds = await getEstateIdForAddress(prenormalizedAddressWithBuilding, normalizedBuilding);
       if (existingEstateIds.length > 0) {
         return existingEstateIds;
       } else {
@@ -200,8 +209,8 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
           zoom: ZOOM,
           tileXY: `${x}/${y}`,
           rawAddress: address,
-          address: prenormalizedAddressWoBuilding,
-          rawBuilding: extractedBuilding,
+          address: prenormalizedAddressWithBuilding,
+          rawBuilding: prenormalizedResultWithBuilding.building,
           building: normalizedBuilding,
           prefCode,
         };
@@ -219,7 +228,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   }
 
   const richIdResp = !!(authenticationResult.plan === 'paid' || event.isDemoMode);
-  const normalizationLevel = prenormalizedResultWoBuilding.level.toString();
+  const normalizationLevel = prenormalizedResultWithBuilding.level.toString();
   const geocodingLevel = geocoding_level.toString();
 
   const apiResponse = rawEstateIds.map((estateId) => {
