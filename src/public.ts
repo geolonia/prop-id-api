@@ -3,7 +3,7 @@ import { BaseEstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './
 import { coord2XY, getPrefCode, incrementPGeocode } from './lib/index';
 import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
-import { joinNormalizeResult, normalize } from './lib/nja';
+import { joinNormalizeResult, normalize, NormalizeResult } from './lib/nja';
 import { Handler, APIGatewayProxyResult } from 'aws-lambda';
 import { authenticateEvent, extractApiKey } from './lib/authentication';
 import { createLog, normalizeBanchiGo, withLock } from './lib/dynamodb_logs';
@@ -58,18 +58,19 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   });
 
   // Internal normalization
-  const prenormalizedResult = await normalize(address);
-  const prenormalizedAddress = joinNormalizeResult(prenormalizedResult);
+  const prenormalized = await normalize(address);
+  const prenormalizedStr = joinNormalizeResult(prenormalized);
+  let finalNormalized: NormalizeResult = prenormalized;
 
   background.push(createLog('normLogsNJA', {
     input: address,
-    level: prenormalizedResult.level,
-    nja: prenormalizedAddress,
-    normalized: JSON.stringify(prenormalizedResult),
+    level: prenormalized.level,
+    nja: prenormalizedStr,
+    normalized: JSON.stringify(prenormalized),
   }));
 
-  if (prenormalizedResult.level <= 2) {
-    const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalizedResult.level];
+  if (prenormalized.level <= 2) {
+    const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalized.level];
     await Promise.all(background);
     return json(
       {
@@ -83,18 +84,18 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     );
   }
 
-  if (!prenormalizedResult.town || prenormalizedResult.town === '') {
+  if (!prenormalized.town || prenormalized.town === '') {
     background.push(createLog('normFailNoTown', {
       input: address,
     }));
   }
 
-  const ipcResult = await incrementPGeocode(prenormalizedAddress);
+  const ipcResult = await incrementPGeocode(prenormalizedStr);
 
   if (!ipcResult) {
     Sentry.captureException(new Error('IPC result null'));
     background.push(ipcNormalizationErrorReport('normFailNoIPCGeomNull', {
-      input: prenormalizedAddress,
+      input: prenormalizedStr,
     }));
     await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
@@ -111,11 +112,11 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
     background.push(createLog('normFailNoIPCGeom', {
       input: address,
-      prenormalized: prenormalizedAddress,
+      prenormalized: prenormalizedStr,
       ipcResult: JSON.stringify(ipcResult),
     }));
     background.push(ipcNormalizationErrorReport('normFailNoIPCGeom', {
-      prenormalized: prenormalizedAddress,
+      prenormalized: prenormalizedStr,
     }));
 
     await Promise.all(background);
@@ -141,13 +142,16 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
      * 番地は認識できたけど号が認識できなかった）は、自分のデータベースを問い合わせ、
      * 実在するかの確認を取ります。
      */
-    const internalBGNormalized = await normalizeBanchiGo(prenormalizedResult);
-
+    const internalBGNormalized = await normalizeBanchiGo(prenormalized);
+    if (internalBGNormalized.level >= 7) {
+      // 内部で番地号情報がありました。
+      finalNormalized = internalBGNormalized;
+    }
   }
 
-  if (geocoding_level_int <= 6) {
+  if (finalNormalized.level <= 6 && geocoding_level_int <= 6) {
     background.push(ipcNormalizationErrorReport('normLogsIPCGeom', {
-      prenormalized: prenormalizedAddress,
+      prenormalized: prenormalizedStr,
       geocoding_level: geocoding_level,
     }));
 
@@ -175,21 +179,29 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
-  const prenormalizedResultWithBuilding = extractBuildingName(
-    address,
-    prenormalizedResult,
-    ipcResult,
-  );
-  const prenormalizedAddressWithBuilding = joinNormalizeResult(prenormalizedResultWithBuilding);
-  const normalizedBuilding = normalizeBuildingName(prenormalizedResultWithBuilding.building || '');
+  // ビル名が以前認識されていない(NJAレベルや、内部DBプロセスで)かつ、IPCのレベルが6以上だと `extractBuildingName`
+  // で抽出可能となります。
+  if (typeof finalNormalized.building === 'undefined' && geocoding_level_int >= 6) {
+    const extractedBuilding = extractBuildingName(
+      address,
+      prenormalized,
+      ipcResult,
+    );
+    if (typeof extractedBuilding.building !== 'undefined') {
+      finalNormalized = extractedBuilding;
+    }
+  }
+
+  const finalAddress = joinNormalizeResult(finalNormalized);
+  const normalizedBuilding = normalizeBuildingName(finalNormalized.building || '');
 
   const addressObject = {
     ja: {
-      prefecture: prenormalizedResultWithBuilding.pref,
-      city: prenormalizedResultWithBuilding.city,
-      address1: prenormalizedResultWithBuilding.town,
-      address2: prenormalizedResultWithBuilding.addr,
-      other: prenormalizedResultWithBuilding.building,
+      prefecture: finalNormalized.pref,
+      city: finalNormalized.city,
+      address1: finalNormalized.town,
+      address2: finalNormalized.addr,
+      other: finalNormalized.building || '',
     },
   };
   const location = {
@@ -199,9 +211,9 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   let rawEstateIds: BaseEstateId[];
   try {
-    const lockId = `${prenormalizedAddressWithBuilding}/${normalizedBuilding}`;
+    const lockId = `${finalAddress}/${normalizedBuilding}`;
     rawEstateIds = await withLock(lockId, async () => {
-      const existingEstateIds = await getEstateIdForAddress(prenormalizedAddressWithBuilding, normalizedBuilding);
+      const existingEstateIds = await getEstateIdForAddress(finalAddress, normalizedBuilding);
       if (existingEstateIds.length > 0) {
         return existingEstateIds;
       } else {
@@ -209,8 +221,8 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
           zoom: ZOOM,
           tileXY: `${x}/${y}`,
           rawAddress: address,
-          address: prenormalizedAddressWithBuilding,
-          rawBuilding: prenormalizedResultWithBuilding.building,
+          address: finalAddress,
+          rawBuilding: finalNormalized.building,
           building: normalizedBuilding,
           prefCode,
         };
@@ -228,7 +240,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   }
 
   const richIdResp = !!(authenticationResult.plan === 'paid' || event.isDemoMode);
-  const normalizationLevel = prenormalizedResultWithBuilding.level.toString();
+  const normalizationLevel = finalNormalized.level.toString();
   const geocodingLevel = geocoding_level.toString();
 
   const apiResponse = rawEstateIds.map((estateId) => {
@@ -256,7 +268,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     // aggregate debug info
     return json(
       {
-        internallyNormalized: prenormalizedResult,
+        internallyNormalized: prenormalized,
         externallyNormalized: feature,
         cacheHit,
         tileInfo: {
