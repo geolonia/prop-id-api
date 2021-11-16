@@ -253,7 +253,6 @@ test('should get estate ID with details if authenticated and Building name', asy
   ])
 })
 
-
 test('should get estate ID without details if authenticated with a free API key', async () => {
   const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID without details if authenticated with a free API key', { plan: "free" })
 
@@ -485,3 +484,61 @@ test('should get same estate ID by normalization', async () => {
 
   expect(body1[0].ID).toEqual(body2[0].ID)
 })
+
+describe('banchi-go database', () => {
+  beforeAll(async () => {
+    const testData = [
+      { addr: '東京都文京区水道二丁目', bg: '80-6' },
+      { addr: '東京都文京区水道二丁目', bg: '81' },
+      { addr: '東京都町田市木曽東四丁目', bg: '81-イ22' },
+      { addr: '大阪府大阪市中央区久太郎町三丁目', bg: '渡辺3'},
+    ];
+
+    await Promise.all(
+      testData.map(({addr, bg}) => dynamodb.DB.put({
+        TableName: process.env.AWS_DYNAMODB_LOG_TABLE_NAME,
+        Item: {
+          PK: `AddrDB#${addr}`,
+          SK: bg,
+        },
+      }).promise())
+    );
+  });
+
+  const cases: [string, string][] = [
+    ['東京都文京区水道2丁目80-6 おはようビル', 'おはようビル'],
+    ['東京都文京区水道2丁目81 おはようビル', 'おはようビル'],
+    ['東京都町田市木曽東四丁目81-イ22', ''],
+    ['大阪府大阪市中央区久太郎町三丁目渡辺3小原流ホール', '小原流ホール'],
+  ];
+
+  for (const [inputAddr, building] of cases) {
+    test(`creates estate ID for ${inputAddr}`, async () => {
+      const { apiKey, accessToken } = await dynamodb.createApiKey(`creates estate ID for ${inputAddr}`);
+      const event = {
+        queryStringParameters: {
+          q: inputAddr,
+          'api-key': apiKey,
+        },
+        headers: {
+          'X-Access-Token': accessToken,
+        },
+      };
+      // @ts-ignore
+      const lambdaResult = await handler(event);
+      // @ts-ignore
+      const body = JSON.parse(lambdaResult.body);
+
+      expect(body[0].ID).toBeDefined();
+      expect(body[0]).toEqual(
+        expect.objectContaining({
+          "address": expect.objectContaining({
+            "ja": expect.objectContaining({
+              "other": building,
+            }),
+          }),
+        })
+      );
+    });
+  }
+});
