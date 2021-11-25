@@ -38,7 +38,7 @@ provider:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
 
   layers:
-    - arn:aws:lambda:ap-northeast-1:943013980633:layer:SentryNodeServerlessSDK:9
+    - arn:aws:lambda:ap-northeast-1:943013980633:layer:SentryNodeServerlessSDK:38
 
   iam:
     role:
