@@ -234,6 +234,18 @@ https://api.propid.jp/v1
     <td></td>
     <td>町丁目まで判別できた</td>
   </tr>
+  <tr>
+    <td>番地</td>
+    <td>7</td>
+    <td></td>
+    <td>号が存在しない無い場合、番地まで判別できた (<code>geocoding_level</code>が5以下の場合)</td>
+  </tr>
+  <tr>
+    <td>番地・号</td>
+    <td>8</td>
+    <td></td>
+    <td>番地・号まで判別できた (<code>geocoding_level</code>が5以下の場合)</td>
+  </tr>
 </table>
 
 ### `geocoding_level`

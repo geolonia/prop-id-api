@@ -51,7 +51,8 @@ describe('extractBuildingName', () => {
         expect(geocoding).not.toStrictEqual(false);
         return;
       }
-      const [normWithoutBuilding, extracted] = extractBuildingName(d.addr, normalization, geocoding);
+      const normWithoutBuilding = extractBuildingName(d.addr, normalization, geocoding);
+      const extracted = normWithoutBuilding.building || '';
 
       // if the building isn't in the address to begin with, we don't need these checks.
       if (d.expected !== '') {

@@ -1,11 +1,16 @@
-import { NormalizeResult } from '@geolonia/normalize-japanese-addresses';
+import { NormalizeResult } from './nja';
 import { IncrementPGeocodeResult, yokobo2zenchoonSymbol, zen2hanAscii } from '.';
 
 export const extractBuildingName: (
   originalAddr: string,
   normalizedAddr: NormalizeResult,
   geocodedAddr: IncrementPGeocodeResult
-) => [NormalizeResult, string] = ( originalAddr, normalizedAddr, geocodedAddr ) => {
+) => NormalizeResult = ( originalAddr, normalizedAddr, geocodedAddr ) => {
+  if ('building' in normalizedAddr && typeof normalizedAddr.building !== 'undefined') {
+    // この住所のビル名が既に分離されています
+    return normalizedAddr;
+  }
+
   const { addr: banchiGoOther } = normalizedAddr;
   const { banchi_go: banchiGo } = geocodedAddr.feature.properties;
   const banchiGoPosInAddr = banchiGoOther.indexOf(banchiGo);
@@ -24,14 +29,16 @@ export const extractBuildingName: (
     }
     if (startPos && startPos >= 0) {
       // we found a match, and can use it to extract the original building name
-      return [normAddrWithoutBuilding, originalAddr.slice(startPos)];
+      normAddrWithoutBuilding.building = originalAddr.slice(startPos);
     } else {
       // we didn't find a match, but NJA has something, so we'll just return that
-      return [normAddrWithoutBuilding, buildingNameNJA];
+      normAddrWithoutBuilding.building = buildingNameNJA;
     }
-  } else {
-    return [normalizedAddr, ''];
+    return normAddrWithoutBuilding;
   }
+
+  // We couldn't find a building, so we'll just return the input.
+  return normalizedAddr;
 };
 
 export const normalizeBuildingName = (building: string): string => {
