@@ -19,17 +19,24 @@ export const DB = process.env.JEST_WORKER_ID ? (
 );
 
 export interface BaseEstateId {
+  /** Partition key */
   estateId: string
+
+  /** Partition key of address-index GSI */
   address: string
-  serial: number
+
+  /** Parition key of tileXY-index GSI */
   tileXY: string
+  /** Sort key of tileXY-index GSI */
+  serial: number
+
   zoom: number
   rawAddress: string
   building?: string
   rawBuilding?: string
 }
 
-interface ConsolidatedEstateId extends BaseEstateId {
+export interface ConsolidatedEstateId extends BaseEstateId {
   canonicalId: string
   consolidatedAt: number
 }
