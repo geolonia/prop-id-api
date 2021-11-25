@@ -89,6 +89,7 @@ provider:
           Action:
             - dynamodb:PutItem
             - dynamodb:DeleteItem
+            - dynamodb:Query
           Resource:
             - !GetAtt logTable.Arn
 
