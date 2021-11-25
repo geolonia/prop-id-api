@@ -217,7 +217,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       const existingEstateIds = await getEstateIdForAddress(finalAddress, normalizedBuilding);
       if (existingEstateIds.length > 0) {
         return {
-          existing: false,
+          existing: true,
           estateIds: existingEstateIds,
         };
       } else {
@@ -231,7 +231,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
           prefCode,
         };
         return {
-          existing: true,
+          existing: false,
           estateIds: [ await store(storeParams) ],
         };
       }
