@@ -188,13 +188,17 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     lng: lng.toString(),
   };
 
+  let existing: boolean;
   let rawEstateIds: BaseEstateId[];
   try {
     const lockId = `${prenormalizedAddressWoBuilding}/${normalizedBuilding}`;
-    rawEstateIds = await withLock(lockId, async () => {
+    const estateIdIssuance = await withLock(lockId, async () => {
       const existingEstateIds = await getEstateIdForAddress(prenormalizedAddressWoBuilding, normalizedBuilding);
       if (existingEstateIds.length > 0) {
-        return existingEstateIds;
+        return {
+          existing: false,
+          estateIds: existingEstateIds,
+        };
       } else {
         const storeParams: StoreEstateIdReq = {
           zoom: ZOOM,
@@ -205,11 +209,14 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
           building: normalizedBuilding,
           prefCode,
         };
-        return [
-          await store(storeParams),
-        ];
+        return {
+          existing: true,
+          estateIds: [ await store(storeParams) ],
+        };
       }
     });
+    existing = estateIdIssuance.existing;
+    rawEstateIds = estateIdIssuance.estateIds;
   } catch (error) {
     console.error({ ZOOM, addressObject, apiKey, error });
     console.error('[FATAL] Something happend with DynamoDB connection.');
@@ -217,6 +224,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
   }
+  background.push(createLog('IdIssue', { existing, rawEstateIds, apiKey }));
 
   const richIdResp = !!(authenticationResult.plan === 'paid' || event.isDemoMode);
   const normalizationLevel = prenormalizedResultWoBuilding.level.toString();
