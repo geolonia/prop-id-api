@@ -245,7 +245,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
   }
-  background.push(createLog('IdIssue', { existing, rawEstateIds, apiKey }));
+  background.push(createLog('idIssSts', { existing, rawEstateIds, apiKey }));
 
   const richIdResp = !!(authenticationResult.plan === 'paid' || event.isDemoMode);
   const normalizationLevel = finalNormalized.level.toString();
