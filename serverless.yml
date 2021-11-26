@@ -96,7 +96,7 @@ provider:
 
         - Effect: Allow
           Action:
-            - s3:putObject
+            - s3:PutObject
           Resource:
             - ${self:custom.awsS3LogStreamOutputBucketName}
             - ${self:custom.awsS3LogStreamOutputBucketName}/*
