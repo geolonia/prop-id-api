@@ -3,8 +3,7 @@ import { ulid } from 'ulid';
 import { sleep } from './util';
 import { NormalizeResult } from '../lib/nja';
 
-export const ApiKeyTableName = process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME;
-export const LogTableName = process.env.AWS_DYNAMODB_LOG_TABLE_NAME;
+export const TableName = process.env.AWS_DYNAMODB_LOG_TABLE_NAME;
 
 export interface AddressDatabaseRecord {
   /** Partition key.
@@ -36,21 +35,10 @@ export const createLog = async (
   const PK = `LOG#${logIdentifier}#${datePart}`;
   const SK = ulid(now.getTime());
 
-  const { apiKey } = userIdentifier;
-  let { userId } = userIdentifier;
-
-  if (!userId && apiKey) {
-    const { Item } = await DB.get({
-      TableName: ApiKeyTableName,
-      Key: { apiKey },
-    }).promise();
-    if (Item && typeof Item.GSIPK === 'string') {
-      userId = Item.GSIPK;
-    }
-  }
+  const { apiKey, userId } = userIdentifier;
 
   await DB.put({
-    TableName: LogTableName,
+    TableName,
     Item: {
       PK,
       SK,
@@ -70,7 +58,7 @@ export const withLock = async <T = any>(lockId: string, inner: () => Promise<T>)
     tries++;
     try {
       await DB.put({
-        TableName: LogTableName,
+        TableName,
         Item: {
           PK: `Lock#${lockId}`,
           SK: 'LOCK',
@@ -109,7 +97,7 @@ export const withLock = async <T = any>(lockId: string, inner: () => Promise<T>)
   } finally {
     // Release lock
     await DB.delete({
-      TableName: LogTableName,
+      TableName,
       Key: {
         PK: `Lock#${lockId}`,
         SK: 'LOCK',
@@ -122,7 +110,7 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult) => Promise<Norm
   =
   async (nja: NormalizeResult) => {
     const dbItems = await DB.query({
-      TableName: LogTableName,
+      TableName,
       KeyConditionExpression: '#pk = :pk',
       ExpressionAttributeNames: {
         '#pk': 'PK',

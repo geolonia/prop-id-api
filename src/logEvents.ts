@@ -3,12 +3,17 @@ import { DynamoDBStreamHandler } from 'aws-lambda';
 import { Parser as Json2csvParser } from 'json2csv';
 import zlib from 'zlib';
 import AWS from 'aws-sdk';
+import { DB } from './lib/dynamodb';
 import Sentry from './lib/sentry';
 
+const ApiKeyTableName = process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME;
 const s3 = new AWS.S3();
 
+const keyOwnerCache: { [apiKey: string]: string } = {};
+
 export const _handler: DynamoDBStreamHandler = async (event) => {
-  const recordMap = event.Records.reduce<{ [key: string]: any }>((prev, record) => {
+  const recordMap = await event.Records.reduce<{ [key: string]: any }>(async (promisedPrev, record) => {
+    const prev = await promisedPrev;
     if (
       record.eventName === 'INSERT' &&
       record.dynamodb &&
@@ -19,10 +24,21 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
       const {
         PK,
         SK,
-        userId,
         apiKey,
         createAt,
       } = item;
+      let userId = item.userId || ((typeof apiKey === 'string') ? keyOwnerCache[apiKey] : undefined);
+
+      if (!userId && apiKey && typeof apiKey === 'string') {
+        const { Item } = await DB.get({
+          TableName: ApiKeyTableName,
+          Key: { apiKey },
+        }).promise();
+        if (Item && typeof Item.GSIPK === 'string') {
+          userId = Item.GSIPK;
+          keyOwnerCache[apiKey] = userId;
+        }
+      }
 
       const [type, logType, date] = (PK as string).split('#');
       const [year, month, day] = date.split('-');
@@ -42,7 +58,7 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
       }
     }
     return prev;
-  }, {});
+  }, Promise.resolve({}));
 
   const now = Date.now();
 
