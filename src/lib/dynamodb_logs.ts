@@ -47,7 +47,7 @@ export const createLog = async (
       userId = Item.GSIPK
     }
   }
-  console.log({ apiKey, userId })
+
   await DB.put({
     TableName: LogTableName,
     Item: {
