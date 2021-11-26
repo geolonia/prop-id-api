@@ -147,6 +147,12 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       // 内部で番地号情報がありました。
       finalNormalized = internalBGNormalized;
     }
+
+    background.push(createLog('normLogsIPCFail', {
+      prenormalized: prenormalizedStr,
+      ipcLevel: geocoding_level_int,
+      intBGLevel: internalBGNormalized.level,
+    }));
   }
 
   if (finalNormalized.level <= 6 && geocoding_level_int <= 6) {
