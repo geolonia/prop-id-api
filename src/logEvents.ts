@@ -18,25 +18,25 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
       const {
         PK: { S: PK = '' },
         SK: { S: SK = '' },
-        userId: { S: userId = '' },
-        apiKey: { S: apiKey = '' },
-        createAt: { S: createAt = '' },
+        userId: { S: userId = '' } = { S: '' },
+        apiKey: { S: apiKey = '' } = { S: '' },
+        createAt: { S: createAt = '' } = { S: '' },
       } = newImage;
 
-      const [partition, type, date] = PK.split('#');
+      const [type, logType, date] = PK.split('#');
       const [year, month, day] = date.split('-');
       if (
-        partition === 'LOG' &&
-        type &&
+        type === 'LOG' &&
+        logType &&
         [year, month, day].every((val) => !Number.isNaN(parseInt(val)))
       ) {
 
-        const key = `/year=${year}/month=${month}/date=${date}`;
+        const key = `year=${year}/month=${month}/day=${day}`;
         const id = `${PK}##${SK}`;
         if (!prev[key]) {
           prev[key] = [];
         }
-        const item = { id, type, userId, apiKey, createAt };
+        const item = { id, logType, userId, apiKey, createAt };
         prev[key].push(item);
       }
     }
