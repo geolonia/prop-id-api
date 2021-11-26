@@ -14,16 +14,17 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
       record.dynamodb &&
       record.dynamodb.NewImage
     ) {
-      const newImage = record.dynamodb.NewImage;
-      const {
-        PK: { S: PK = '' },
-        SK: { S: SK = '' },
-        userId: { S: userId = '' } = { S: '' },
-        apiKey: { S: apiKey = '' } = { S: '' },
-        createAt: { S: createAt = '' } = { S: '' },
-      } = newImage;
+      const item = AWS.DynamoDB.Converter.unmarshall(record.dynamodb.NewImage);
 
-      const [type, logType, date] = PK.split('#');
+      const {
+        PK,
+        SK,
+        userId,
+        apiKey,
+        createAt,
+      } = item;
+
+      const [type, logType, date] = (PK as string).split('#');
       const [year, month, day] = date.split('-');
       if (
         type === 'LOG' &&
@@ -36,7 +37,7 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
           prev[key] = [];
         }
         // SK is unique because it is numbered by ULID.
-        const item = { id: SK, logType, userId, apiKey, createAt };
+        const item = { id: SK as string, logType, userId, apiKey, createAt };
         prev[key].push(item);
       }
     }
