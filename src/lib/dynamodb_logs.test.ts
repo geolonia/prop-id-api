@@ -69,11 +69,11 @@ describe('normalizeBanchiGo', () => {
       { addr: '東京都文京区水道二丁目', bg: '1-5' },
       { addr: '東京都文京区水道二丁目', bg: '2' },
       { addr: '東京都町田市木曽東四丁目', bg: '14-イ22' },
-      { addr: '大阪府大阪市中央区久太郎町四丁目', bg: '渡辺3' },
+      { addr: '大阪府大阪市中央区久太郎町四丁目', bg: '渡辺3'},
     ];
 
     await Promise.all(
-      testData.map(({ addr, bg }) => DB.put({
+      testData.map(({addr, bg}) => DB.put({
         TableName,
         Item: {
           PK: `AddrDB#${addr}`,
