@@ -1,0 +1,65 @@
+import '.';
+import { DynamoDBStreamHandler } from 'aws-lambda';
+import { Parser as Json2csvParser } from 'json2csv';
+import zlib from 'zlib';
+import AWS from 'aws-sdk';
+import Sentry from './lib/sentry';
+
+const s3 = new AWS.S3();
+
+export const _handler: DynamoDBStreamHandler = async (event) => {
+  const recordMap = event.Records.reduce<{ [key: string]: any }>((prev, record) => {
+    if (
+      record.eventName === 'INSERT' &&
+      record.dynamodb &&
+      record.dynamodb.NewImage
+    ) {
+      const newImage = record.dynamodb.NewImage;
+      const {
+        PK: { S: PK = '' },
+        SK: { S: SK = '' },
+        userId: { S: userId = '' },
+        apiKey: { S: apiKey = '' },
+        createAt: { S: createAt = '' },
+      } = newImage;
+
+      const [partition, type, date] = PK.split('#');
+      const [year, month, day] = date.split('-');
+      if (
+        partition === 'LOG' &&
+        type &&
+        [year, month, day].every((val) => !Number.isNaN(parseInt(val)))
+      ) {
+
+        const key = `/year=${year}/month=${month}/date=${date}`;
+        const id = `${PK}##${SK}`;
+        if (!prev[key]) {
+          prev[key] = [];
+        }
+        const item = { id, type, userId, apiKey, createAt };
+        prev[key].push(item);
+      }
+    }
+    return prev;
+  }, {});
+
+  const now = Date.now();
+
+  const promises = Object.keys(recordMap).map((key) => {
+    const items = recordMap[key];
+
+    const json2csvParser = new Json2csvParser();
+    const csv = json2csvParser.parse(items);
+    const body = zlib.gzipSync(csv);
+
+    return s3.putObject({
+      Bucket: process.env.AWS_S3_LOG_STREAM_OUTPUT_BUCKET_NAME,
+      Key: `${key}/${now}.csv.gz`,
+      Body: body,
+      ContentEncoding: 'gzip',
+    }).promise();
+  });
+  await Promise.all(promises);
+};
+
+export const handler = Sentry.AWSLambda.wrapHandler(_handler);
