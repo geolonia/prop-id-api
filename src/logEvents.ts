@@ -32,11 +32,11 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
       ) {
 
         const key = `year=${year}/month=${month}/day=${day}`;
-        const id = `${PK}##${SK}`;
         if (!prev[key]) {
           prev[key] = [];
         }
-        const item = { id, logType, userId, apiKey, createAt };
+        // SK is unique because it is numbered by ULID.
+        const item = { id: SK, logType, userId, apiKey, createAt };
         prev[key].push(item);
       }
     }
