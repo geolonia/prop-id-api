@@ -152,7 +152,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       prenormalized: prenormalizedStr,
       ipcLevel: geocoding_level_int,
       intBGLevel: internalBGNormalized.level,
-    }));
+    }, { apiKey }));
   }
 
   if (finalNormalized.level <= 6 && geocoding_level_int <= 6) {
@@ -238,7 +238,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
         };
         return {
           existing: false,
-          rawEstateIds: [ await store(storeParams) ],
+          rawEstateIds: [await store(storeParams)],
         };
       }
     });
@@ -294,7 +294,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
         cacheHit,
         tileInfo: {
           xy: `${x}/${y}`,
-          serial: rawEstateIds.map(({serial}) => serial),
+          serial: rawEstateIds.map(({ serial }) => serial),
           ZOOM,
         },
         apiResponse,
