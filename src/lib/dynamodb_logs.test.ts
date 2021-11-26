@@ -9,7 +9,12 @@ const TableName = process.env.AWS_DYNAMODB_LOG_TABLE_NAME;
 describe('createLog', () => {
   test('it works', async () => {
     const now = new Date()
-    await dynamodb_logs.createLog("it works", { some: "metadata" }, now)
+    await dynamodb_logs.createLog(
+      "it works",
+      { some: "metadata" },
+      { userId: 'MY-USER-ID' },
+      now,
+    )
     const PK = `LOG#it works#${now.toISOString().slice(0, 10)}`
     const resp = await DB.query({
       TableName,
@@ -25,6 +30,8 @@ describe('createLog', () => {
     expect(resp.Count!).toBeGreaterThan(0)
     expect(resp.Items![0]).toMatchObject({
       PK,
+      userId: 'MY-USER-ID',
+      createAt: now.toISOString(),
       some: "metadata"
     })
   })
@@ -62,11 +69,11 @@ describe('normalizeBanchiGo', () => {
       { addr: '東京都文京区水道二丁目', bg: '1-5' },
       { addr: '東京都文京区水道二丁目', bg: '2' },
       { addr: '東京都町田市木曽東四丁目', bg: '14-イ22' },
-      { addr: '大阪府大阪市中央区久太郎町四丁目', bg: '渡辺3'},
+      { addr: '大阪府大阪市中央区久太郎町四丁目', bg: '渡辺3' },
     ];
 
     await Promise.all(
-      testData.map(({addr, bg}) => DB.put({
+      testData.map(({ addr, bg }) => DB.put({
         TableName,
         Item: {
           PK: `AddrDB#${addr}`,
