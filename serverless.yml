@@ -98,8 +98,8 @@ provider:
           Action:
             - s3:PutObject
           Resource:
-            - ${self:custom.awsS3LogStreamOutputBucketName}
-            - ${self:custom.awsS3LogStreamOutputBucketName}/*
+            - arn:aws:s3:::${self:custom.awsS3LogStreamOutputBucketName}
+            - arn:aws:s3:::${self:custom.awsS3LogStreamOutputBucketName}/*
 
 custom:
   # [ATTENTION] All Estate IDs will be changed If zoom altered.
