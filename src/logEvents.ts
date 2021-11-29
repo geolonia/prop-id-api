@@ -26,6 +26,7 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
         SK,
         apiKey,
         createAt,
+        ...others
       } = item;
       let userId = item.userId || ((typeof apiKey === 'string') ? keyOwnerCache[apiKey] : undefined);
 
@@ -53,7 +54,7 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
           prev[key] = [];
         }
         // SK is unique because it is numbered by ULID.
-        const item = { id: SK as string, logType, userId, apiKey, createAt };
+        const item = { id: SK as string, logType, userId, apiKey, createAt, json: JSON.stringify(others) };
         prev[key].push(item);
       }
     }
