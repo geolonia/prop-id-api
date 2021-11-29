@@ -28,6 +28,7 @@ provider:
     AWS_DYNAMODB_API_KEY_TABLE_NAME: ${self:custom.awsDynamodbApiKeyTableName}
     AWS_DYNAMODB_ESTATE_ID_TABLE_NAME: ${self:custom.awsDynamodbEstateIdTableName}
     AWS_DYNAMODB_LOG_TABLE_NAME: ${self:custom.${self:provider.stage}.AWS_DYNAMODB_LOG_TABLE_NAME}
+    AWS_S3_LOG_STREAM_OUTPUT_BUCKET_NAME: ${self:custom.awsS3LogStreamOutputBucketName}
 
     AUTH0_CLIENT_ID: ${self:custom.${self:provider.stage}.AUTH0_CLIENT_ID}
     AUTH0_DOMAIN: ${self:custom.${self:provider.stage}.AUTH0_DOMAIN}
@@ -93,11 +94,19 @@ provider:
           Resource:
             - !GetAtt logTable.Arn
 
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+          Resource:
+            - arn:aws:s3:::${self:custom.awsS3LogStreamOutputBucketName}
+            - arn:aws:s3:::${self:custom.awsS3LogStreamOutputBucketName}/*
+
 custom:
   # [ATTENTION] All Estate IDs will be changed If zoom altered.
   zoomLevel: 22
   awsDynamodbApiKeyTableName: estate-id-api-key-${self:provider.stage}
   awsDynamodbEstateIdTableName: estate-id-${self:provider.stage}
+  awsS3LogStreamOutputBucketName: prop-id-log-stream-output-bucket-${self:provider.stage}
 
   local:
     AUTH0_CLIENT_ID: "Odt4Kq2h7HTJsbkzhVrY4Rm7QLhMkFLH"
@@ -205,6 +214,14 @@ resources:
           AttributeName: ttl
           Enabled: true
         BillingMode: PAY_PER_REQUEST
+        StreamSpecification:
+          StreamViewType: 'NEW_IMAGE'
+
+    logStreamOutputBucket:
+      DeletionPolicy: Retain
+      Type: AWS::S3::Bucket
+      Properties: 
+        BucketName: ${self:custom.awsS3LogStreamOutputBucketName}
 
 functions:
   public:
@@ -295,3 +312,12 @@ functions:
           # maximumRetryAttempts: 5
           # destinations:
           #   onFailure: !Ref some SQS queue
+
+  logEvents:
+    handler: src/logEvents.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn: !GetAtt logTable.StreamArn
+          batchWindow: 30
+          batchSize: 100

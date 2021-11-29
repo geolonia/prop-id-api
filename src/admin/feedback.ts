@@ -17,9 +17,10 @@ export const create: AdminHandler = async (event) => {
   const user = await auth0.getUser({id: event.userId});
 
   await createLog('feedbackRequest', {
-    userId: event.userId,
     userEmail: user.email,
     feedback,
+  }, {
+    userId: event.userId,
   });
 
   const channels = {
