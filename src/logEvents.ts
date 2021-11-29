@@ -7,7 +7,7 @@ import { DB } from './lib/dynamodb';
 import Sentry from './lib/sentry';
 
 const ApiKeyTableName = process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME;
-const s3 = new AWS.S3();
+export const s3 = new AWS.S3();
 
 const keyOwnerCache: { [apiKey: string]: string } = {};
 
