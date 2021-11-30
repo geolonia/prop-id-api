@@ -34,7 +34,15 @@ test('should store log as s3 object', async () => {
     ]
   }
   await logEvent._handler(event, {} as any, () => {})
-  expect(key).toMatch(/^year=2021\/month=01\/day=01\/[0-9]*\.csv\.gz$/)
-  expect(body).toEqual(`"id"\t"logType"\t"userId"\t"apiKey"\t"createAt"\t"json"
-"my-sort-key"\t"MY-LOG-TYPE"\t\t"my-api-key"\t"${now}"\t"{""prop1"":""abc"",""prop2"":123}"`)
+  expect(key).toMatch(/^year=2021\/month=01\/day=01\/[0-9]*\.json\.gz$/)
+  expect(body).toEqual(JSON.stringify([{
+    id: 'my-sort-key',
+    logType: 'MY-LOG-TYPE',
+    apiKey: 'my-api-key',
+    createAt: now,
+    others: {
+      prop1: 'abc',
+      prop2: 123,
+    }
+  }]))
 })

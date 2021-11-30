@@ -1,6 +1,5 @@
 import '.';
 import { DynamoDBStreamHandler } from 'aws-lambda';
-import { Parser as Json2csvParser } from 'json2csv';
 import zlib from 'zlib';
 import AWS from 'aws-sdk';
 import { DB } from './lib/dynamodb';
@@ -54,7 +53,7 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
           prev[key] = [];
         }
         // SK is unique because it is numbered by ULID.
-        const item = { id: SK as string, logType, userId, apiKey, createAt, json: JSON.stringify(others) };
+        const item = { id: SK as string, logType, userId, apiKey, createAt, others };
         prev[key].push(item);
       }
     }
@@ -65,14 +64,11 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
 
   const promises = Object.keys(recordMap).map((key) => {
     const items = recordMap[key];
-
-    const json2csvParser = new Json2csvParser({ delimiter: '\t' });
-    const csv = json2csvParser.parse(items);
-    const body = zlib.gzipSync(csv);
+    const body = zlib.gzipSync(JSON.stringify(items));
 
     return s3.putObject({
       Bucket: process.env.AWS_S3_LOG_STREAM_OUTPUT_BUCKET_NAME,
-      Key: `${key}/${now}.csv.gz`,
+      Key: `${key}/${now}.json.gz`,
       Body: body,
       ContentEncoding: 'gzip',
     }).promise();

@@ -54,7 +54,6 @@
     "@slack/webhook": "^6.0.0",
     "auth0": "^2.37.0",
     "axios": "^0.24.0",
-    "json2csv": "^5.0.6",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.0.5",
     "luxon": "^2.1.1",
