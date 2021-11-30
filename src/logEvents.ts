@@ -66,7 +66,7 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
   const promises = Object.keys(recordMap).map((key) => {
     const items = recordMap[key];
 
-    const json2csvParser = new Json2csvParser();
+    const json2csvParser = new Json2csvParser({ delimiter: '\t' });
     const csv = json2csvParser.parse(items);
     const body = zlib.gzipSync(csv);
 
