@@ -42,7 +42,7 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
       }
 
       const [type, logType, date] = (PK as string).split('#');
-      const [year, month, day] = date.split('-');
+      const [year, month, day] = (date || '').split('-');
       if (
         type === 'LOG' &&
         logType &&
