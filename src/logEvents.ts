@@ -1,6 +1,5 @@
 import '.';
 import { DynamoDBStreamHandler } from 'aws-lambda';
-import { Parser as Json2csvParser } from 'json2csv';
 import zlib from 'zlib';
 import AWS from 'aws-sdk';
 import { DB } from './lib/dynamodb';
@@ -12,7 +11,7 @@ export const s3 = new AWS.S3();
 const keyOwnerCache: { [apiKey: string]: string } = {};
 
 export const _handler: DynamoDBStreamHandler = async (event) => {
-  const recordMap = await event.Records.reduce<{ [key: string]: any }>(async (promisedPrev, record) => {
+  const recordMap = await event.Records.reduce<Promise<{ [s3Key: string]: any[] }>>(async (promisedPrev, record) => {
     const prev = await promisedPrev;
     if (
       record.eventName === 'INSERT' &&
@@ -49,7 +48,7 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
         [year, month, day].every((val) => !Number.isNaN(parseInt(val)))
       ) {
 
-        const key = `year=${year}/month=${month}/day=${day}`;
+        const key = `json/year=${year}/month=${month}/day=${day}`;
         if (!prev[key]) {
           prev[key] = [];
         }
@@ -65,14 +64,12 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
 
   const promises = Object.keys(recordMap).map((key) => {
     const items = recordMap[key];
-
-    const json2csvParser = new Json2csvParser();
-    const csv = json2csvParser.parse(items);
-    const body = zlib.gzipSync(csv);
+    const ndjson = items.map((item) => JSON.stringify(item)).join('\n');
+    const body = zlib.gzipSync(ndjson);
 
     return s3.putObject({
       Bucket: process.env.AWS_S3_LOG_STREAM_OUTPUT_BUCKET_NAME,
-      Key: `${key}/${now}.csv.gz`,
+      Key: `${key}/${now}.json.gz`,
       Body: body,
       ContentEncoding: 'gzip',
     }).promise();
