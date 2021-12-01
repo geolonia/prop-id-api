@@ -40,7 +40,7 @@ test('should store log as s3 object', async () => {
     logType: 'MY-LOG-TYPE',
     apiKey: 'my-api-key',
     createAt: now,
-    others: {
+    data: {
       prop1: 'abc',
       prop2: 123,
     }
