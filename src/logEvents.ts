@@ -11,7 +11,7 @@ export const s3 = new AWS.S3();
 const keyOwnerCache: { [apiKey: string]: string } = {};
 
 export const _handler: DynamoDBStreamHandler = async (event) => {
-  const recordMap = await event.Records.reduce<{ [key: string]: any }>(async (promisedPrev, record) => {
+  const recordMap = await event.Records.reduce<Promise<{ [s3Key: string]: any[] }>>(async (promisedPrev, record) => {
     const prev = await promisedPrev;
     if (
       record.eventName === 'INSERT' &&
@@ -25,7 +25,7 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
         SK,
         apiKey,
         createAt,
-        ...data
+        ...others
       } = item;
       let userId = item.userId || ((typeof apiKey === 'string') ? keyOwnerCache[apiKey] : undefined);
 
@@ -48,12 +48,12 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
         [year, month, day].every((val) => !Number.isNaN(parseInt(val)))
       ) {
 
-        const key = `year=${year}/month=${month}/day=${day}`;
+        const key = `json/year=${year}/month=${month}/day=${day}`;
         if (!prev[key]) {
           prev[key] = [];
         }
         // SK is unique because it is numbered by ULID.
-        const item = { id: SK as string, logType, userId, apiKey, createAt, data };
+        const item = { id: SK as string, logType, userId, apiKey, createAt, json: JSON.stringify(others) };
         prev[key].push(item);
       }
     }
@@ -64,7 +64,8 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
 
   const promises = Object.keys(recordMap).map((key) => {
     const items = recordMap[key];
-    const body = zlib.gzipSync(JSON.stringify(items));
+    const ndjson = items.map((item) => JSON.stringify(item)).join('\n');
+    const body = zlib.gzipSync(ndjson);
 
     return s3.putObject({
       Bucket: process.env.AWS_S3_LOG_STREAM_OUTPUT_BUCKET_NAME,
