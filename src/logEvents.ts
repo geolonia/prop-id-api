@@ -34,8 +34,8 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
           TableName: ApiKeyTableName,
           Key: { apiKey },
         }).promise();
-        if (Item && typeof Item.GSIPK === 'string') {
-          userId = Item.GSIPK;
+        if (Item && typeof Item.GSI1PK === 'string') {
+          userId = Item.GSI1PK;
           keyOwnerCache[apiKey] = userId;
         }
       }
