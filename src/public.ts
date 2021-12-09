@@ -67,7 +67,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     level: prenormalized.level,
     nja: prenormalizedStr,
     normalized: JSON.stringify(prenormalized),
-  }));
+  }, { apiKey }));
 
   if (prenormalized.level <= 2) {
     const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalized.level];
@@ -87,7 +87,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   if (!prenormalized.town || prenormalized.town === '') {
     background.push(createLog('normFailNoTown', {
       input: address,
-    }));
+    }, { apiKey }));
   }
 
   const ipcResult = await incrementPGeocode(prenormalizedStr);
@@ -114,7 +114,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       input: address,
       prenormalized: prenormalizedStr,
       ipcResult: JSON.stringify(ipcResult),
-    }));
+    }, { apiKey }));
     background.push(ipcNormalizationErrorReport('normFailNoIPCGeom', {
       prenormalized: prenormalizedStr,
     }));
@@ -147,6 +147,12 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       // 内部で番地号情報がありました。
       finalNormalized = internalBGNormalized;
     }
+
+    background.push(createLog('normLogsIPCFail', {
+      prenormalized: prenormalizedStr,
+      ipcLevel: geocoding_level_int,
+      intBGLevel: internalBGNormalized.level,
+    }, { apiKey }));
   }
 
   if (finalNormalized.level <= 6 && geocoding_level_int <= 6) {
@@ -209,13 +215,17 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     lng: lng.toString(),
   };
 
+  let existing: boolean;
   let rawEstateIds: BaseEstateId[];
   try {
     const lockId = `${finalAddress}/${normalizedBuilding}`;
-    rawEstateIds = await withLock(lockId, async () => {
+    const estateIdIssuance = await withLock(lockId, async () => {
       const existingEstateIds = await getEstateIdForAddress(finalAddress, normalizedBuilding);
       if (existingEstateIds.length > 0) {
-        return existingEstateIds;
+        return {
+          existing: true,
+          rawEstateIds: existingEstateIds,
+        };
       } else {
         const storeParams: StoreEstateIdReq = {
           zoom: ZOOM,
@@ -226,11 +236,14 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
           building: normalizedBuilding,
           prefCode,
         };
-        return [
-          await store(storeParams),
-        ];
+        return {
+          existing: false,
+          rawEstateIds: [await store(storeParams)],
+        };
       }
     });
+    existing = estateIdIssuance.existing;
+    rawEstateIds = estateIdIssuance.rawEstateIds;
   } catch (error) {
     console.error({ ZOOM, addressObject, apiKey, error });
     console.error('[FATAL] Something happend with DynamoDB connection.');
@@ -238,6 +251,14 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
   }
+  background.push(createLog(
+    'idIssSts',
+    {
+      existing,
+      estateIds: rawEstateIds.map((rawEstateId) => rawEstateId.estateId),
+    },
+    { apiKey },
+  ));
 
   const richIdResp = !!(authenticationResult.plan === 'paid' || event.isDemoMode);
   const normalizationLevel = finalNormalized.level.toString();
@@ -273,7 +294,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
         cacheHit,
         tileInfo: {
           xy: `${x}/${y}`,
-          serial: rawEstateIds.map(({serial}) => serial),
+          serial: rawEstateIds.map(({ serial }) => serial),
           ZOOM,
         },
         apiResponse,

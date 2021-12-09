@@ -9,7 +9,12 @@ const TableName = process.env.AWS_DYNAMODB_LOG_TABLE_NAME;
 describe('createLog', () => {
   test('it works', async () => {
     const now = new Date()
-    await dynamodb_logs.createLog("it works", { some: "metadata" }, now)
+    await dynamodb_logs.createLog(
+      "it works",
+      { some: "metadata" },
+      { userId: 'MY-USER-ID' },
+      now,
+    )
     const PK = `LOG#it works#${now.toISOString().slice(0, 10)}`
     const resp = await DB.query({
       TableName,
@@ -25,6 +30,8 @@ describe('createLog', () => {
     expect(resp.Count!).toBeGreaterThan(0)
     expect(resp.Items![0]).toMatchObject({
       PK,
+      userId: 'MY-USER-ID',
+      createAt: now.toISOString(),
       some: "metadata"
     })
   })

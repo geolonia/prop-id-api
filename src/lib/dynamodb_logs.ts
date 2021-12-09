@@ -16,7 +16,7 @@ export interface AddressDatabaseRecord {
   */
   SK: string
 
-  latLng?: [ string, string ]
+  latLng?: [string, string]
 
   createdBy: string
   updatedBy: string
@@ -24,17 +24,27 @@ export interface AddressDatabaseRecord {
   updatedAt: string
 }
 
-export const createLog = async (identifier: string, metadata: { [key: string]: any }, now: Date = new Date()): Promise<void> => {
+export const createLog = async (
+  logIdentifier: string,
+  metadata: { [key: string]: any },
+  userIdentifier: { apiKey?: string, userId?: string } = {},
+  now: Date = new Date(),
+): Promise<void> => {
   const nowStr = now.toISOString();
   const datePart = nowStr.slice(0, 10);
-  const PK = `LOG#${identifier}#${datePart}`;
+  const PK = `LOG#${logIdentifier}#${datePart}`;
   const SK = ulid(now.getTime());
+
+  const { apiKey, userId } = userIdentifier;
 
   await DB.put({
     TableName,
     Item: {
       PK,
       SK,
+      userId,
+      apiKey,
+      createAt: nowStr,
       ...metadata,
     },
   }).promise();
@@ -98,42 +108,42 @@ export const withLock = async <T = any>(lockId: string, inner: () => Promise<T>)
 
 export const normalizeBanchiGo: (prenormalized: NormalizeResult) => Promise<NormalizeResult>
   =
-async (nja: NormalizeResult) => {
-  const dbItems = await DB.query({
-    TableName,
-    KeyConditionExpression: '#pk = :pk',
-    ExpressionAttributeNames: {
-      '#pk': 'PK',
-    },
-    ExpressionAttributeValues: {
-      ':pk': `AddrDB#${nja.pref}${nja.city}${nja.town}`,
-    },
-  }).promise();
+  async (nja: NormalizeResult) => {
+    const dbItems = await DB.query({
+      TableName,
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: {
+        '#pk': 'PK',
+      },
+      ExpressionAttributeValues: {
+        ':pk': `AddrDB#${nja.pref}${nja.city}${nja.town}`,
+      },
+    }).promise();
 
-  const items = (dbItems.Items || []) as AddressDatabaseRecord[];
-  items.sort((a, b) => b.SK.length - a.SK.length);
-  for (const item of items) {
-    if (nja.addr.startsWith(item.SK)) {
-      // we have a match
-      const narrowedNormal = {
-        ...nja,
-        addr: item.SK,
-        building: nja.addr.slice(item.SK.length).trim(),
-      };
-      if (item.SK.indexOf('-') > 0) {
-        // 番地号まで認識できた
-        narrowedNormal.level = 8;
-      } else {
-        // 号情報がそもそも存在しない
-        narrowedNormal.level = 7;
+    const items = (dbItems.Items || []) as AddressDatabaseRecord[];
+    items.sort((a, b) => b.SK.length - a.SK.length);
+    for (const item of items) {
+      if (nja.addr.startsWith(item.SK)) {
+        // we have a match
+        const narrowedNormal = {
+          ...nja,
+          addr: item.SK,
+          building: nja.addr.slice(item.SK.length).trim(),
+        };
+        if (item.SK.indexOf('-') > 0) {
+          // 番地号まで認識できた
+          narrowedNormal.level = 8;
+        } else {
+          // 号情報がそもそも存在しない
+          narrowedNormal.level = 7;
+        }
+        if (typeof item.latLng !== 'undefined') {
+          narrowedNormal.lat = parseFloat(item.latLng[0]);
+          narrowedNormal.lng = parseFloat(item.latLng[1]);
+        }
+        return narrowedNormal;
       }
-      if (typeof item.latLng !== 'undefined') {
-        narrowedNormal.lat = parseFloat(item.latLng[0]);
-        narrowedNormal.lng = parseFloat(item.latLng[1]);
-      }
-      return narrowedNormal;
     }
-  }
 
-  return nja;
-};
+    return nja;
+  };
