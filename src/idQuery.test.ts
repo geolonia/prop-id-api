@@ -200,3 +200,39 @@ test('should not return building name with empty building name parameter', async
   const first2 = body2[0]
   expect(first2.building).toStrictEqual(undefined)
 })
+
+test('should not include building name in address2', async () => {
+  const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID without details if authenticated with a free API key', { plan: "paid" })
+
+  const event1 = {
+    queryStringParameters: {
+      q: '滋賀県大津市御陵町3-1おはようビル123F',
+      'api-key': apiKey,
+    },
+    headers: {
+      'X-Access-Token': accessToken,
+    }
+  }
+  // @ts-ignore
+  const lambdaResult1 = await publicHandler(event1) as APIGatewayProxyResult
+  const body1 = JSON.parse(lambdaResult1.body)
+
+  const event2 = {
+    queryStringParameters: {
+      'api-key': apiKey,
+    },
+    pathParameters: {
+      estateId: body1[0].ID,
+    },
+    headers: {
+      'X-Access-Token': accessToken,
+    }
+  }
+  // @ts-ignore
+  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult
+  expect(lambdaResult2.statusCode).toBe(200)
+  const body2 = JSON.parse(lambdaResult2.body)
+  console.log('actual', body2[0].address.ja)
+  expect(body2[0].address.ja.address2).toEqual('3-1')
+  expect(body2[0].address.ja.other).toEqual('おはようビル123F')
+})

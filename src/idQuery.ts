@@ -6,6 +6,7 @@ import { getEstateId } from './lib/dynamodb';
 import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
 import { normalize } from './lib/nja';
+import { extractBuildingName } from './lib/building_normalization';
 
 export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
   const quotaType = 'id-req';
@@ -63,12 +64,14 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       lng: lng.toString(),
     };
 
+    const extracted = extractBuildingName(estateIdObj.address, prenormalizedAddress, ipcResult);
+
     const addressObject = {
       ja: {
-        prefecture: prenormalizedAddress.pref,
-        city: prenormalizedAddress.city,
-        address1: prenormalizedAddress.town,
-        address2: prenormalizedAddress.addr,
+        prefecture: extracted.pref,
+        city: extracted.city,
+        address1: extracted.town,
+        address2: extracted.addr,
         other: estateIdObj.building ? estateIdObj.building : '',
       },
     };
