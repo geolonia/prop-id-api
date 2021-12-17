@@ -220,7 +220,7 @@ resources:
     logStreamOutputBucket:
       DeletionPolicy: Retain
       Type: AWS::S3::Bucket
-      Properties: 
+      Properties:
         BucketName: ${self:custom.awsS3LogStreamOutputBucketName}
 
 functions:
@@ -284,20 +284,6 @@ functions:
           path: '/admin/feedback'
           method: post
           cors: *default_cors
-
-  demo:
-    handler: src/demo.handler
-    events:
-      - http:
-          path: '/demo'
-          method: get
-      - http:
-          path: '/demo/{estateId}'
-          method: get
-          request:
-            parameters:
-              paths:
-                estateId: true
 
   idEvents:
     handler: src/idEvents.handler
