@@ -31,14 +31,6 @@ yarn start-local-dynamodb
 $ yarn start
 ```
 
-### access the test tool locally
-
-```
-$ yarn start
-$ npx http-server -c-1 -p 8080 docs
-$ open http://127.0.0.1:8080/debug?url=http://127.0.0.1:3000/dev/demo
-```
-
 ### update Snapshot tests
 
 ```shell
