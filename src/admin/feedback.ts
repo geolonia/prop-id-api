@@ -33,6 +33,7 @@ export const create: AdminHandler = async (event) => {
     'idMerge': 'IDの統合依頼',
     'locationFix': '緯度経度修正依頼',
     'nameChange': '地名・住所・ビル名変更依頼',
+    'addBanchiGo': '番地または号の追加依頼',
   };
 
   const blocks: IncomingWebhookSendArguments['blocks'] = [
@@ -110,6 +111,24 @@ export const create: AdminHandler = async (event) => {
         {
           type: 'mrkdwn',
           text: `*地名変更、住所変更の確認方法*\n${feedback.nameChange?.confirm}`,
+        },
+      ],
+    });
+  } else if (feedback.feedbackType === 'addBanchiGo') {
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*${feedbackTypes[feedback.feedbackType] || feedback.feedbackType}*`,
+      },
+      fields: [
+        {
+          type: 'mrkdwn',
+          text: `*新しい番地または号*\n${feedback.addBanchiGo?.contents}`,
+        },
+        {
+          type: 'mrkdwn',
+          text: `*地名変更、住所変更の確認方法*\n${feedback.addBanchiGo?.confirm}`,
         },
       ],
     });
