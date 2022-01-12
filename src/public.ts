@@ -137,8 +137,8 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   const prefCode = getPrefCode(feature.properties.pref);
   const { x, y } = coord2XY([lat, lng], ZOOM);
 
-  if (geocoding_level_int === 4 || geocoding_level_int === 5) {
-    /* IPC からの返答が 4 または 5 の場合（つまり、番地が認識できなったまたは、
+  if (geocoding_level_int >= 3 && geocoding_level_int <= 5) {
+    /* IPC からの返答が 3, 4, 5 の場合（つまり、番地が認識できなったまたは、
      * 番地は認識できたけど号が認識できなかった）は、自分のデータベースを問い合わせ、
      * 実在するかの確認を取ります。
      */
