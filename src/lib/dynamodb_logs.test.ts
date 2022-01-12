@@ -70,6 +70,9 @@ describe('normalizeBanchiGo', () => {
       { addr: '東京都文京区水道二丁目', bg: '2' },
       { addr: '東京都町田市木曽東四丁目', bg: '14-イ22' },
       { addr: '大阪府大阪市中央区久太郎町四丁目', bg: '渡辺3'},
+      { addr: '愛知県名古屋市名東区宝が丘', bg: '212' },
+      { addr: '神奈川県横浜市緑区三保町', bg: '2020' },
+      { addr: '京都府京都市下京区杉屋町', bg: '270' },
     ];
 
     await Promise.all(
@@ -88,6 +91,9 @@ describe('normalizeBanchiGo', () => {
     ['東京都文京区水道2丁目2 おはようビル', { addr: '2', building: 'おはようビル', level: 7 }],
     ['東京都町田市木曽東四丁目14-イ22ビル名205', { addr: '14-イ22', building: 'ビル名205', level: 8 }],
     ['大阪府大阪市中央区久太郎町四丁目渡辺3小原流ホール', { addr: '渡辺3', building: '小原流ホール', level: 7 }],
+    ['愛知県名古屋市名東区宝が丘212おはようビル', { addr: '212', building: 'おはようビル', level: 7 }],
+    ['神奈川県横浜市緑区三保町2020', { addr: '2020', building: '', level: 7 }],
+    ['京都府京都市下京区杉屋町270おはようビル5', { addr: '270', building: 'おはようビル5', level: 7 }],
   ];
 
   for (const [inputAddr, matching] of cases) {
