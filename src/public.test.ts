@@ -505,14 +505,15 @@ describe('banchi-go database', () => {
     );
   });
 
-  const cases: [string, string][] = [
+  const cases: [address: string, building: string, expectedNormResult?: any, expectedIdObject?: any][] = [
     ['東京都文京区水道2丁目80-6 おはようビル', 'おはようビル'],
     ['東京都文京区水道2丁目81 おはようビル', 'おはようビル'],
     ['東京都町田市木曽東四丁目81-イ22', ''],
     ['大阪府大阪市中央区久太郎町三丁目渡辺3小原流ホール', '小原流ホール'],
+    ['東京都文京区水道2丁目1-9999', 'マンションGEOCODINGLEVEL5', { geocoding_level: 5 }, { status: 'addressPending' }],
   ];
 
-  for (const [inputAddr, building] of cases) {
+  for (const [inputAddr, building, expectedNormResult, expectedIdObject] of cases) {
     test(`creates estate ID for ${inputAddr}`, async () => {
       const { apiKey, accessToken } = await dynamodb.createApiKey(`creates estate ID for ${inputAddr}`);
       const event = {
@@ -539,6 +540,22 @@ describe('banchi-go database', () => {
           }),
         })
       );
+
+      if (expectedNormResult) {
+        for (const key in expectedNormResult) {
+          expect(body[0][key]).toEqual(expectedNormResult[key])
+        }
+      }
+
+      if (expectedIdObject) {
+        const { Item: item = {} } = await dynamodb.DB.get({
+          TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
+          Key: { estateId: body[0].ID }
+        }).promise()
+        for (const key in expectedIdObject) {
+          expect(item[key]).toEqual(expectedIdObject[key])
+        }
+      }
     });
   }
 });
