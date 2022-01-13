@@ -189,6 +189,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   // ビル名が以前認識されていない(NJAレベルや、内部DBプロセスで)かつ、IPCのレベルが6以上だと `extractBuildingName`
   // で抽出可能となります。
+  // IPCレベル5の場合、ビル名の抽出は行わないため、 `address2` プロパティにビル名含まれたままになります。
   if (typeof finalNormalized.building === 'undefined' && ipc_geocoding_level_int >= 6) {
     const extractedBuilding = extractBuildingName(
       address,
@@ -230,8 +231,10 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
         };
       } else {
         // NOTE:
-        // 番地・号を発見できなかったときは `addressPending` としてマークし、別途確認を行う。
-        // この際にビル名が番地・号に混在する可能性などがあるので、それが取り除かれたりして住所文字列が変更されることがある。
+        // IPCレベルが5で番地・号を発見できなかったときは `addressPending` としてマークされ、別途確認を行うことになります。
+        // この住所は未知の番地・号か、あるいは単純に不正な入力値である可能性があります。
+        // また、ビル名の抽出ができないため、`address2` フィールドに番地・号とビル名が混在します。
+        // 修正のプロセスにより住所文字列は変更される可能性があります。
         const status = ipc_geocoding_level_int === 5 ? 'addressPending' : undefined;
         const storeParams: StoreEstateIdReq = {
           zoom: ZOOM,
