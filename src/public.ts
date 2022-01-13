@@ -232,7 +232,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
         // NOTE:
         // 番地・号を発見できなかったときは `addressPending` としてマークし、別途確認を行う。
         // この際にビル名が番地・号に混在する可能性などがあるので、それが取り除かれたりして住所文字列が変更されることがある。
-        const status = finalNormalized.level === 3 ? 'addressPending' : undefined;
+        const status = ipc_geocoding_level_int === 5 ? 'addressPending' : undefined;
         const storeParams: StoreEstateIdReq = {
           zoom: ZOOM,
           tileXY: `${x}/${y}`,
