@@ -203,7 +203,7 @@ export interface StoreEstateIdReq {
   tileXY: string
   zoom: number
   prefCode: string
-  status: 'confirmed' | 'addressPending' | undefined
+  status?: 'confirmed' | 'addressPending' | undefined
 }
 
 export const store = async (idObj: StoreEstateIdReq): Promise<EstateId> => {
