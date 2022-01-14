@@ -133,11 +133,11 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   const [lng, lat] = feature.geometry.coordinates as [number, number];
   const { geocoding_level } = feature.properties;
-  const geocoding_level_int = parseInt(geocoding_level, 10);
+  const ipc_geocoding_level_int = parseInt(geocoding_level, 10);
   const prefCode = getPrefCode(feature.properties.pref);
   const { x, y } = coord2XY([lat, lng], ZOOM);
 
-  if (geocoding_level_int >= 3 && geocoding_level_int <= 5) {
+  if (ipc_geocoding_level_int >= 3 && ipc_geocoding_level_int <= 5) {
     /* IPC からの返答が 3, 4, 5 の場合（つまり、番地が認識できなったまたは、
      * 番地は認識できたけど号が認識できなかった）は、自分のデータベースを問い合わせ、
      * 実在するかの確認を取ります。
@@ -150,19 +150,21 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
     background.push(createLog('normLogsIPCFail', {
       prenormalized: prenormalizedStr,
-      ipcLevel: geocoding_level_int,
+      ipcLevel: ipc_geocoding_level_int,
       intBGLevel: internalBGNormalized.level,
     }, { apiKey }));
   }
 
-  if (finalNormalized.level <= 6 && geocoding_level_int <= 6) {
+  if (finalNormalized.level <= 6 && ipc_geocoding_level_int <= 6) {
     background.push(ipcNormalizationErrorReport('normLogsIPCGeom', {
       prenormalized: prenormalizedStr,
       geocoding_level: geocoding_level,
     }));
+  }
 
+  if (finalNormalized.level <= 3 && ipc_geocoding_level_int <= 4) {
     const error_code_detail = (
-      IPC_NORMALIZATION_ERROR_CODE_DETAILS[geocoding_level_int.toString()]
+      IPC_NORMALIZATION_ERROR_CODE_DETAILS[ipc_geocoding_level_int.toString()]
       || IPC_NORMALIZATION_ERROR_CODE_DETAILS['-1']
     );
     await Promise.all(background);
@@ -187,7 +189,8 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   // ビル名が以前認識されていない(NJAレベルや、内部DBプロセスで)かつ、IPCのレベルが6以上だと `extractBuildingName`
   // で抽出可能となります。
-  if (typeof finalNormalized.building === 'undefined' && geocoding_level_int >= 6) {
+  // IPCレベル5の場合、ビル名の抽出は行わないため、 `address2` プロパティにビル名含まれたままになります。
+  if (typeof finalNormalized.building === 'undefined' && ipc_geocoding_level_int >= 6) {
     const extractedBuilding = extractBuildingName(
       address,
       prenormalized,
@@ -227,6 +230,12 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
           rawEstateIds: existingEstateIds,
         };
       } else {
+        // NOTE:
+        // IPCレベルとNJA正規化レベルの両方が 5 以下で番地・号を発見できなかったときは `addressPending` としてマークされ、別途確認を行うことになります。
+        // この住所は未知の番地・号か、あるいは単純に不正な入力値である可能性があります。
+        // また、ビル名の抽出ができないため、`address2` フィールドに番地・号とビル名が混在します。
+        // 修正のプロセスにより住所文字列は変更される可能性があります。
+        const status = finalNormalized.level <= 5 && ipc_geocoding_level_int <= 5 ? 'addressPending' : undefined;
         const storeParams: StoreEstateIdReq = {
           zoom: ZOOM,
           tileXY: `${x}/${y}`,
@@ -235,6 +244,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
           rawBuilding: finalNormalized.building,
           building: normalizedBuilding,
           prefCode,
+          status,
         };
         return {
           existing: false,
