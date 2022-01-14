@@ -6,6 +6,14 @@ import { EstateId, DB } from './lib/dynamodb';
 import { sendSlackNotification } from './lib/slack';
 import type { PlainTextElement, MrkdwnElement } from '@slack/types';
 
+const _isPending = async (id: EstateId) => {
+  const resp = await DB.get({
+    TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
+    Key: { estateId: id.estateId },
+  }).promise();
+  return resp.Item?.status === 'addressPending';
+};
+
 const _findDuplicateAddress = async (estateId: EstateId) => {
   const resp = await DB.query({
     TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
@@ -50,25 +58,39 @@ const _findDuplicateTile = async (estateId: EstateId) => {
 
 const _findDuplicates = async (id: EstateId) => {
   const [
+    pendingAddr,
     dupAddr,
     dupTile,
   ] = await Promise.all([
+    _isPending(id),
     _findDuplicateAddress(id),
     _findDuplicateTile(id),
   ]);
 
+  if (!pendingAddr && !dupAddr && !dupTile) {
+    // Not pending and No duplicates found -- exit here.
+    return;
+  }
+
+  const headings: string[] = [];
   const fields: (PlainTextElement | MrkdwnElement)[] = [];
 
+  if (pendingAddr) {
+    headings.push('確認待ちの住所が作成されました。');
+    fields.push({
+      type: 'mrkdwn',
+      text: '*ステータス*\n`addressPending`',
+    });
+  }
+
   if (dupAddr || dupTile) {
+    headings.push('重複する可能性がある不動産共通ID新規作成されました。');
     const dupAddrStr = dupAddr ? '正規化済み住所\n' : '';
     const dupTileStr = dupTile ? 'タイル番号\n' : '';
     fields.push({
       type: 'mrkdwn',
       text: `*重複項目*\n${dupAddrStr}${dupTileStr}`,
     });
-  } else {
-    // No duplicates found -- exit here.
-    return;
   }
 
   fields.push({
@@ -105,7 +127,7 @@ const _findDuplicates = async (id: EstateId) => {
           type: 'section',
           text: {
             type: 'plain_text',
-            text: '重複する可能性がある不動産共通ID新規作成されました。',
+            text: headings.join('\n'),
           },
         },
         {
