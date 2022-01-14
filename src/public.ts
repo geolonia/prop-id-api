@@ -231,11 +231,11 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
         };
       } else {
         // NOTE:
-        // IPCレベルが5で番地・号を発見できなかったときは `addressPending` としてマークされ、別途確認を行うことになります。
+        // IPCレベルとNJA正規化レベルの両方が 5 以下で番地・号を発見できなかったときは `addressPending` としてマークされ、別途確認を行うことになります。
         // この住所は未知の番地・号か、あるいは単純に不正な入力値である可能性があります。
         // また、ビル名の抽出ができないため、`address2` フィールドに番地・号とビル名が混在します。
         // 修正のプロセスにより住所文字列は変更される可能性があります。
-        const status = ipc_geocoding_level_int === 5 ? 'addressPending' : undefined;
+        const status = finalNormalized.level <= 5 && ipc_geocoding_level_int <= 5 ? 'addressPending' : undefined;
         const storeParams: StoreEstateIdReq = {
           zoom: ZOOM,
           tileXY: `${x}/${y}`,

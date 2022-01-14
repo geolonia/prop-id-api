@@ -492,6 +492,15 @@ describe('banchi-go database', () => {
       { addr: '東京都文京区水道二丁目', bg: '81' },
       { addr: '東京都町田市木曽東四丁目', bg: '81-イ22' },
       { addr: '大阪府大阪市中央区久太郎町三丁目', bg: '渡辺3'},
+
+      // Corresponds to the 5th test case below.
+      // We should not register this address in the database prior to testing.
+      // It's not normalized by IPC, nor internally.
+      // { addr: '東京都文京区水道二丁目', bg: '1-9999' },
+
+      // Corresponds to the 6th test case below.
+      // It's normalized internally but not by IPC.
+      { addr: '東京都文京区水道二丁目', bg: '1-9998' },
     ];
 
     await Promise.all(
@@ -510,7 +519,8 @@ describe('banchi-go database', () => {
     ['東京都文京区水道2丁目81 おはようビル', 'おはようビル',, { status: undefined }],
     ['東京都町田市木曽東四丁目81-イ22', '',, { status: undefined }],
     ['大阪府大阪市中央区久太郎町三丁目渡辺3小原流ホール', '小原流ホール',, { status: undefined }],
-    ['東京都文京区水道2丁目1-9999マンションGEOCODINGLEVEL5', '', { geocoding_level: '5' }, { status: 'addressPending' }],
+    ['東京都文京区水道2丁目1-9999マンションGLV5NLV3', '', { geocoding_level: '5', normalization_level: '3' }, { status: 'addressPending' }],
+    ['東京都文京区水道2丁目1-9998マンションGLV5NLV8', 'マンションGLV5NLV8', { geocoding_level: '5', normalization_level: '8' }, { status: undefined }],
   ];
 
   for (const [inputAddr, building, expectedNormResult, expectedIdObject] of cases) {
@@ -543,7 +553,7 @@ describe('banchi-go database', () => {
 
       if (expectedNormResult) {
         for (const key in expectedNormResult) {
-          expect(body[0][key]).toEqual(expectedNormResult[key])
+          expect(`${key}=${body[0][key]}`).toEqual(`${key}=${expectedNormResult[key]}`)
         }
       }
 
@@ -554,7 +564,7 @@ describe('banchi-go database', () => {
         }).promise()
         const item = ddbGetResp.Item as any
         for (const key in expectedIdObject) {
-          expect(item[key]).toEqual(expectedIdObject[key])
+          expect(`${key}=${item[key]}`).toEqual(`${key}=${expectedIdObject[key]}`)
         }
       }
     });
