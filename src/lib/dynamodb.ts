@@ -34,7 +34,7 @@ export interface BaseEstateId {
   rawAddress: string
   building?: string
   rawBuilding?: string
-  status?: string
+  status?: 'confirmed' | 'addressPending' | undefined
 }
 
 export interface ConsolidatedEstateId extends BaseEstateId {
