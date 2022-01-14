@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@geolonia/normalize-japanese-addresses": "*",
-    "@slack/webhook": "^6.0.0",
+    "@slack/webhook": "^6.1.0",
     "auth0": "^2.37.0",
     "axios": "^0.24.0",
     "jsonwebtoken": "^8.5.1",
