@@ -367,7 +367,7 @@ describe("normalization error cases",  () => {
       ['和歌県', 'prefecture_not_recognized'],
       ['おはよう', 'prefecture_not_recognized'],
       ['東京都千代田区飯田橋１丁目', 'geo_koaza'],
-      // ['東京都千代田区飯田橋１丁目３', 'geo_banchi'], // should issue an ID and have status `addressPeinding`
+      // ['東京都千代田区飯田橋１丁目３', 'geo_banchi'], // should issue an ID and have status `addressPending`
     ]
 
     for (const addressData of addresses) {
