@@ -51,14 +51,12 @@
   },
   "dependencies": {
     "@geolonia/normalize-japanese-addresses": "*",
-    "@slack/webhook": "^6.0.0",
+    "@slack/webhook": "^6.1.0",
     "auth0": "^2.37.0",
     "axios": "^0.24.0",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.0.5",
     "luxon": "^2.3.0",
-    "superagent": "^6.1.0",
-    "superagent-proxy": "^3.0.0",
     "ulid": "^2.3.0"
   }
 }
