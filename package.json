@@ -57,8 +57,6 @@
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.0.5",
     "luxon": "^2.3.0",
-    "superagent": "^7.0.2",
-    "superagent-proxy": "^3.0.0",
     "ulid": "^2.3.0"
   }
 }
