@@ -34,6 +34,7 @@ export interface BaseEstateId {
   rawAddress: string
   building?: string
   rawBuilding?: string
+  status?: string
 }
 
 export interface ConsolidatedEstateId extends BaseEstateId {

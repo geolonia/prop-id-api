@@ -6,14 +6,6 @@ import { EstateId, DB } from './lib/dynamodb';
 import { sendSlackNotification } from './lib/slack';
 import type { PlainTextElement, MrkdwnElement } from '@slack/types';
 
-const _isPending = async (id: EstateId) => {
-  const resp = await DB.get({
-    TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
-    Key: { estateId: id.estateId },
-  }).promise();
-  return resp.Item?.status === 'addressPending';
-};
-
 const _findDuplicateAddress = async (estateId: EstateId) => {
   const resp = await DB.query({
     TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
@@ -58,14 +50,13 @@ const _findDuplicateTile = async (estateId: EstateId) => {
 
 const _findDuplicates = async (id: EstateId) => {
   const [
-    isPending,
     dupAddr,
     dupTile,
   ] = await Promise.all([
-    _isPending(id),
     _findDuplicateAddress(id),
     _findDuplicateTile(id),
   ]);
+  const isPending = id.status === 'addressPending';
   const isDuplicated = dupAddr || dupTile;
 
   if (!isPending && !isDuplicated) {
