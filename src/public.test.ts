@@ -367,7 +367,7 @@ describe("normalization error cases",  () => {
       ['和歌県', 'prefecture_not_recognized'],
       ['おはよう', 'prefecture_not_recognized'],
       ['東京都千代田区飯田橋１丁目', 'geo_koaza'],
-      ['東京都千代田区飯田橋１丁目３', 'geo_banchi'],
+      // ['東京都千代田区飯田橋１丁目３', 'geo_banchi'], // should issue an ID and have status `addressPending`
     ]
 
     for (const addressData of addresses) {
@@ -492,6 +492,15 @@ describe('banchi-go database', () => {
       { addr: '東京都文京区水道二丁目', bg: '81' },
       { addr: '東京都町田市木曽東四丁目', bg: '81-イ22' },
       { addr: '大阪府大阪市中央区久太郎町三丁目', bg: '渡辺3'},
+
+      // Corresponds to the 5th test case below.
+      // We should not register this address in the database prior to testing.
+      // It's not normalized by IPC, nor internally.
+      // { addr: '東京都文京区水道二丁目', bg: '1-9999' },
+
+      // Corresponds to the 6th test case below.
+      // It's normalized internally but not by IPC.
+      { addr: '東京都文京区水道二丁目', bg: '1-9998' },
     ];
 
     await Promise.all(
@@ -505,14 +514,16 @@ describe('banchi-go database', () => {
     );
   });
 
-  const cases: [string, string][] = [
-    ['東京都文京区水道2丁目80-6 おはようビル', 'おはようビル'],
-    ['東京都文京区水道2丁目81 おはようビル', 'おはようビル'],
-    ['東京都町田市木曽東四丁目81-イ22', ''],
-    ['大阪府大阪市中央区久太郎町三丁目渡辺3小原流ホール', '小原流ホール'],
+  const cases: [address: string, building: string, expectedNormResult?: any, expectedIdObject?: any][] = [
+    ['東京都文京区水道2丁目80-6 おはようビル', 'おはようビル',, { status: undefined }],
+    ['東京都文京区水道2丁目81 おはようビル', 'おはようビル',, { status: undefined }],
+    ['東京都町田市木曽東四丁目81-イ22', '',, { status: undefined }],
+    ['大阪府大阪市中央区久太郎町三丁目渡辺3小原流ホール', '小原流ホール',, { status: undefined }],
+    ['東京都文京区水道2丁目1-9999マンションGLV5NLV3', '', { geocoding_level: '5', normalization_level: '3' }, { status: 'addressPending' }],
+    ['東京都文京区水道2丁目1-9998マンションGLV5NLV8', 'マンションGLV5NLV8', { geocoding_level: '5', normalization_level: '8' }, { status: undefined }],
   ];
 
-  for (const [inputAddr, building] of cases) {
+  for (const [inputAddr, building, expectedNormResult, expectedIdObject] of cases) {
     test(`creates estate ID for ${inputAddr}`, async () => {
       const { apiKey, accessToken } = await dynamodb.createApiKey(`creates estate ID for ${inputAddr}`);
       const event = {
@@ -539,6 +550,23 @@ describe('banchi-go database', () => {
           }),
         })
       );
+
+      if (expectedNormResult) {
+        for (const key in expectedNormResult) {
+          expect(`${key}=${body[0][key]}`).toEqual(`${key}=${expectedNormResult[key]}`)
+        }
+      }
+
+      if (expectedIdObject) {
+        const ddbGetResp = await dynamodb.DB.get({
+          TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
+          Key: { estateId: body[0].ID }
+        }).promise()
+        const item = ddbGetResp.Item as any
+        for (const key in expectedIdObject) {
+          expect(`${key}=${item[key]}`).toEqual(`${key}=${expectedIdObject[key]}`)
+        }
+      }
     });
   }
 });

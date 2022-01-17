@@ -34,6 +34,7 @@ export interface BaseEstateId {
   rawAddress: string
   building?: string
   rawBuilding?: string
+  status?: 'confirmed' | 'addressPending' | undefined
 }
 
 export interface ConsolidatedEstateId extends BaseEstateId {
@@ -203,6 +204,7 @@ export interface StoreEstateIdReq {
   tileXY: string
   zoom: number
   prefCode: string
+  status?: 'confirmed' | 'addressPending' | undefined
 }
 
 export const store = async (idObj: StoreEstateIdReq): Promise<EstateId> => {
