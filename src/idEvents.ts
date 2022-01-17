@@ -56,25 +56,34 @@ const _findDuplicates = async (id: EstateId) => {
     _findDuplicateAddress(id),
     _findDuplicateTile(id),
   ]);
+  const isPending = id.status === 'addressPending';
+  const isDuplicated = dupAddr || dupTile;
 
-  const fields: (PlainTextElement | MrkdwnElement)[] = [];
-
-  if (dupAddr || dupTile) {
-    const dupAddrStr = dupAddr ? '正規化済み住所\n' : '';
-    const dupTileStr = dupTile ? 'タイル番号\n' : '';
-    fields.push({
-      type: 'mrkdwn',
-      text: `*重複項目*\n${dupAddrStr}${dupTileStr}`,
-    });
-  } else {
-    // No duplicates found -- exit here.
+  if (!isPending && !isDuplicated) {
+    // Not pending and No duplicates found -- exit here.
     return;
   }
+
+  const fields: (PlainTextElement | MrkdwnElement)[] = [];
 
   fields.push({
     type: 'mrkdwn',
     text: `*ID*\n\`${id.estateId}\``,
   });
+  fields.push({
+    type: 'mrkdwn',
+    text: `*確認項目*\n${isPending ? '- 不確かな番地・号に対する ID の発行\n' : ''}${isDuplicated ? '- 重複の可能性\n' : ''}`,
+  });
+
+  if (isDuplicated) {
+    const dupAddrStr = dupAddr ? '- 正規化済み住所\n' : '';
+    const dupTileStr = dupTile ? `- タイル番号 (\`${id.tileXY}\`)\n` : '';
+    fields.push({
+      type: 'mrkdwn',
+      text: `*重複項目*\n${dupAddrStr}${dupTileStr}`,
+    });
+  }
+
   fields.push({
     type: 'mrkdwn',
     text: `*正規化済み住所*\n${id.address}`,
@@ -104,8 +113,8 @@ const _findDuplicates = async (id: EstateId) => {
         {
           type: 'section',
           text: {
-            type: 'plain_text',
-            text: '重複する可能性がある不動産共通ID新規作成されました。',
+            type: 'mrkdwn',
+            text: '🔍*確認が必要な不動産共通 ID が発行されました*',
           },
         },
         {
