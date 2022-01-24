@@ -132,8 +132,9 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   }
 
   const [lng, lat] = feature.geometry.coordinates as [number, number];
-  const { geocoding_level } = feature.properties;
+  const { geocoding_level, not_normalized } = feature.properties;
   const ipc_geocoding_level_int = parseInt(geocoding_level, 10);
+  const ipc_not_normalized_address_part = not_normalized;
   const prefCode = getPrefCode(feature.properties.pref);
   const { x, y } = coord2XY([lat, lng], ZOOM);
 
@@ -162,7 +163,11 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     }));
   }
 
-  if (finalNormalized.level <= 3 && ipc_geocoding_level_int <= 4) {
+  // IPC LV 4 であっても、正規化できなかったパートがなかった場合は不十分な住所が入力されていると判断できる
+  if (
+    (finalNormalized.level <= 3 && ipc_geocoding_level_int <= 3) ||
+    (finalNormalized.level <= 3 && ipc_geocoding_level_int === 4 && !ipc_not_normalized_address_part)
+  ) {
     const error_code_detail = (
       IPC_NORMALIZATION_ERROR_CODE_DETAILS[ipc_geocoding_level_int.toString()]
       || IPC_NORMALIZATION_ERROR_CODE_DETAILS['-1']
