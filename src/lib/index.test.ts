@@ -77,7 +77,7 @@ describe('IncrementP Verification API', () => {
             }
           }
         ],
-        "attribution": "(c) INCREMENT P CORPORATION"
+        "attribution": "(c) GeoTechnologies Inc."
       })
   })
 
@@ -115,7 +115,7 @@ describe('IncrementP Verification API', () => {
           }
         }
       ],
-      attribution: '(c) INCREMENT P CORPORATION'
+      attribution: '(c) GeoTechnologies Inc.'
     })
   })
 
