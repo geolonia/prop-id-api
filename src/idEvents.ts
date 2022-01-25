@@ -4,7 +4,6 @@ import AWS from 'aws-sdk';
 import Sentry from './lib/sentry';
 import { EstateId, DB } from './lib/dynamodb';
 import { sendSlackNotification } from './lib/slack';
-import type { PlainTextElement, MrkdwnElement, SectionBlock } from '@slack/types';
 
 const _findDuplicateAddress = async (estateId: EstateId) => {
   const resp = await DB.query({
