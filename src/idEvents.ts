@@ -4,7 +4,7 @@ import AWS from 'aws-sdk';
 import Sentry from './lib/sentry';
 import { EstateId, DB } from './lib/dynamodb';
 import { sendSlackNotification } from './lib/slack';
-import type { PlainTextElement, MrkdwnElement } from '@slack/types';
+import type { PlainTextElement, MrkdwnElement, SectionBlock } from '@slack/types';
 
 const _findDuplicateAddress = async (estateId: EstateId) => {
   const resp = await DB.query({
@@ -64,41 +64,70 @@ const _findDuplicates = async (id: EstateId) => {
     return;
   }
 
-  const fields: (PlainTextElement | MrkdwnElement)[] = [];
+  const sectionBlocks = [];
 
-  fields.push({
-    type: 'mrkdwn',
-    text: `*ID*\n\`${id.estateId}\``,
-  });
-  fields.push({
-    type: 'mrkdwn',
-    text: `*確認項目*\n${isPending ? '- 不確かな番地・号に対する ID の発行\n' : ''}${isDuplicated ? '- 重複の可能性\n' : ''}`,
-  });
+  const pendingStr = isPending ? '• 不確かな番地・号に対する ID の発行\n' : '';
+  const dupStr = isDuplicated ? '• 重複の可能性\n' : '';
 
+  const checklistSection = {
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: `*確認項目*:\n${pendingStr}${dupStr}`,
+      },
+    ],
+  };
   if (isDuplicated) {
-    const dupAddrStr = dupAddr ? '- 正規化済み住所\n' : '';
-    const dupTileStr = dupTile ? `- タイル番号 (\`${id.tileXY}\`)\n` : '';
-    fields.push({
+    const dupAddrStr = dupAddr ? '• 正規化済み住所\n' : '';
+    const dupTileStr = dupTile ? '• タイル番号\n' : '';
+    checklistSection.fields.push({
       type: 'mrkdwn',
-      text: `*重複項目*\n${dupAddrStr}${dupTileStr}`,
+      text: `*重複項目*:\n${dupAddrStr}${dupTileStr}`,
     });
   }
 
-  fields.push({
-    type: 'mrkdwn',
-    text: `*正規化済み住所*\n${id.address}`,
-  });
-  fields.push({
-    type: 'mrkdwn',
-    text: `*入力住所*\n${id.rawAddress}`,
-  });
+  const parameterSection = {
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: `*ID*:\n\`${id.estateId}\``,
+      },
+    ],
+  };
+  if (dupTile) {
+    parameterSection.fields.push({
+      type: 'mrkdwn',
+      text: `*タイル番号*:\n\`${id.tileXY}\``,
+    });
+  }
 
+  const addressSection = {
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: `*入力住所*:\n${id.rawAddress}`,
+      },
+      {
+        type: 'mrkdwn',
+        text: `*正規化住所*:\n${id.address}`,
+      },
+    ],
+  };
   if (id.building) {
-    fields.push({
+    addressSection.fields.push({
       type: 'mrkdwn',
-      text: `*建物名*\n${id.building}`,
+      text: `*建物名*:\n${id.building}`,
     });
   }
+
+  sectionBlocks.push(
+    checklistSection,
+    parameterSection,
+    addressSection,
+  );
 
   const channels = {
     local: 'dev-propid-id-notifications-dev',
@@ -111,16 +140,13 @@ const _findDuplicates = async (id: EstateId) => {
       channel: channels[process.env.STAGE],
       blocks: [
         {
-          type: 'section',
+          type: 'header',
           text: {
-            type: 'mrkdwn',
-            text: '🔍*確認が必要な不動産共通 ID が発行されました*',
+            type: 'plain_text',
+            text: ':mag: 確認が必要な不動産共通 ID が発行されました',
           },
         },
-        {
-          type: 'section',
-          fields,
-        },
+        ...sectionBlocks,
       ],
     });
   } catch (e: any) {
