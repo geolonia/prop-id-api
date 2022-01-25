@@ -165,8 +165,9 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   // IPC LV 4 であっても、正規化できなかったパートがなかった場合は不十分な住所が入力されていると判断できる
   if (
-    (finalNormalized.level <= 3 && ipc_geocoding_level_int <= 3) ||
-    (finalNormalized.level <= 3 && ipc_geocoding_level_int === 4 && !ipc_not_normalized_address_part)
+    finalNormalized.level <= 3 &&
+    ipc_geocoding_level_int <= 4 &&
+    !ipc_not_normalized_address_part
   ) {
     const error_code_detail = (
       IPC_NORMALIZATION_ERROR_CODE_DETAILS[ipc_geocoding_level_int.toString()]
