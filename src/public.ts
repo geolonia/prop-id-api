@@ -148,6 +148,10 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       // 内部で番地号情報がありました。
       finalNormalized = internalBGNormalized;
     }
+    // NOTE: これ以降、 normalization_level( = finalNormalized.level、最終正規化レベル) は NJA レベルを継承します。
+    // 最終正規化レベルは 3 以外に、以下の2つのレベルを取りえます
+    // - 7: 番地・号を認識できなかった
+    // - 8: 番地・号を認識できた
 
     background.push(createLog('normLogsIPCFail', {
       prenormalized: prenormalizedStr,
@@ -163,10 +167,12 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     }));
   }
 
-  // IPC LV 4 であっても、正規化できなかったパートがなかった場合は不十分な住所が入力されていると判断できる
+  // IPC LV 4 以下（小字以下が正規化けるできなかった）かつ正規化できなかったパートが存在しない場合は不十分な住所が入力されているケースだと判断できる
+  // この場合はエラーとして処理
   if (
-    (finalNormalized.level <= 3 && ipc_geocoding_level_int <= 3) ||
-    (finalNormalized.level <= 3 && ipc_geocoding_level_int === 4 && !ipc_not_normalized_address_part)
+    finalNormalized.level <= 3 &&
+    ipc_geocoding_level_int <= 4 &&
+    !ipc_not_normalized_address_part
   ) {
     const error_code_detail = (
       IPC_NORMALIZATION_ERROR_CODE_DETAILS[ipc_geocoding_level_int.toString()]
@@ -236,11 +242,11 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
         };
       } else {
         // NOTE:
-        // IPCレベルとNJA正規化レベルの両方が 5 以下で番地・号を発見できなかったときは `addressPending` としてマークされ、別途確認を行うことになります。
+        // 番地・号を発見できなかったとき(最終正規化レベル <= 6 かつ IPC <=5)は `addressPending` としてマークされ、別途確認を行うことになります。
         // この住所は未知の番地・号か、あるいは単純に不正な入力値である可能性があります。
         // また、ビル名の抽出ができないため、`address2` フィールドに番地・号とビル名が混在します。
         // 修正のプロセスにより住所文字列は変更される可能性があります。
-        const status = finalNormalized.level <= 5 && ipc_geocoding_level_int <= 5 ? 'addressPending' : undefined;
+        const status = finalNormalized.level <= 6 && ipc_geocoding_level_int <= 5 ? 'addressPending' : undefined;
         const storeParams: StoreEstateIdReq = {
           zoom: ZOOM,
           tileXY: `${x}/${y}`,
