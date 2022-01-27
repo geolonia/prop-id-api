@@ -148,9 +148,10 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       // 内部で番地号情報がありました。
       finalNormalized = internalBGNormalized;
     }
-    // NOTE: これ以降、 normalization_level( = finalNormalized.level) は NJA レベルの 3 以外に、以下の2つのレベルを取り得ます
-    // 7: 番地・号を認識できなかった
-    // 8: 番地・号を認識できた
+    // NOTE: これ以降、 normalization_level( = finalNormalized.level、最終正規化レベル) は NJA レベルを継承します。
+    // 最終正規化レベルは 3 以外に、以下の2つのレベルを取りえます
+    // - 7: 番地・号を認識できなかった
+    // - 8: 番地・号を認識できた
 
     background.push(createLog('normLogsIPCFail', {
       prenormalized: prenormalizedStr,
@@ -241,11 +242,11 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
         };
       } else {
         // NOTE:
-        // 番地・号を発見できなかったとき(IPC <=5 かつ 正規化レベル <= 6)は `addressPending` としてマークされ、別途確認を行うことになります。
+        // 番地・号を発見できなかったとき(最終正規化レベル <= 6 かつ IPC <=5)は `addressPending` としてマークされ、別途確認を行うことになります。
         // この住所は未知の番地・号か、あるいは単純に不正な入力値である可能性があります。
         // また、ビル名の抽出ができないため、`address2` フィールドに番地・号とビル名が混在します。
         // 修正のプロセスにより住所文字列は変更される可能性があります。
-        const status = finalNormalized.level <= 5 && ipc_geocoding_level_int <= 6 ? 'addressPending' : undefined;
+        const status = finalNormalized.level <= 6 && ipc_geocoding_level_int <= 5 ? 'addressPending' : undefined;
         const storeParams: StoreEstateIdReq = {
           zoom: ZOOM,
           tileXY: `${x}/${y}`,
