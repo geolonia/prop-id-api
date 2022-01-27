@@ -2659,18 +2659,17 @@ atob@^2.1.2:
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.1.2.tgz#6d9517eb9e030d2436666651e86bd9f6f13533c9"
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
-auth0@^2.37.0:
-  version "2.37.0"
-  resolved "https://registry.yarnpkg.com/auth0/-/auth0-2.37.0.tgz#7147ead0e6bbbeada96bb4d5113eac3011ba7ea4"
-  integrity sha512-6Kz/+7d3PRb1zKR6O7CVt0EHAu+dphLFbJcvCEn7z9mUyjM0kJp/RnkALfFLfVzmSsaWeBqQNi2uZmdjReCjzQ==
+auth0@^2.38.0:
+  version "2.38.0"
+  resolved "https://registry.yarnpkg.com/auth0/-/auth0-2.38.0.tgz#e42fce3f9bb4b4a5f3a09efff3a5d1e2c335851e"
+  integrity sha512-cxtlroMDPHRnBr8ToTCZUp6u/j6z7s8FZ4fku9Jou6zECfwWJWXV1ZEptW0Y4thOGTfsESOGs4CRTr7fB6U03g==
   dependencies:
-    axios "^0.21.4"
-    es6-promisify "^6.1.1"
+    axios "^0.24.0"
     form-data "^3.0.1"
     jsonwebtoken "^8.5.1"
     jwks-rsa "^1.12.1"
     lru-memoizer "^2.1.4"
-    rest-facade "^1.13.1"
+    rest-facade "^1.16.3"
     retry "^0.13.1"
 
 aws-sdk@^2.1036.0:
@@ -4206,7 +4205,7 @@ es6-iterator@^2.0.3, es6-iterator@~2.0.1, es6-iterator@~2.0.3:
     es5-ext "^0.10.35"
     es6-symbol "^3.1.1"
 
-es6-promisify@^6.0.0, es6-promisify@^6.1.1:
+es6-promisify@^6.0.0:
   version "6.1.1"
   resolved "https://registry.yarnpkg.com/es6-promisify/-/es6-promisify-6.1.1.tgz#46837651b7b06bf6fff893d03f29393668d01621"
   integrity sha512-HBL8I3mIki5C1Cc9QjKUenHtnG0A5/xA8Q/AllRcfiwl2CZFXGK7ddBiCoRwAix4i2KxcQfjtIVcrVbB3vbmwg==
@@ -8544,7 +8543,7 @@ responselike@^2.0.0:
   dependencies:
     lowercase-keys "^2.0.0"
 
-rest-facade@^1.13.1:
+rest-facade@^1.16.3:
   version "1.16.3"
   resolved "https://registry.yarnpkg.com/rest-facade/-/rest-facade-1.16.3.tgz#e4d4b44a4f6a4268f30f02e1f544dd49b040499e"
   integrity sha512-9BQTPLiwg23XZwcWi0ys1wTizfc//0b2G3U6vBWcgqh56ozs2K6CD+Jw4DYcw3AqdPQN7jj8nzRUcUXFVGzb0Q==
