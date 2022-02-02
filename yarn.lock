@@ -967,10 +967,10 @@
   resolved "https://registry.yarnpkg.com/@geolonia/japanese-numeral/-/japanese-numeral-0.1.15.tgz#e6e476e403efac60e6b3270fd19c46afb8200b91"
   integrity sha512-g8xizIJH7sfd5JSJyN6pCbNNWVkasMpw84gpYQZJ09VDuTT5qzT5cKhr3+pFyS4SpfwQ9rrsJBmeD6z3vI2bjA==
 
-"@geolonia/normalize-japanese-addresses@*":
-  version "2.5.3"
-  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-2.5.3.tgz#4bd11b408dc98ad34ae1680b96265a6a133a22c0"
-  integrity sha512-R57sY/+nzawidVdT6U2ksDwvxkUXl5M/sPJnR1V0aLvj5mHkn9tbtQL63Z8/4bRBqTO8U8emI05hs4JXPplE4Q==
+"@geolonia/normalize-japanese-addresses@^2.5.5":
+  version "2.5.5"
+  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-2.5.5.tgz#666bd04ba7c5863f74be06def1b7ac79d9c57add"
+  integrity sha512-WHyZUoDUTKhOt/cqRI0auwGEdpM8cy73Nv0MLzFV4aISb3W15qEzaxiugPfbYRwizFiJN7rm/sBtdmyfWpIq2Q==
   dependencies:
     "@geolonia/japanese-numeral" "^0.1.15"
     isomorphic-unfetch "^3.1.0"
@@ -7393,10 +7393,17 @@ node-dir@^0.1.17:
   dependencies:
     minimatch "^3.0.2"
 
-node-fetch@^2.6.0, node-fetch@^2.6.1, node-fetch@^2.6.6:
+node-fetch@^2.6.0, node-fetch@^2.6.6:
   version "2.6.6"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.6.tgz#1751a7c01834e8e1697758732e9efb6eeadfaf89"
   integrity sha512-Z8/6vRlTUChSdIgMa51jxQ4lrw/Jy5SOW10ObaA47/RElsAN2c5Pn8bTgFGWn/ibwzXTE8qwr1Yzx28vsecXEA==
+  dependencies:
+    whatwg-url "^5.0.0"
+
+node-fetch@^2.6.1:
+  version "2.6.7"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
+  integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==
   dependencies:
     whatwg-url "^5.0.0"
 
