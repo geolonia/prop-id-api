@@ -52,7 +52,7 @@
   "dependencies": {
     "@geolonia/normalize-japanese-addresses": "^2.5.5",
     "@slack/webhook": "^6.1.0",
-    "auth0": "^2.38.1",
+    "auth0": "^2.39.0",
     "axios": "^0.25.0",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.0.5",
