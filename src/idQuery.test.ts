@@ -232,7 +232,7 @@ test('should not include building name in address2', async () => {
   const lambdaResult2 = await handler(event2) as APIGatewayProxyResult
   expect(lambdaResult2.statusCode).toBe(200)
   const body2 = JSON.parse(lambdaResult2.body)
-
+  console.log(body2)
   expect(body2[0].address.ja.address2).toEqual('3-1')
   expect(body2[0].address.ja.other).toEqual('おはようビル123F')
 })
