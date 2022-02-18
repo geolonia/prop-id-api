@@ -575,7 +575,7 @@ describe('banchi-go database', () => {
 
 describe('Logging', () => {
     test('normLogsNJA should include version info', async () => {
-      const inputAddr = '滋賀県大津市御陵町３−１'
+      const inputAddr = '滋賀県大津市御陵町100−200'
       const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr}`);
       const event = {
         queryStringParameters: {
