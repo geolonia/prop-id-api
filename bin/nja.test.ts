@@ -111,7 +111,7 @@ const main = async () => {
       const currentOutput = `${pref}${city}${town}${addr}`
       if (prevOutput !== currentOutput) {
         if (!hasHeadderWtitten) {
-          process.stdout.write(`"input","create_at","prev_output@${PREV_NJA_VERSION}","current_output@${CURRENT_NJA_VERSION}"\n`)
+          process.stdout.write(`"input","create_at","nja@${PREV_NJA_VERSION}","nja@${CURRENT_NJA_VERSION}"\n`)
           hasHeadderWtitten = true
         }
         process.stdout.write(`"${input}","${createat}","${prevOutput}","${currentOutput}"\n`)
