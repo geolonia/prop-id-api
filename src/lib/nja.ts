@@ -3,7 +3,7 @@ import {
   config as NJAConfig,
   NormalizeResult as NormalizeResultBase,
 } from '@geolonia/normalize-japanese-addresses';
-// import njapkg from '@geolonia/normalize-japanese-addresses/package.json';
+import njapkg from '@geolonia/normalize-japanese-addresses/package.json';
 
 export interface NormalizeResult extends NormalizeResultBase {
   building?: string
@@ -17,7 +17,7 @@ export const joinNormalizeResult = (n: NormalizeResult) => (
 );
 
 export const versions = {
-  // nja: njapkg.version,
+  nja: njapkg.version,
   ja: japaneseAddressesVersion,
 };
 

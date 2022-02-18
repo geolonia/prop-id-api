@@ -36,7 +36,7 @@
   },
   "scripts": {
     "preinstall": "npx only-allow yarn",
-    "test": "ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest",
+    "test": "ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest src/idQuery",
     "test:ipc": "jest ./src/__tests__/ipc.test.ts",
     "test:addresses": "node ./src/test_download-data.js && ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest ./src/addresses.test.ts",
     "lint": "eslint --ext .ts --ext .js src --cache",

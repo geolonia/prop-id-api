@@ -63,9 +63,9 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       lat: lat.toString(),
       lng: lng.toString(),
     };
-
+    console.log(1, estateIdObj);
     const extracted = extractBuildingName(estateIdObj.address, prenormalizedAddress, ipcResult);
-
+    console.log(2, extracted);
     const addressObject = {
       ja: {
         prefecture: extracted.pref,

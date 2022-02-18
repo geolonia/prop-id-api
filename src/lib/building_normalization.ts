@@ -6,7 +6,9 @@ export const extractBuildingName: (
   normalizedAddr: NormalizeResult,
   geocodedAddr: IncrementPGeocodeResult
 ) => NormalizeResult = ( originalAddr, normalizedAddr, geocodedAddr ) => {
+  console.log(10, {  originalAddr, normalizedAddr, geocodedAddr });
   if ('building' in normalizedAddr && typeof normalizedAddr.building !== 'undefined') {
+    console.log(11, {normalizedAddr});
     // この住所のビル名が既に分離されています
     return normalizedAddr;
   }
@@ -22,6 +24,7 @@ export const extractBuildingName: (
     const buildingNameNJA = banchiGoOther
       .slice(banchiGoPosInAddr + banchiGo.length)
       .trim();
+    console.log(12, {banchiGoOther, normAddrWithoutBuilding, buildingNameNJA});
     let startPos;
     let buildingNamePartial = buildingNameNJA;
     while (buildingNamePartial.length >= 2 && (startPos = originalAddr.lastIndexOf(buildingNamePartial)) === -1) {
