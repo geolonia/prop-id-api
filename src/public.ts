@@ -69,6 +69,18 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     normalized: JSON.stringify(prenormalized),
   }, { apiKey }));
 
+  if (
+    prenormalized.level <= 2 ||
+    // NOTE: 以下の条件判定は NJA のレスポンスとしてはあり得ないため不要だが、念の為入れている
+    !prenormalized.town ||
+    prenormalized.town === ''
+  ) {
+    background.push(createLog('normFailNoTown', {
+      input: address,
+      output: prenormalized,
+    }, { apiKey }));
+  }
+
   if (prenormalized.level <= 2) {
     const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalized.level];
     await Promise.all(background);
@@ -82,12 +94,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       quotaParams,
       400
     );
-  }
-
-  if (!prenormalized.town || prenormalized.town === '') {
-    background.push(createLog('normFailNoTown', {
-      input: address,
-    }, { apiKey }));
   }
 
   const ipcResult = await incrementPGeocode(prenormalizedStr);

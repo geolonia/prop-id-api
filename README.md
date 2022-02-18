@@ -1,4 +1,4 @@
-#  不動産 ID API
+#  不動産共通 ID API
 
 ## 開発＆リリースフロー
 
@@ -59,3 +59,34 @@ $ node ./bin/put-api-key.mjs <description>
 # List all API Keys.
 $ node ./bin/list-api-keys.mjs
 ```
+
+## ログフォーマット
+
+```javascript
+{
+  SK: ULID,
+  PK: `LOG#${ログ識別子}#yyyy-mm-dd`,
+  userId?: string,
+  apiKey?: string,
+  createAt: string,
+  ...metadata,
+}
+```
+
+```javascript
+{
+  SK: string,
+  PK: `AddrDB#${住所}`,
+  ...metadata,
+}
+```
+
+
+### ログ識別子
+
+- `normLogsNJA` - NJA 正規化試行のログ
+- `normFailNoTown` - NJA 失敗時のログ
+- `normFailNoIPCGeom` - IPC リクエストに失敗した場合
+- `normLogsIPCFail` -  IPC リクエストに成功したが、番地・号の情報が得られなかった場合
+- `idIssSts` - ID の発行に成功した
+- `feedbackRequest` - フィードバック受付

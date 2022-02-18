@@ -570,3 +570,48 @@ describe('banchi-go database', () => {
     });
   }
 });
+
+describe('Logging', () => {
+    test('NJA.level <= 2 should create a LOG#normFailNoTown', async () => {
+      const inputAddr = '滋賀県大津市あああああああ町'
+      const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr}`);
+
+      const event = {
+        queryStringParameters: {
+          q: inputAddr,
+          'api-key': apiKey,
+        },
+        headers: {
+          'X-Access-Token': accessToken,
+        },
+      };
+      const now = new Date()
+
+      // @ts-ignore
+      const lambdaResult = await handler(event);
+      // @ts-ignore
+      const body = JSON.parse(lambdaResult.body);
+
+      expect(body.error_code_detail).toEqual('neighborhood_not_recognized')
+
+      const TableName = process.env.AWS_DYNAMODB_LOG_TABLE_NAME;
+      const PK = `LOG#normFailNoTown#${now.toISOString().slice(0, 10)}`
+      const resp = await dynamodb.DB.query({
+        TableName,
+        KeyConditionExpression: "#k = :k",
+        ExpressionAttributeNames: {
+          "#k": "PK"
+        },
+        ExpressionAttributeValues: {
+          ":k": PK
+        },
+      }).promise()
+
+      const logItem = (resp.Items || [])[0] || { output: {} }
+      expect(logItem.output.pref).toEqual('滋賀県')
+      expect(logItem.output.city).toEqual('大津市')
+      expect(logItem.output.town).toEqual('')
+      expect(logItem.output.level).toEqual(2)
+      expect(logItem.input).toEqual(inputAddr)
+    })
+})
