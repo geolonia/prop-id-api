@@ -201,7 +201,7 @@ test('should not return building name with empty building name parameter', async
   expect(first2.building).toStrictEqual(undefined)
 })
 
-test('should not include building name in address2', async () => {
+test.only('should not include building name in address2', async () => {
   const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID without details if authenticated with a free API key', { plan: "paid" })
 
   const event1 = {
