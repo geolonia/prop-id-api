@@ -3,7 +3,7 @@ import { BaseEstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './
 import { coord2XY, getPrefCode, incrementPGeocode } from './lib/index';
 import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
-import { joinNormalizeResult, normalize, NormalizeResult } from './lib/nja';
+import { joinNormalizeResult, normalize, NormalizeResult, versions } from './lib/nja';
 import { Handler, APIGatewayProxyResult } from 'aws-lambda';
 import { authenticateEvent, extractApiKey } from './lib/authentication';
 import { createLog, normalizeBanchiGo, withLock } from './lib/dynamodb_logs';
@@ -66,6 +66,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     input: address,
     level: prenormalized.level,
     nja: prenormalizedStr,
+    deps: versions,
     normalized: JSON.stringify(prenormalized),
   }, { apiKey }));
 
