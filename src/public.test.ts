@@ -607,11 +607,10 @@ describe('Logging', () => {
         },
       }).promise()
 
-      const logItem = (resp.Items || [])[0] || { output: {} }
+      const logItem = (resp.Items || []).find(item => item.input === inputAddr) as any
       expect(logItem.output.pref).toEqual('滋賀県')
       expect(logItem.output.city).toEqual('大津市')
       expect(logItem.output.town).toEqual('')
       expect(logItem.output.level).toEqual(2)
-      expect(logItem.input).toEqual(inputAddr)
     })
 })
