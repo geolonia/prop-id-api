@@ -98,11 +98,11 @@ package.json で指定している @geolonia/normalize-japanese-addresses (NJA) 
 ```shell
 $ STAGE=dev npx ts-node bin/nja.test.ts > out.csv
 # または特定のバージョン以降と比較
-$ STAGE=dev PREV_NJA_VERSION=2.5.5 npx ts-node bin/nja.test.ts > out.csv
+$ STAGE=dev PREV_NJA_VERSION=1.2.3 npx ts-node bin/nja.test.ts > out.csv
 ```
 
 ```csv
-"input","create_at","nja@0.0.0","nja@x.y.z"
+"input","create_at","nja@1.2.3","nja@x.y.z"
 "東京都江戸川区西小松川1-2-3","2022-01-28T12:34:41.920Z","東京都江戸川区西小松川1-2-3","東京都江戸川区西小松川町1-2-3"
 "東京都江戸川区西小松川1-2-3","2022-01-28T04:34:48.823Z","東京都江戸川区西小松川1-2-3","東京都江戸川区西小松川町1-2-3"
 ```
