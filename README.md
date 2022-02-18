@@ -90,3 +90,19 @@ $ node ./bin/list-api-keys.mjs
 - `normLogsIPCFail` -  IPC リクエストに成功したが、番地・号の情報が得られなかった場合
 - `idIssSts` - ID の発行に成功した
 - `feedbackRequest` - フィードバック受付
+
+### DB の回帰テストを実行
+
+package.json で指定している @geolonia/normalize-japanese-addresses (NJA) を利用して、正規化ログを使った NJA アップデートに対する回帰テストを実行します。正規化結果が変わった場合は `currentOutput` というカラムに新しい正規化結果が出力されます。
+
+```shell
+$ STAGE=dev npx ts-node bin/nja.test.ts > out.csv
+# または特定のバージョン以降と比較
+$ STAGE=dev PREV_NJA_VERSION=2.5.5 npx ts-node bin/nja.test.ts > out.csv
+```
+
+```csv
+"input","createat","prevOutput","currentOutput"
+"東京都江戸川区西小松川1-2-3","2022-01-28T12:34:41.920Z","東京都江戸川区西小松川1-2-3","東京都江戸川区西小松川町1-2-3"
+"東京都江戸川区西小松川1-2-3","2022-01-28T04:34:48.823Z","東京都江戸川区西小松川1-2-3","東京都江戸川区西小松川町1-2-3"
+```
