@@ -74,7 +74,7 @@ async function * getQueryResult (queryExecutionId: string) {
     const { ColumnInfo } = ResultSetMetadata || { ColumnInfo: [] }
 
     const rows = Rows || []
-    if(!hasHeaderSkipped) {
+    if (!hasHeaderSkipped) {
       rows.shift()
       hasHeaderSkipped = true
     }
@@ -109,9 +109,9 @@ const main = async () => {
       const { input, createat, output: prevOutput } = row
       const { pref, city, town, addr } = await normalize(input)
       const currentOutput = `${pref}${city}${town}${addr}`
-      if(prevOutput !== currentOutput) {
-        if(!hasHeadderWtitten) {
-          process.stdout.write('"input","createat","prevOutput","currentOutput"\n')
+      if (prevOutput !== currentOutput) {
+        if (!hasHeadderWtitten) {
+          process.stdout.write(`"input","create_at","prev_output@${PREV_NJA_VERSION}","current_output@${CURRENT_NJA_VERSION}"\n`)
           hasHeadderWtitten = true
         }
         process.stdout.write(`"${input}","${createat}","${prevOutput}","${currentOutput}"\n`)
