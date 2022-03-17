@@ -574,6 +574,43 @@ describe('banchi-go database', () => {
 });
 
 describe('Logging', () => {
+    test('normLogsNJA should include version info', async () => {
+      const inputAddr = '滋賀県大津市御陵町100−200'
+      const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr}`);
+      const event = {
+        queryStringParameters: {
+          q: inputAddr,
+          'api-key': apiKey,
+        },
+        headers: {
+          'X-Access-Token': accessToken,
+        },
+      };
+      const now = new Date()
+
+      // @ts-ignore
+      const lambdaResult = await handler(event);
+      // @ts-ignore
+      const body = JSON.parse(lambdaResult.body);
+
+      const TableName = process.env.AWS_DYNAMODB_LOG_TABLE_NAME;
+      const PK = `LOG#normLogsNJA#${now.toISOString().slice(0, 10)}`
+      const resp = await dynamodb.DB.query({
+        TableName,
+        KeyConditionExpression: "#k = :k",
+        ExpressionAttributeNames: {
+          "#k": "PK"
+        },
+        ExpressionAttributeValues: {
+          ":k": PK
+        },
+      }).promise()
+
+      const logItem = (resp.Items || []).find(item => item.input === inputAddr) as any
+      expect(logItem.deps.nja).toMatch(/([0-9]+)\.([0-9]+)\.([0-9]+)$/)
+      expect(logItem.deps.ja).toMatch(/([0-9]+)\.([0-9]+)\.([0-9]+)$/)
+    })
+
     test('NJA.level <= 2 should create a LOG#normFailNoTown', async () => {
       const inputAddr = '滋賀県大津市あああああああ町'
       const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr}`);
