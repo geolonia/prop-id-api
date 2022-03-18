@@ -2,10 +2,12 @@ import { normalize } from '@geolonia/normalize-japanese-addresses'
 import njapkg from '@geolonia/normalize-japanese-addresses/package.json';
 import AWS from 'aws-sdk'
 
-const { PREV_NJA_VERSION = '0.0.0', STAGE } = process.env
+AWS.config.region = 'ap-northeast-1'
+
+const { PREV_NJA_VERSION = '0.0.0', STAGE = 'dev'} = process.env
 const CURRENT_NJA_VERSION = njapkg.version
 
-console.error(`Testing regression between NJA@${PREV_NJA_VERSION}...${CURRENT_NJA_VERSION}.`)
+console.error(`[${STAGE}] Testing regression between NJA@${PREV_NJA_VERSION}...${CURRENT_NJA_VERSION}.`)
 
 const [major, minor, patch] = CURRENT_NJA_VERSION.split('.')
 
@@ -25,7 +27,7 @@ const startQuery = async () => {
             MONTH,
             DAY,
             createat
-      FROM default.propid_api_logs_${STAGE || 'dev'}
+      FROM default.propid_api_logs_${STAGE}
       WHERE
         logType = 'normLogsNJA'
         AND ${major} > ${MAJOR_SELECTOR}
@@ -95,29 +97,34 @@ async function * getQueryResult (queryExecutionId: string) {
   } while (nextToken);
 }
 
+export type NJARegressionResult = {
+  data: { input: string, createAt: string, prevOutput: string, currentOutput: string }[],
+  meta: {
+    PREV_NJA_VERSION: string,
+    CURRENT_NJA_VERSION: string,
+    STAGE: string,
+  }
+}
+
 const main = async () => {
 
   // start and wait the athena query execution
   const quertExecutionId = await startQuery()
   await waitQuery(quertExecutionId)
 
-  // run test for each log
-  let hasHeadderWtitten = false
+  const results: NJARegressionResult = { data: [], meta: { PREV_NJA_VERSION, CURRENT_NJA_VERSION, STAGE } }
   for await (const rows of getQueryResult(quertExecutionId)) {
+    console.error(`Testing ${rows.length} items...`)
     for (const row of rows) {
-      console.error(`Testing ${rows.length} items...`)
-      const { input, createat, output: prevOutput } = row
+      const { input, createat: createAt, output: prevOutput } = row
       const { pref, city, town, addr } = await normalize(input)
       const currentOutput = `${pref}${city}${town}${addr}`
-      if (prevOutput !== currentOutput) {
-        if (!hasHeadderWtitten) {
-          process.stdout.write(`"input","create_at","nja@${PREV_NJA_VERSION}","nja@${CURRENT_NJA_VERSION}"\n`)
-          hasHeadderWtitten = true
-        }
-        process.stdout.write(`"${input}","${createat}","${prevOutput}","${currentOutput}"\n`)
+      if(currentOutput !== prevOutput) {
+        results.data.push({ input, createAt, prevOutput, currentOutput })
       }
     }
   }
+  process.stdout.write(JSON.stringify(results, null, 2) + '\n')
 }
 
 main()
