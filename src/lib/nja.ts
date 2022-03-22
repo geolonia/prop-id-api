@@ -9,7 +9,7 @@ export interface NormalizeResult extends NormalizeResultBase {
   building?: string
 }
 
-const japaneseAddressesVersion = '0.3.0';
+const japaneseAddressesVersion = '0.2.0';
 NJAConfig.japaneseAddressesApi = `https://japanese-addresses.geolonia.com/v${japaneseAddressesVersion}/ja`;
 
 export const joinNormalizeResult = (n: NormalizeResult) => (
