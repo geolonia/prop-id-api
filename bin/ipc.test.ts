@@ -5,7 +5,7 @@ const { STAGE = 'dev'} = process.env
 
 
 const main = async () => {
-  const input = await fs.readFile("/dev/stdin", "utf8");
+  const input = await (await fs.readFile("/dev/stdin", "utf8")).replace('\n', '');
   const result = await verifyAddress(input)
   console.log(result.body.features)
 }
