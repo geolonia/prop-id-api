@@ -360,17 +360,17 @@ test('should return identical estate ID if two addresses were requested in paral
 });
 
 describe("normalization error cases",  () => {
-  test('should return 400 with insufficient address.', async () => {
-    const addresses = [
-      ['和歌山県東牟婁郡', 'city_not_recognized'],
-      ['和歌山県aoeu', 'city_not_recognized'],
-      ['和歌県', 'prefecture_not_recognized'],
-      ['おはよう', 'prefecture_not_recognized'],
-      ['東京都千代田区飯田橋１丁目', 'geo_koaza'],
-      // ['東京都千代田区飯田橋１丁目３', 'geo_banchi'], // should issue an ID and have status `addressPending`
-    ]
 
-    for (const addressData of addresses) {
+  const addresses = [
+    ['和歌山県東牟婁郡', 'city_not_recognized'],
+    ['和歌山県aoeu', 'city_not_recognized'],
+    ['和歌県', 'prefecture_not_recognized'],
+    ['おはよう', 'prefecture_not_recognized'],
+    ['東京都千代田区飯田橋１丁目', 'geo_koaza'],
+  ]
+
+  for (const addressData of addresses) {
+    test(`should return 400 with insufficient address for ${addressData[0]}.`, async () => {
       const [ address, expectedErrorCodeDetail ] = addressData
       const event = {
         isDemoMode: true,
@@ -385,8 +385,8 @@ describe("normalization error cases",  () => {
       expect(resp.statusCode).toEqual(400)
       expect(body.error_code).toBe("normalization_failed")
       expect(body.error_code_detail).toBe(expectedErrorCodeDetail)
-    }
-  })
+    })
+  }
 
   test('should return 400 with empty address', async () => {
     const event = {
@@ -521,6 +521,8 @@ describe('banchi-go database', () => {
     ['大阪府大阪市中央区久太郎町三丁目渡辺3小原流ホール', '小原流ホール',, { status: undefined }],
     ['東京都文京区水道2丁目1-9999マンションGLV5NLV3', '', { geocoding_level: '5', normalization_level: '3' }, { status: 'addressPending' }],
     ['東京都文京区水道2丁目1-9998マンションGLV5NLV8', 'マンションGLV5NLV8', { geocoding_level: '5', normalization_level: '8' }, { status: undefined }],
+    ['大阪府高槻市富田町1-999-888マンションGLV4NLV3', '', { geocoding_level: '4', normalization_level: '3' }, { status: 'addressPending' }],
+    ['京都府京都市右京区西院西貝川町100マンションGLV3NLV3', '', { geocoding_level: '3', normalization_level: '3' }, { status: 'addressPending' }],
   ];
 
   for (const [inputAddr, building, expectedNormResult, expectedIdObject] of cases) {
@@ -570,3 +572,84 @@ describe('banchi-go database', () => {
     });
   }
 });
+
+describe('Logging', () => {
+    test('normLogsNJA should include version info', async () => {
+      const inputAddr = '滋賀県大津市御陵町100−200'
+      const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr}`);
+      const event = {
+        queryStringParameters: {
+          q: inputAddr,
+          'api-key': apiKey,
+        },
+        headers: {
+          'X-Access-Token': accessToken,
+        },
+      };
+      const now = new Date()
+
+      // @ts-ignore
+      const lambdaResult = await handler(event);
+      // @ts-ignore
+      const body = JSON.parse(lambdaResult.body);
+
+      const TableName = process.env.AWS_DYNAMODB_LOG_TABLE_NAME;
+      const PK = `LOG#normLogsNJA#${now.toISOString().slice(0, 10)}`
+      const resp = await dynamodb.DB.query({
+        TableName,
+        KeyConditionExpression: "#k = :k",
+        ExpressionAttributeNames: {
+          "#k": "PK"
+        },
+        ExpressionAttributeValues: {
+          ":k": PK
+        },
+      }).promise()
+
+      const logItem = (resp.Items || []).find(item => item.input === inputAddr) as any
+      expect(logItem.deps.nja).toMatch(/([0-9]+)\.([0-9]+)\.([0-9]+)$/)
+      expect(logItem.deps.ja).toMatch(/([0-9]+)\.([0-9]+)\.([0-9]+)$/)
+    })
+
+    test('NJA.level <= 2 should create a LOG#normFailNoTown', async () => {
+      const inputAddr = '滋賀県大津市あああああああ町'
+      const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr}`);
+
+      const event = {
+        queryStringParameters: {
+          q: inputAddr,
+          'api-key': apiKey,
+        },
+        headers: {
+          'X-Access-Token': accessToken,
+        },
+      };
+      const now = new Date()
+
+      // @ts-ignore
+      const lambdaResult = await handler(event);
+      // @ts-ignore
+      const body = JSON.parse(lambdaResult.body);
+
+      expect(body.error_code_detail).toEqual('neighborhood_not_recognized')
+
+      const TableName = process.env.AWS_DYNAMODB_LOG_TABLE_NAME;
+      const PK = `LOG#normFailNoTown#${now.toISOString().slice(0, 10)}`
+      const resp = await dynamodb.DB.query({
+        TableName,
+        KeyConditionExpression: "#k = :k",
+        ExpressionAttributeNames: {
+          "#k": "PK"
+        },
+        ExpressionAttributeValues: {
+          ":k": PK
+        },
+      }).promise()
+
+      const logItem = (resp.Items || []).find(item => item.input === inputAddr) as any
+      expect(logItem.output.pref).toEqual('滋賀県')
+      expect(logItem.output.city).toEqual('大津市')
+      expect(logItem.output.town).toEqual('')
+      expect(logItem.output.level).toEqual(2)
+    })
+})

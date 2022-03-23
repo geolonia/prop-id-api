@@ -39,6 +39,12 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+
+    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
+    permissions:
+      id-token: write
+      contents: read
+
     needs: build
     if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
 
@@ -59,7 +65,14 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+
       - run: yarn
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ap-northeast-1
+          role-to-assume: arn:aws:iam::762706324393:role/github-actions-estate-id-deploy
 
       - name: "Deploy to dev environment"
         if: ${{ github.ref == 'refs/heads/develop' }}
@@ -69,8 +82,6 @@ jobs:
           INCREMENTP_VERIFICATION_API_KEY: ${{ secrets.INCREMENTP_VERIFICATION_API_KEY }}
           ACCESS_TOKEN_SALT: ${{ secrets.ACCESS_TOKEN_SALT }}
           AUTH0_CLIENT_ID_DEV: ${{ secrets.AUTH0_CLIENT_ID_DEV }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
       - name: "Deploy to v1 environment"
@@ -81,8 +92,6 @@ jobs:
           INCREMENTP_VERIFICATION_API_KEY: ${{ secrets.INCREMENTP_VERIFICATION_API_KEY }}
           ACCESS_TOKEN_SALT: ${{ secrets.ACCESS_TOKEN_SALT }}
           AUTH0_CLIENT_ID_V1: ${{ secrets.AUTH0_CLIENT_ID_V1 }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
       - name: Create build for Sentry release

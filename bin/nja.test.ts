@@ -1,0 +1,123 @@
+import { normalize } from '@geolonia/normalize-japanese-addresses'
+import njapkg from '@geolonia/normalize-japanese-addresses/package.json';
+import AWS from 'aws-sdk'
+
+const { PREV_NJA_VERSION = '0.0.0', STAGE } = process.env
+const CURRENT_NJA_VERSION = njapkg.version
+
+console.error(`Testing regression between NJA@${PREV_NJA_VERSION}...${CURRENT_NJA_VERSION}.`)
+
+const [major, minor, patch] = CURRENT_NJA_VERSION.split('.')
+
+const athena = new AWS.Athena()
+const sleep = (msec: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), msec))
+
+const startQuery = async () => {
+    const [MAJOR_SELECTOR, MINOR_SELECTOR, PATCH_SELECTOR] = [1,2,3].map(index => `cast(split(coalesce(cast(json_extract(json, '$.deps.nja') AS varchar), '0.0.0'), '.')[${index}] AS integer)`)
+    const startQueryExecutionInput: AWS.Athena.StartQueryExecutionInput = {
+      QueryString: `
+      SELECT cast(json_extract(json, '$.input') AS varchar) AS input,
+            cast(json_extract(json, '$.nja') AS varchar) AS output,
+            ${MAJOR_SELECTOR} AS minor,
+            ${MINOR_SELECTOR} AS patch,
+            ${PATCH_SELECTOR} AS major,
+            YEAR,
+            MONTH,
+            DAY,
+            createat
+      FROM default.propid_api_logs_${STAGE || 'dev'}
+      WHERE
+        logType = 'normLogsNJA'
+        AND ${major} > ${MAJOR_SELECTOR}
+        OR (
+          ${major} = ${MAJOR_SELECTOR}
+          AND ${minor} > ${MINOR_SELECTOR}
+        )
+        OR (
+          ${major} = ${MAJOR_SELECTOR}
+          AND ${minor} = ${MINOR_SELECTOR}
+          AND ${patch} > ${PATCH_SELECTOR}
+        )
+      `,
+      ResultConfiguration: {
+        OutputLocation: 's3://estate-id-api-nja-log-test/results'
+      }
+    }
+    const startQueryExecutionOutput = await athena.startQueryExecution(startQueryExecutionInput).promise()
+    return startQueryExecutionOutput.QueryExecutionId!
+}
+
+const waitQuery = async (queryExecutionId: string) => {
+  let running = true
+  let state: string = ''
+  do {
+    await sleep(1000)
+    const getQueryExecutionInput: AWS.Athena.GetQueryExecutionInput = { QueryExecutionId: queryExecutionId }
+    const queryExecution = await athena.getQueryExecution(getQueryExecutionInput).promise()
+    state = queryExecution.QueryExecution?.Status?.State || ''
+  } while (running = (state  === 'RUNNING' || state === 'QUEUED'));
+
+  if (state !== 'SUCCEEDED') {
+    throw new Error(`Query ${queryExecutionId} failed.`)
+  }
+}
+
+async function * getQueryResult (queryExecutionId: string) {
+
+  const getQueryResultsInputBase: AWS.Athena.GetQueryResultsInput = { QueryExecutionId: queryExecutionId }
+  let nextToken: undefined | string = undefined
+  let hasHeaderSkipped = false
+
+  do {
+    const getQueryResultsInput: AWS.Athena.GetQueryResultsInput = { ...getQueryResultsInputBase, NextToken: nextToken }
+    const { ResultSet: { Rows, ResultSetMetadata } = {}, NextToken } = await athena.getQueryResults(getQueryResultsInput).promise()
+    const { ColumnInfo } = ResultSetMetadata || { ColumnInfo: [] }
+
+    const rows = Rows || []
+    if (!hasHeaderSkipped) {
+      rows.shift()
+      hasHeaderSkipped = true
+    }
+
+    const items = rows.map((row) => {
+      const cols = row.Data || []
+      const item = cols.reduce<any>((prev, col, index) => {
+        const key = ColumnInfo![index].Name as string
+        prev[key] = col.VarCharValue
+        return prev
+      }, {})
+      return item
+    })
+
+
+    yield items
+    nextToken = NextToken
+  } while (nextToken);
+}
+
+const main = async () => {
+
+  // start and wait the athena query execution
+  const quertExecutionId = await startQuery()
+  await waitQuery(quertExecutionId)
+
+  // run test for each log
+  let hasHeadderWtitten = false
+  for await (const rows of getQueryResult(quertExecutionId)) {
+    console.error(`Testing ${rows.length} items...`)
+    for (const row of rows) {
+      const { input, createat, output: prevOutput } = row
+      const { pref, city, town, addr } = await normalize(input)
+      const currentOutput = `${pref}${city}${town}${addr}`
+      if (prevOutput !== currentOutput) {
+        if (!hasHeadderWtitten) {
+          process.stdout.write(`"input","create_at","nja@${PREV_NJA_VERSION}","nja@${CURRENT_NJA_VERSION}"\n`)
+          hasHeadderWtitten = true
+        }
+        process.stdout.write(`"${input}","${createat}","${prevOutput}","${currentOutput}"\n`)
+      }
+    }
+  }
+}
+
+main()
