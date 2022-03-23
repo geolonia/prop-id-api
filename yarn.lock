@@ -967,10 +967,10 @@
   resolved "https://registry.yarnpkg.com/@geolonia/japanese-numeral/-/japanese-numeral-0.1.15.tgz#e6e476e403efac60e6b3270fd19c46afb8200b91"
   integrity sha512-g8xizIJH7sfd5JSJyN6pCbNNWVkasMpw84gpYQZJ09VDuTT5qzT5cKhr3+pFyS4SpfwQ9rrsJBmeD6z3vI2bjA==
 
-"@geolonia/normalize-japanese-addresses@2.3.5":
-  version "2.3.5"
-  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-2.3.5.tgz#e550dab9fe5b274b16beaf6ffea4068871f6ad9e"
-  integrity sha512-D9vYumQyEUQ6S0SecV1QvBogG1+ju4Q+GA+d5jELIr8fl1T+ez2y3W5rAk/fRJdlVvO+a+3DzBr24F2cM0xZdA==
+"@geolonia/normalize-japanese-addresses@2.5.6":
+  version "2.5.6"
+  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-2.5.6.tgz#4192680098aefd201b7b5e866c46921cec84134d"
+  integrity sha512-mpoJO3FQgxHgIAdwPsvXMJG11GM6ZFrWxM7xnfQFD2lWSXGogqCwTgDlPY0Q4rwNHxU9ipJnOeNx1E84Y3CaYA==
   dependencies:
     "@geolonia/japanese-numeral" "^0.1.15"
     isomorphic-unfetch "^3.1.0"
