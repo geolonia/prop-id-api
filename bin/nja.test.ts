@@ -104,8 +104,8 @@ const main = async () => {
   // run test for each log
   let hasHeadderWtitten = false
   for await (const rows of getQueryResult(quertExecutionId)) {
+    console.error(`Testing ${rows.length} items...`)
     for (const row of rows) {
-      console.error(`Testing ${rows.length} items...`)
       const { input, createat, output: prevOutput } = row
       const { pref, city, town, addr } = await normalize(input)
       const currentOutput = `${pref}${city}${town}${addr}`

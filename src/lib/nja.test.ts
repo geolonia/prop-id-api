@@ -16,6 +16,6 @@ it('works', async () => {
 
 it('uses a versioned API for japanese-addresses', async () => {
   expect(NJAConfig.japaneseAddressesApi).toStrictEqual(
-    'https://japanese-addresses.geolonia.com/v0.3.0/ja',
+    'https://japanese-addresses.geolonia.com/v0.2.0/ja',
   );
 });
