@@ -363,6 +363,8 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
 
 ## 不動産共通ID取得API
 
+住所の正規化に失敗した場合、 `{ "error_code":"normalization_failed" }` のと共に `error_code_detail` としてその理由を示す解析レベルの情報が返却されます。解析レベルは、 `normalization_level` または `geocoding_level` を示す文字列が返却されます。
+
 <table>
   <tr>
     <th>ステータス</th>
@@ -372,22 +374,42 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
   <tr>
     <td>400</td>
     <td>Bad Request</td>
-    <td><code>{"message":"Missing querystring parameter `q`."}</code></td>
+    <td>
+      <small>※ パラメーター <code>q</code> が存在しない、または空白文字列の場合</small><br />
+      <code>{"message":"Missing querystring parameter `q`."}</code>
+    </td>
+  </tr>
+    <tr>
+    <td>400</td>
+    <td>Bad Request</td>
+    <td>
+        <small>※ 都道府県名が正規化できなかったケース</small><br />
+        <code>{ "error": true, "error_code": "normalization_failed", "error_code_detail": "prefecture_not_recognized", "address": "あああ県" }</code>
+      </td>
   </tr>
   <tr>
     <td>400</td>
     <td>Bad Request</td>
-    <td><code>{"error":true,"error_code":"normalization_failed","error_code_detail":"city_not_recognized","address":"和歌山県東牟婁郡"}</code></td>
+    <td>
+      <small>※ 市区町村が正規化できなかったケース</small><br />
+      <code>{ "error": true, "error_code": "normalization_failed", "error_code_detail": "city_not_recognized", "address": "東京都" }</code>
+    </td>
   </tr>
-  <tr>
+    <tr>
     <td>400</td>
     <td>Bad Request</td>
-    <td><code>{"error":true,"error_code":"normalization_failed","error_code_detail":"prefecture_not_recognized","address":"XXX"}</code></td>
+    <td>
+        <small>※ 町丁目が正規化できなかったケース</small><br />
+        <code>{ "error": true, "error_code": "normalization_failed", "error_code_detail": "neighborhood_not_recognized", "address": "東京都文京区" }</code>
+      </td>
   </tr>
-  <tr>
-    <td>404</td>
-    <td>Not Found</td>
-    <td><code>{"error":true,"error_code":"address_not_verified","address":"XXX"}</code></td>
+    <tr>
+    <td>400</td>
+    <td>Bad Request</td>
+    <td>
+        <small>※ 町丁目までの住所の正規化に成功したが、番地・号が識別できなかったケース</small><br />
+        <code>{ "error": true, "error_code": "normalization_failed", "error_code_detail": "geo_koaza", "address": "東京都文京区千石4丁目" }</code>
+      </td>
   </tr>
 </table>
 
