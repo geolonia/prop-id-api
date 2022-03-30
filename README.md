@@ -119,7 +119,7 @@ $ STAGE=dev PREV_NJA_VERSION=1.2.3 npx ts-node bin/nja.test.ts > out.json
 }
 ```
 
-### DB の回帰テストの結果を反映
+### DB の回帰テストの結果を反映 (マイグレーション)
 
 ```shell
 $ cat out.json | STAGE=dev npx ts-node bin/nja.migrate.ts

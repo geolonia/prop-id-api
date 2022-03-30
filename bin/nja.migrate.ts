@@ -38,7 +38,7 @@ const main = async () => {
   for await (const items of scanPropIdDb()) {
     for (const item of items) {
       if(affectedAddressSet.has(item.rawAddress)) {
-        console.log('found![' + item.rawAddress + ', ' + item.estateId + ']' )
+        console.log(item)
       }
     }
   }
