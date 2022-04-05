@@ -70,7 +70,6 @@ export const _handler: PropIdHandler = async (event, context) => {
 
   if (prenormalized.level <= 2) {
     const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalized.level];
-    await Promise.all(background);
     return json(
       {
         error: true,
@@ -90,7 +89,6 @@ export const _handler: PropIdHandler = async (event, context) => {
     background.push(ipcNormalizationErrorReport('normFailNoIPCGeomNull', {
       input: prenormalizedStr,
     }));
-    await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
@@ -112,7 +110,6 @@ export const _handler: PropIdHandler = async (event, context) => {
       prenormalized: prenormalizedStr,
     }));
 
-    await Promise.all(background);
     return json(
       {
         error: true,
@@ -171,7 +168,6 @@ export const _handler: PropIdHandler = async (event, context) => {
       IPC_NORMALIZATION_ERROR_CODE_DETAILS[ipc_geocoding_level_int.toString()]
       || IPC_NORMALIZATION_ERROR_CODE_DETAILS['-1']
     );
-    await Promise.all(background);
     return json(
       {
         error: true,
@@ -187,7 +183,6 @@ export const _handler: PropIdHandler = async (event, context) => {
   if (!prefCode) {
     console.log(`[FATAL] Invalid \`properties.pref\` response from API: '${feature.properties.pref}'.`);
     Sentry.captureException(new Error(`Invalid \`properties.pref\` response from API: '${feature.properties.pref}'`));
-    await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
@@ -262,7 +257,6 @@ export const _handler: PropIdHandler = async (event, context) => {
     console.error({ ZOOM, addressObject, apiKey, error });
     console.error('[FATAL] Something happend with DynamoDB connection.');
     Sentry.captureException(error);
-    await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
   }
   background.push(createLog(
@@ -299,7 +293,6 @@ export const _handler: PropIdHandler = async (event, context) => {
   });
 
   if (event.isDebugMode === true) {
-    await Promise.all(background);
     // aggregate debug info
     return json(
       {
@@ -316,7 +309,6 @@ export const _handler: PropIdHandler = async (event, context) => {
       quotaParams,
     );
   } else {
-    await Promise.all(background);
     return json(
       apiResponse,
       quotaParams,
