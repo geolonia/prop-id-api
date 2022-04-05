@@ -7,7 +7,8 @@ import { joinNormalizeResult, normalize, NormalizeResult, versions } from './lib
 import { createLog, normalizeBanchiGo, withLock } from './lib/dynamodb_logs';
 import { ipcNormalizationErrorReport } from './outerApiErrorReport';
 import { extractBuildingName, normalizeBuildingName } from './lib/building_normalization';
-import { authenticator } from './lib/decorators';
+import { authenticator, log } from './lib/decorators';
+import { Handler } from 'aws-lambda';
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   'prefecture_not_recognized',
@@ -29,13 +30,12 @@ const IPC_NORMALIZATION_ERROR_CODE_DETAILS: { [key: string]: string } = {
 export const _handler: PropIdHandler = async (event, context) => {
   const address = event.queryStringParameters?.q;
   const ZOOM = parseInt(process.env.ZOOM, 10);
-  const { apiKey, authentication, quotaParams } = context.propId;
+  const { apiKey, authentication, quotaParams, background } = context.propId;
 
   if (!address) {
     return errorResponse(400, 'Missing querystring parameter `q`.', quotaParams);
   }
 
-  const background: Promise<any>[] = [];
   Sentry.setContext('query', {
     address,
     debug: event.isDebugMode,
@@ -325,4 +325,4 @@ export const _handler: PropIdHandler = async (event, context) => {
   }
 };
 
-export const handler = Sentry.AWSLambda.wrapHandler(authenticator(_handler, 'id-req'));
+export const handler = Sentry.AWSLambda.wrapHandler(authenticator(log(_handler), 'id-req') as Handler);

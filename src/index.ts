@@ -23,6 +23,7 @@ declare global {
       accessToken?: string
       authentication: AuthenticationResult
       quotaParams: Pick<AuthenticationResult, 'quotaLimit' | 'quotaRemaining' | 'quotaResetDate'>
+      background: Promise<void>[],
     }
   }
 

@@ -8,7 +8,7 @@
     "@aws-sdk/client-dynamodb": "^3.34.0",
     "@geolonia/eslint-config": "^0.0.1",
     "@sentry/serverless": "^6.2.3",
-    "@shelf/jest-dynamodb": "^2.1.0",
+    "@shelf/jest-dynamodb": "^2.2.3",
     "@slack/types": "^2.2.0",
     "@tsconfig/node14": "^1.0.0",
     "@types/auth0": "^2.33.3",
