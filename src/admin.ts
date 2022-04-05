@@ -12,7 +12,7 @@ import { _handler as idQueryHandler } from './idQuery';
 
 import { decapitalize } from './lib';
 import { AUTH0_DOMAIN, AUTH0_MGMT_DOMAIN } from './lib/auth0_client';
-import { authenticator } from './lib/decorators';
+import { authenticator, log } from './lib/decorators';
 
 const jwksClient = jwks({
   cache: true,
@@ -77,11 +77,13 @@ const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (even
   } else if (event.resource === '/admin/query' && event.httpMethod === 'GET') {
     event.preauthenticatedUserId = userId;
     event.isDebugMode = event.queryStringParameters?.debug === 'true';
-    return await authenticator(publicHandler, 'id-req')(event, context, callback) as APIGatewayProxyResult;
+    const handler = authenticator(log(publicHandler), 'id-req') as Handler;
+    return await handler(event, context, callback);
   } else if (event.resource === '/admin/query/{estateId}' && event.httpMethod === 'GET') {
     event.preauthenticatedUserId = userId;
     event.isDebugMode = event.queryStringParameters?.debug === 'true';
-    return await authenticator(idQueryHandler, 'id-req')(event, context, callback) as APIGatewayProxyResult;
+    const handler = authenticator(log(idQueryHandler), 'id-req') as Handler;
+    return await handler(event, context, callback);
   } else if (event.resource === '/admin/feedback' && event.httpMethod === 'POST') {
     return feedback.create(adminEvent);
   }
