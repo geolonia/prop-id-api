@@ -4,8 +4,9 @@ import { Handler } from 'aws-lambda';
 import { authenticateEvent, extractApiKey } from './authentication';
 
 type QuotaType = 'id-req';
+export type Decorator = (handler: PropIdHandler, ...args: any[]) => PropIdHandler;
 
-export const authenticator = (quotaType: QuotaType) => (handler: PropIdHandler): PropIdHandler => {
+export const authenticator = (quotaType: QuotaType): Decorator => (handler) => {
   return async (event, context, callback) => {
     const authentication = await authenticateEvent(event, quotaType);
     if ('statusCode' in authentication) {
@@ -32,7 +33,7 @@ export const authenticator = (quotaType: QuotaType) => (handler: PropIdHandler):
   };
 };
 
-export const log = (handler: PropIdHandler): PropIdHandler => {
+export const log: Decorator = (handler) => {
   return async(event, context, callback) => {
     const background = context?.propId?.background || [];
     const loggerContext = {
@@ -47,8 +48,6 @@ export const log = (handler: PropIdHandler): PropIdHandler => {
     return result;
   };
 };
-
-export type Decorator = ((handler: PropIdHandler, ...args: any[]) => PropIdHandler);
 
 export const decorate = (
   handler: PropIdHandler,
