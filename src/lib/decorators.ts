@@ -7,6 +7,7 @@ type QuotaType = 'id-req';
 
 export const authenticator = (quotaType: QuotaType) => (handler: PropIdHandler): PropIdHandler => {
   return async (event, context, callback) => {
+    console.log('decorator: authenticator');
     const authentication = await authenticateEvent(event, quotaType);
     if ('statusCode' in authentication) {
       return authentication;
@@ -33,6 +34,7 @@ export const authenticator = (quotaType: QuotaType) => (handler: PropIdHandler):
 
 export const log = (handler: PropIdHandler): PropIdHandler => {
   return async(event, context, callback) => {
+    console.log('decorator: log');
     const loggerContext = {
       ...context,
       propId: {

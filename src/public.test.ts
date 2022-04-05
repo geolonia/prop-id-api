@@ -1,9 +1,10 @@
 import { APIGatewayProxyResult } from 'aws-lambda'
-import { authenticator, log } from './lib/decorators'
+import { authenticator, decorate, log } from './lib/decorators'
 import * as dynamodb from './lib/dynamodb'
 import { _getServiceUsageQuotaItem, _updateServiceUsageQuota } from './lib/dynamodb_test_helpers.test'
 import { _handler } from './public'
-const handler = authenticator('id-req')(log(_handler));
+
+const handler = decorate(_handler, [log, authenticator('id-req')]);
 
 test('should specify the ZOOM environmental variable.', () => {
   const ZOOM = parseInt(process.env.ZOOM, 10)
@@ -11,7 +12,7 @@ test('should specify the ZOOM environmental variable.', () => {
   expect(typeof ZOOM).toBe('number')
 })
 
-test('should get same estate ID for multiple queries to same address', async () => {
+test.only('should get same estate ID for multiple queries to same address', async () => {
 
   const event = {
     isDemoMode: true,
