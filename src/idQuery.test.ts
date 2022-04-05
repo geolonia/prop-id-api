@@ -1,9 +1,10 @@
 import { _handler as _publicHandler } from './public'
 import { _handler as _idQueryHandler } from './idQuery'
 import * as dynamodb from './lib/dynamodb'
-import { authenticator, log } from './lib/decorators';
-const publicHandler = authenticator(log(_publicHandler), 'id-req');
-const handler = authenticator(log(_idQueryHandler), 'id-req');
+import { authenticator, log, decorate } from './lib/decorators';
+
+const publicHandler = decorate(_publicHandler, [log, authenticator('id-req')]);
+const handler = decorate(_idQueryHandler, [log, authenticator('id-req')]);
 
 test('returns 400 when estateId is not available', async () => {
   const event = {

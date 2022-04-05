@@ -7,8 +7,7 @@ import { joinNormalizeResult, normalize, NormalizeResult, versions } from './lib
 import { createLog, normalizeBanchiGo, withLock } from './lib/dynamodb_logs';
 import { ipcNormalizationErrorReport } from './outerApiErrorReport';
 import { extractBuildingName, normalizeBuildingName } from './lib/building_normalization';
-import { authenticator, log } from './lib/decorators';
-import { Handler } from 'aws-lambda';
+import { authenticator, decorate, Decorator, log } from './lib/decorators';
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   'prefecture_not_recognized',
@@ -325,4 +324,10 @@ export const _handler: PropIdHandler = async (event, context) => {
   }
 };
 
-export const handler = Sentry.AWSLambda.wrapHandler(authenticator(log(_handler), 'id-req') as Handler);
+export const handler = decorate(_handler,
+  [
+    log,
+    authenticator('id-req'),
+    Sentry.AWSLambda.wrapHandler as unknown as Decorator,
+  ]
+);

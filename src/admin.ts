@@ -77,12 +77,12 @@ const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (even
   } else if (event.resource === '/admin/query' && event.httpMethod === 'GET') {
     event.preauthenticatedUserId = userId;
     event.isDebugMode = event.queryStringParameters?.debug === 'true';
-    const handler = authenticator(log(publicHandler), 'id-req') as Handler;
+    const handler = authenticator('id-req')(log(publicHandler)) as Handler;
     return await handler(event, context, callback);
   } else if (event.resource === '/admin/query/{estateId}' && event.httpMethod === 'GET') {
     event.preauthenticatedUserId = userId;
     event.isDebugMode = event.queryStringParameters?.debug === 'true';
-    const handler = authenticator(log(idQueryHandler), 'id-req') as Handler;
+    const handler = authenticator('id-req')(log(idQueryHandler)) as Handler;
     return await handler(event, context, callback);
   } else if (event.resource === '/admin/feedback' && event.httpMethod === 'POST') {
     return feedback.create(adminEvent);

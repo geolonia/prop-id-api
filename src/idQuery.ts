@@ -5,8 +5,7 @@ import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
 import { normalize } from './lib/nja';
 import { extractBuildingName } from './lib/building_normalization';
-import { authenticator } from './lib/decorators';
-import { Handler } from 'aws-lambda';
+import { authenticator, decorate, Decorator } from './lib/decorators';
 
 export const _handler: PropIdHandler = async (event, context) => {
 
@@ -75,4 +74,9 @@ export const _handler: PropIdHandler = async (event, context) => {
   return json([ idOut ], quotaParams);
 };
 
-export const handler = Sentry.AWSLambda.wrapHandler(authenticator(_handler, 'id-req') as Handler);
+export const handler = decorate(_handler,
+  [
+    authenticator('id-req'),
+    Sentry.AWSLambda.wrapHandler as unknown as Decorator,
+  ]
+);
