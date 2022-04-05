@@ -4,11 +4,10 @@ import { coord2XY, getPrefCode, incrementPGeocode } from './lib/index';
 import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
 import { joinNormalizeResult, normalize, NormalizeResult, versions } from './lib/nja';
-import { Handler, APIGatewayProxyResult } from 'aws-lambda';
-import { authenticateEvent, extractApiKey } from './lib/authentication';
 import { createLog, normalizeBanchiGo, withLock } from './lib/dynamodb_logs';
 import { ipcNormalizationErrorReport } from './outerApiErrorReport';
 import { extractBuildingName, normalizeBuildingName } from './lib/building_normalization';
+import { authenticator } from './lib/decorators';
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   'prefecture_not_recognized',
@@ -27,22 +26,10 @@ const IPC_NORMALIZATION_ERROR_CODE_DETAILS: { [key: string]: string } = {
   '-1': 'geo_undefined',
 };
 
-export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
+export const _handler: PropIdHandler = async (event, context) => {
   const address = event.queryStringParameters?.q;
   const ZOOM = parseInt(process.env.ZOOM, 10);
-  const quotaType = 'id-req';
-
-  const { apiKey } = extractApiKey(event);
-  const authenticationResult = await authenticateEvent(event, quotaType);
-  if ('statusCode' in authenticationResult) {
-    return authenticationResult;
-  }
-
-  const quotaParams = {
-    quotaLimit: authenticationResult.quotaLimit,
-    quotaRemaining: authenticationResult.quotaRemaining,
-    quotaResetDate: authenticationResult.quotaResetDate,
-  };
+  const { apiKey, authentication, quotaParams } = context.propId;
 
   if (!address) {
     return errorResponse(400, 'Missing querystring parameter `q`.', quotaParams);
@@ -288,7 +275,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     { apiKey },
   ));
 
-  const richIdResp = !!(authenticationResult.plan === 'paid' || event.isDemoMode);
+  const richIdResp = !!(authentication.plan === 'paid' || event.isDemoMode);
   const normalizationLevel = finalNormalized.level.toString();
   const geocodingLevel = geocoding_level.toString();
 
@@ -338,4 +325,4 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   }
 };
 
-export const handler = Sentry.AWSLambda.wrapHandler(_handler);
+export const handler = Sentry.AWSLambda.wrapHandler(authenticator(_handler, 'id-req'));

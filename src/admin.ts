@@ -12,6 +12,7 @@ import { _handler as idQueryHandler } from './idQuery';
 
 import { decapitalize } from './lib';
 import { AUTH0_DOMAIN, AUTH0_MGMT_DOMAIN } from './lib/auth0_client';
+import { authenticator } from './lib/decorators';
 
 const jwksClient = jwks({
   cache: true,
@@ -76,15 +77,15 @@ const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (even
   } else if (event.resource === '/admin/query' && event.httpMethod === 'GET') {
     event.preauthenticatedUserId = userId;
     event.isDebugMode = event.queryStringParameters?.debug === 'true';
-    return await publicHandler(event, context, callback) as APIGatewayProxyResult;
+    return await authenticator(publicHandler, 'id-req')(event, context, callback) as APIGatewayProxyResult;
   } else if (event.resource === '/admin/query/{estateId}' && event.httpMethod === 'GET') {
     event.preauthenticatedUserId = userId;
     event.isDebugMode = event.queryStringParameters?.debug === 'true';
-    return await idQueryHandler(event, context, callback) as APIGatewayProxyResult;
+    return await authenticator(idQueryHandler, 'id-req')(event, context, callback) as APIGatewayProxyResult;
   } else if (event.resource === '/admin/feedback' && event.httpMethod === 'POST') {
     return feedback.create(adminEvent);
   }
   return errorResponse(404, 'Not found');
 };
 
-export const handler = Sentry.AWSLambda.wrapHandler(_handler);
+export const handler = Sentry.AWSLambda.wrapHandler(_handler as Handler);
