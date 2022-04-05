@@ -6,6 +6,7 @@ import Sentry from './lib/sentry';
 import { normalize } from './lib/nja';
 import { extractBuildingName } from './lib/building_normalization';
 import { authenticator } from './lib/decorators';
+import { Handler } from 'aws-lambda';
 
 export const _handler: PropIdHandler = async (event, context) => {
 
@@ -74,4 +75,4 @@ export const _handler: PropIdHandler = async (event, context) => {
   return json([ idOut ], quotaParams);
 };
 
-export const handler = Sentry.AWSLambda.wrapHandler(authenticator(_handler, 'id-req'));
+export const handler = Sentry.AWSLambda.wrapHandler(authenticator(_handler, 'id-req') as Handler);
