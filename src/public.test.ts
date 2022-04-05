@@ -12,7 +12,7 @@ test('should specify the ZOOM environmental variable.', () => {
   expect(typeof ZOOM).toBe('number')
 })
 
-test.only('should get same estate ID for multiple queries to same address', async () => {
+test('should get same estate ID for multiple queries to same address', async () => {
 
   const event = {
     isDemoMode: true,
