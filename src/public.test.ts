@@ -1,7 +1,10 @@
 import { APIGatewayProxyResult } from 'aws-lambda'
+import { authenticator } from './lib/decorators'
 import * as dynamodb from './lib/dynamodb'
 import { _getServiceUsageQuotaItem, _updateServiceUsageQuota } from './lib/dynamodb_test_helpers.test'
-import { _handler as handler } from './public'
+import { _handler } from './public'
+
+const handler = authenticator(_handler, 'id-req');
 
 test('should specify the ZOOM environmental variable.', () => {
   const ZOOM = parseInt(process.env.ZOOM, 10)
