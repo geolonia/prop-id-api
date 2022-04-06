@@ -34,7 +34,6 @@ export const _handler: PropIdHandler = async (event, context) => {
   if (!address) {
     return errorResponse(400, 'Missing querystring parameter `q`.', quotaParams);
   }
-
   Sentry.setContext('query', {
     address,
     debug: event.isDebugMode,
@@ -55,7 +54,6 @@ export const _handler: PropIdHandler = async (event, context) => {
     deps: versions,
     normalized: JSON.stringify(prenormalized),
   }, { apiKey }));
-
   if (
     prenormalized.level <= 2 ||
     // NOTE: 以下の条件判定は NJA のレスポンスとしてはあり得ないため不要だが、念の為入れている
@@ -81,9 +79,9 @@ export const _handler: PropIdHandler = async (event, context) => {
       400
     );
   }
-
+  console.log(0);
   const ipcResult = await incrementPGeocode(prenormalizedStr);
-
+  console.log(1);
   if (!ipcResult) {
     Sentry.captureException(new Error('IPC result null'));
     background.push(ipcNormalizationErrorReport('normFailNoIPCGeomNull', {
@@ -96,7 +94,7 @@ export const _handler: PropIdHandler = async (event, context) => {
     feature,
     cacheHit,
   } = ipcResult;
-
+  console.log(2);
   // Features not found
   if (!feature || feature.geometry === null) {
     Sentry.captureException(new Error(`The address '${address}' is not verified.`));
