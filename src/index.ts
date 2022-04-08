@@ -1,11 +1,25 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, Callback } from 'aws-lambda';
 declare global {
+
+  type AuthenticationPlanIdentifier = 'paid' | 'free';
+
+  type QuotaType = 'id-req' | 'id-query';
+
+  type AuthenticationResult = {
+    valid: true
+    plan: AuthenticationPlanIdentifier,
+    quotaLimit: number,
+    quotaRemaining: number,
+    quotaResetDate: string | false
+  };
+
   interface PublicHandlerEvent extends APIGatewayProxyEvent {
     preauthenticatedUserId?: string
     isDemoMode?: boolean
     isDebugMode?: boolean
   }
+
+  type PropIdHandler = ((event: PublicHandlerEvent, context: Context, callback: Callback) => Promise<APIGatewayProxyResult>);
 
   interface AdminHandlerEvent extends APIGatewayProxyEvent {
     userId: string

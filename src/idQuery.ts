@@ -1,25 +1,20 @@
 import '.';
-import { Handler, APIGatewayProxyResult } from 'aws-lambda';
 import { incrementPGeocode } from './lib';
-import { authenticateEvent } from './lib/authentication';
 import { getEstateId } from './lib/dynamodb';
 import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
 import { normalize } from './lib/nja';
 import { extractBuildingName } from './lib/building_normalization';
+import { authenticator, AuthenticatorContext, decorate, Decorator } from './lib/decorators';
 
-export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
-  const quotaType = 'id-req';
-  const authenticationResult = await authenticateEvent(event, quotaType);
-  if ('statusCode' in authenticationResult) {
-    return authenticationResult;
-  }
+export const _handler: PropIdHandler = async (event, context) => {
 
-  const quotaParams = {
-    quotaLimit: authenticationResult.quotaLimit,
-    quotaRemaining: authenticationResult.quotaRemaining,
-    quotaResetDate: authenticationResult.quotaResetDate,
-  };
+  const {
+    propIdAuthenticator: {
+      authentication,
+      quotaParams,
+    },
+  } = context as AuthenticatorContext;
 
   const estateId = event.pathParameters?.estateId;
   if (!estateId) {
@@ -46,7 +41,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     normalization_level: prenormalizedAddress.level.toString(),
   };
 
-  if (authenticationResult.plan === 'paid') {
+  if (authentication.plan === 'paid') {
     const ipcResult = await incrementPGeocode(estateIdObj.address);
     if (!ipcResult) {
       return errorResponse(500, 'Internal server error', quotaParams);
@@ -84,4 +79,9 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   return json([ idOut ], quotaParams);
 };
 
-export const handler = Sentry.AWSLambda.wrapHandler(_handler);
+export const handler = decorate(_handler,
+  [
+    authenticator('id-req'),
+    Sentry.AWSLambda.wrapHandler as Decorator,
+  ]
+);
