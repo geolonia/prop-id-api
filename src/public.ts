@@ -88,9 +88,9 @@ export const _handler: PropIdHandler = async (event, context) => {
       400
     );
   }
-  console.log(0);
+
   const ipcResult = await incrementPGeocode(prenormalizedStr);
-  console.log(1);
+
   if (!ipcResult) {
     Sentry.captureException(new Error('IPC result null'));
     background.push(ipcNormalizationErrorReport('normFailNoIPCGeomNull', {
@@ -103,7 +103,7 @@ export const _handler: PropIdHandler = async (event, context) => {
     feature,
     cacheHit,
   } = ipcResult;
-  console.log(2);
+
   // Features not found
   if (!feature || feature.geometry === null) {
     Sentry.captureException(new Error(`The address '${address}' is not verified.`));
