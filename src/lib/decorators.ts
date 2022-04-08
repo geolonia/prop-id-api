@@ -18,7 +18,7 @@ export const logger: Decorator = (handler) => {
       },
     };
     const result = await handler(event, nextContext, callback);
-    await Promise.all(nextContext.propIdLogger.background);
+    // await Promise.all(nextContext.propIdLogger.background);
     return result;
   };
 };
