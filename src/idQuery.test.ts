@@ -1,10 +1,11 @@
 import { _handler as _publicHandler } from './public'
 import { _handler as _idQueryHandler } from './idQuery'
 import * as dynamodb from './lib/dynamodb'
-import { authenticator, log, decorate } from './lib/decorators';
+import { authenticator, logger, decorate } from './lib/decorators';
 
-const publicHandler = decorate(_publicHandler, [log, authenticator('id-req')]);
-const handler = decorate(_idQueryHandler, [log, authenticator('id-req')]);
+// TODO: logger、authenticator をテストから分離する
+const publicHandler = decorate(_publicHandler, [logger, authenticator('id-req')]);
+const handler = decorate(_idQueryHandler, [logger, authenticator('id-req')]);
 
 test('returns 400 when estateId is not available', async () => {
   const event = {

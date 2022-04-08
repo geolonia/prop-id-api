@@ -12,7 +12,7 @@ import { _handler as idQueryHandler } from './idQuery';
 
 import { decapitalize } from './lib';
 import { AUTH0_DOMAIN, AUTH0_MGMT_DOMAIN } from './lib/auth0_client';
-import { authenticator, decorate, log } from './lib/decorators';
+import { authenticator, decorate, logger } from './lib/decorators';
 
 const jwksClient = jwks({
   cache: true,
@@ -22,7 +22,7 @@ const jwksClient = jwks({
   jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`,
 });
 
-const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event, context, callback) => {
+const _handler: Handler<PublicHandlerEvent, void | APIGatewayProxyResult> = async (event, context, callback) => {
   const headers = decapitalize(event.headers);
   const tokenHeader = headers['authorization'];
   if (!tokenHeader || !tokenHeader.match(/^bearer /i)) {
@@ -77,12 +77,12 @@ const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (even
   } else if (event.resource === '/admin/query' && event.httpMethod === 'GET') {
     event.preauthenticatedUserId = userId;
     event.isDebugMode = event.queryStringParameters?.debug === 'true';
-    const handler = decorate(publicHandler, [log, authenticator('id-req')]);
+    const handler = decorate(publicHandler, [logger, authenticator('id-req')]);
     return await handler(event, context, callback);
   } else if (event.resource === '/admin/query/{estateId}' && event.httpMethod === 'GET') {
     event.preauthenticatedUserId = userId;
     event.isDebugMode = event.queryStringParameters?.debug === 'true';
-    const handler = decorate(idQueryHandler, [log, authenticator('id-req')]);
+    const handler = decorate(idQueryHandler, [logger, authenticator('id-req')]);
     return await handler(event, context, callback);
   } else if (event.resource === '/admin/feedback' && event.httpMethod === 'POST') {
     return feedback.create(adminEvent);
@@ -90,4 +90,4 @@ const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (even
   return errorResponse(404, 'Not found');
 };
 
-export const handler = Sentry.AWSLambda.wrapHandler(_handler as Handler);
+export const handler = Sentry.AWSLambda.wrapHandler(_handler);

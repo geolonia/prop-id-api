@@ -7,7 +7,7 @@ import { joinNormalizeResult, normalize, NormalizeResult, versions } from './lib
 import { createLog, normalizeBanchiGo, withLock } from './lib/dynamodb_logs';
 import { ipcNormalizationErrorReport } from './outerApiErrorReport';
 import { extractBuildingName, normalizeBuildingName } from './lib/building_normalization';
-import { authenticator, decorate, Decorator, log } from './lib/decorators';
+import { authenticator, AuthenticatorContext, decorate, Decorator, logger, LoggerContext } from './lib/decorators';
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   'prefecture_not_recognized',
@@ -29,7 +29,16 @@ const IPC_NORMALIZATION_ERROR_CODE_DETAILS: { [key: string]: string } = {
 export const _handler: PropIdHandler = async (event, context) => {
   const address = event.queryStringParameters?.q;
   const ZOOM = parseInt(process.env.ZOOM, 10);
-  const { apiKey, authentication, quotaParams, background } = context.propId;
+  const {
+    propIdAuthenticator: {
+      apiKey,
+      authentication,
+      quotaParams,
+    },
+    propIdLogger: {
+      background,
+    },
+  }= (context as AuthenticatorContext & LoggerContext);
 
   if (!address) {
     return errorResponse(400, 'Missing querystring parameter `q`.', quotaParams);
@@ -316,8 +325,8 @@ export const _handler: PropIdHandler = async (event, context) => {
 
 export const handler = decorate(_handler,
   [
-    log,
+    logger,
     authenticator('id-req'),
-    Sentry.AWSLambda.wrapHandler as unknown as Decorator,
+    Sentry.AWSLambda.wrapHandler as Decorator,
   ]
 );

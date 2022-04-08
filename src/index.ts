@@ -3,6 +3,8 @@ declare global {
 
   type AuthenticationPlanIdentifier = 'paid' | 'free';
 
+  type QuotaType = 'id-req' | 'id-query';
+
   type AuthenticationResult = {
     valid: true
     plan: AuthenticationPlanIdentifier,
@@ -17,21 +19,7 @@ declare global {
     isDebugMode?: boolean
   }
 
-  interface PropIdContext extends Context {
-    propId: {
-      apiKey?: string
-      accessToken?: string
-      authentication: AuthenticationResult
-      quotaParams: Pick<AuthenticationResult, 'quotaLimit' | 'quotaRemaining' | 'quotaResetDate'>
-      background: Promise<void>[],
-    }
-  }
-
-  type PropIdHandler = (
-    event: PublicHandlerEvent,
-    context: PropIdContext,
-    callback: Callback,
-  ) => Promise<APIGatewayProxyResult>;
+  type PropIdHandler = ((event: PublicHandlerEvent, context: Context, callback: Callback) => Promise<APIGatewayProxyResult>);
 
   interface AdminHandlerEvent extends APIGatewayProxyEvent {
     userId: string

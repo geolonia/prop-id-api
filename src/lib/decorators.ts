@@ -1,12 +1,37 @@
-// @file Lambda decorators
+// @file Lambda decorator definitions
 
-import { Handler } from 'aws-lambda';
+import { APIGatewayProxyHandler, Context } from 'aws-lambda';
 import { authenticateEvent, extractApiKey } from './authentication';
 
-type QuotaType = 'id-req';
-export type Decorator = (handler: PropIdHandler, ...args: any[]) => PropIdHandler;
+export type Decorator = (handler: PropIdHandler) => PropIdHandler;
+export interface LoggerContext extends Context {
+  propIdLogger: {
+    background: Promise<void>[]
+  }
+};
+export const logger: Decorator = (handler) => {
+  return async(event, context, callback) => {
+    const nextContext: LoggerContext = {
+      ...context,
+      propIdLogger: {
+        background: [],
+      },
+    };
+    const result = await handler(event, nextContext, callback);
+    await Promise.all(nextContext.propIdLogger.background);
+    return result;
+  };
+};
 
-export const authenticator = (quotaType: QuotaType): Decorator => (handler) => {
+export interface AuthenticatorContext extends Context {
+  propIdAuthenticator: {
+    apiKey?: string
+    accessToken?: string
+    authentication: AuthenticationResult
+    quotaParams: Pick<AuthenticationResult, 'quotaLimit' | 'quotaRemaining' | 'quotaResetDate'>
+  }
+}
+export const authenticator =(quotaType: QuotaType): Decorator => (handler) => {
   return async (event, context, callback) => {
     const authentication = await authenticateEvent(event, quotaType);
     if ('statusCode' in authentication) {
@@ -18,42 +43,22 @@ export const authenticator = (quotaType: QuotaType): Decorator => (handler) => {
       quotaRemaining: authentication.quotaRemaining,
       quotaResetDate: authentication.quotaResetDate,
     };
-    const background = context?.propId?.background || [];
-    const authenticatedContext = {
-      ...(context || {}),
-      propId: {
+    const authenticatedContext: AuthenticatorContext = {
+      ...context,
+      propIdAuthenticator: {
         apiKey,
         accessToken,
         authentication,
         quotaParams,
-        background,
       },
     };
     return handler(event, authenticatedContext, callback);
   };
 };
 
-export const log: Decorator = (handler) => {
-  return async(event, context, callback) => {
-    const background = context?.propId?.background || [];
-    const loggerContext = {
-      ...context,
-      propId: {
-        ...context.propId,
-        background,
-      },
-    };
-    const result = await handler(event, loggerContext, callback);
-    await Promise.all(loggerContext.propId.background);
-    return result;
-  };
-};
-
-export const decorate = (
-  handler: PropIdHandler,
-  wrappers: Decorator[],
-): Handler => {
-  return wrappers.reduce<PropIdHandler>((prev, wrapper) => {
-    return wrapper(prev);
-  }, handler) as Handler;
+export const decorate = (handler: PropIdHandler, decorators: (Decorator)[]): APIGatewayProxyHandler => {
+  return decorators.reduce<PropIdHandler>((prev, decorator) => {
+    const nextHandler = decorator(prev);
+    return nextHandler;
+  }, handler);
 };
