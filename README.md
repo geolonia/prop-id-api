@@ -1,5 +1,24 @@
 #  不動産共通 ID API
 
+## カスタムクオータ
+
+api-key のテーブルに `quota_<quota-type>` としてリクエスト回数の上限を追加する。
+
+ID リクエストに対して 100,000のリクエスト制限を設ける場合:
+
+```json
+{
+ "apiKey": "01234567890abcdef",
+ "GSI1PK": "auth0|01234567890abcdef",
+ "quota_id-req": 100000,
+ "plan": "free",
+ "GSI1SK": "2022-04-01T12:00:00.000Z",
+ "description": "デフォルトAPIキー",
+ "lastRequestAt": 1111111111111,
+ "hashedToken": "**********"
+}
+```
+
 ## 開発＆リリースフロー
 
 * `develop` ブランチからフィーチャブランチを切ってください
