@@ -19,16 +19,6 @@ export const extractApiKey = (event: PublicHandlerEvent) => {
   return resp;
 };
 
-export type AuthenticationPlanIdentifier = 'paid' | 'free';
-
-export type AuthenticationResult = {
-  valid: true
-  plan: AuthenticationPlanIdentifier,
-  quotaLimit: number,
-  quotaRemaining: number,
-  quotaResetDate: string | false
-};
-
 export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: string): Promise<APIGatewayProxyResult | AuthenticationResult> => {
   const { apiKey, accessToken } = extractApiKey(event);
 
