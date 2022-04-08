@@ -550,7 +550,7 @@ describe('banchi-go database', () => {
               "other": building,
             }),
           }),
-          "status": status,
+          "status": expectedIdObject.status,
         })
       );
 
