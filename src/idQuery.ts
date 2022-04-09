@@ -5,16 +5,16 @@ import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
 import { normalize } from './lib/nja';
 import { extractBuildingName } from './lib/building_normalization';
-import { authenticator, AuthenticatorContext, decorate, Decorator } from './lib/decorators';
+import { authenticator, AuthenticatorSubcontext, decorate, Decorator, logger } from './lib/decorators';
 
-export const _handler: PropIdHandler = async (event, context) => {
+export const _handler: PropIdHandler<AuthenticatorSubcontext> = async (event, context) => {
 
   const {
-    propIdAuthenticator: {
+    authenticator: {
       authentication,
       quotaParams,
     },
-  } = context as AuthenticatorContext;
+  } = context.propId;
 
   const estateId = event.pathParameters?.estateId;
   if (!estateId) {
@@ -79,9 +79,20 @@ export const _handler: PropIdHandler = async (event, context) => {
   return json([ idOut ], quotaParams);
 };
 
-export const handler = decorate(_handler,
-  [
-    authenticator('id-req'),
-    Sentry.AWSLambda.wrapHandler as Decorator,
-  ]
+// export const handler = decorate(_handler,
+//   [
+//     authenticator('id-req'),
+//     Sentry.AWSLambda.wrapHandler as Decorator,
+//   ]
+// );
+
+const decorators = [
+  authenticator('id-req'),
+  logger,
+] as const;
+
+export const handler = decorate(async (event, context) => {
+  return json([]);
+},
+decorators
 );

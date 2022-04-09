@@ -19,7 +19,14 @@ declare global {
     isDebugMode?: boolean
   }
 
-  type PropIdHandler = ((event: PublicHandlerEvent, context: Context, callback: Callback) => Promise<APIGatewayProxyResult>);
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface PropIdSubcontext {}
+
+  interface PropIdContext<T extends PropIdSubcontext> extends Context {
+    propId: T
+  }
+
+  type PropIdHandler<T = any> = ((event: PublicHandlerEvent, context: PropIdContext<T>, callback: Callback) => Promise<APIGatewayProxyResult>);
 
   interface AdminHandlerEvent extends APIGatewayProxyEvent {
     userId: string

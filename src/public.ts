@@ -7,7 +7,7 @@ import { joinNormalizeResult, normalize, NormalizeResult, versions } from './lib
 import { createLog, normalizeBanchiGo, withLock } from './lib/dynamodb_logs';
 import { ipcNormalizationErrorReport } from './outerApiErrorReport';
 import { extractBuildingName, normalizeBuildingName } from './lib/building_normalization';
-import { authenticator, AuthenticatorContext, decorate, Decorator, logger, LoggerContext } from './lib/decorators';
+import { authenticator, AuthenticatorSubcontext, decorate, Decorator, logger, LoggerSubcontext } from './lib/decorators';
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   'prefecture_not_recognized',
@@ -38,7 +38,7 @@ export const _handler: PropIdHandler = async (event, context) => {
     propIdLogger: {
       background,
     },
-  }= (context as AuthenticatorContext & LoggerContext);
+  }= (context as AuthenticatorSubcontext & LoggerSubcontext);
 
   if (!address) {
     return errorResponse(400, 'Missing querystring parameter `q`.', quotaParams);
