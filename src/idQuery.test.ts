@@ -5,7 +5,7 @@ import { authenticator, logger, decorate } from './lib/decorators';
 
 // TODO: logger、authenticator をテストから分離する
 const publicHandler = decorate(_publicHandler, [logger, authenticator('id-req')]);
-const handler = decorate(_idQueryHandler, [logger, authenticator('id-req')]);
+const idQueryHandler = decorate(_idQueryHandler, [logger, authenticator('id-req')]);
 
 test('returns 400 when estateId is not available', async () => {
   const event = {
@@ -13,7 +13,7 @@ test('returns 400 when estateId is not available', async () => {
     pathParameters: {}
   }
   // @ts-ignore
-  const lambdaResult = await handler(event) as APIGatewayProxyResult
+  const lambdaResult = await idQueryHandler(event) as APIGatewayProxyResult
   expect(lambdaResult.statusCode).toBe(400)
 })
 
@@ -25,7 +25,7 @@ test('returns 404 when estateId is not found', async () => {
     }
   }
   // @ts-ignore
-  const lambdaResult = await handler(event) as APIGatewayProxyResult
+  const lambdaResult = await idQueryHandler(event) as APIGatewayProxyResult
   expect(lambdaResult.statusCode).toBe(404)
 })
 
@@ -47,7 +47,7 @@ test('it works', async () => {
     }
   }
   // @ts-ignore
-  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult
+  const lambdaResult2 = await idQueryHandler(event2) as APIGatewayProxyResult
   expect(lambdaResult2.statusCode).toBe(200)
 
   const body2 = JSON.parse(lambdaResult2.body)
@@ -105,7 +105,7 @@ test('should get estate ID without details if authenticated with a free API key'
     }
   }
   // @ts-ignore
-  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult
+  const lambdaResult2 = await idQueryHandler(event2) as APIGatewayProxyResult
   expect(lambdaResult2.statusCode).toBe(200)
 
   const body2 = JSON.parse(lambdaResult2.body)
@@ -151,7 +151,7 @@ test('should get estate ID with details if authenticated with a paid API key', a
     }
   }
   // @ts-ignore
-  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult
+  const lambdaResult2 = await idQueryHandler(event2) as APIGatewayProxyResult
   expect(lambdaResult2.statusCode).toBe(200)
 
   const body2 = JSON.parse(lambdaResult2.body)
@@ -198,7 +198,7 @@ test('should not return building name with empty building name parameter', async
     }
   }
   // @ts-ignore
-  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult
+  const lambdaResult2 = await idQueryHandler(event2) as APIGatewayProxyResult
   expect(lambdaResult2.statusCode).toBe(200)
   const body2 = JSON.parse(lambdaResult2.body)
 
@@ -234,7 +234,7 @@ test('should not include building name in address2', async () => {
     }
   }
   // @ts-ignore
-  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult
+  const lambdaResult2 = await idQueryHandler(event2) as APIGatewayProxyResult
   expect(lambdaResult2.statusCode).toBe(200)
   const body2 = JSON.parse(lambdaResult2.body)
 
@@ -271,9 +271,9 @@ test('should return reviewed parameters', async () => {
     }
   }
   // @ts-ignore
-  const lambdaResult2 = await handler(event2) as APIGatewayProxyResult
+  const lambdaResult2 = await idQueryHandler(event2) as APIGatewayProxyResult
   expect(lambdaResult2.statusCode).toBe(200)
   const body2 = JSON.parse(lambdaResult2.body)
 
-  expect(body2.reviewed).toEqual(false)
+  expect(body2[0].reviewed).toEqual(false)
 })
