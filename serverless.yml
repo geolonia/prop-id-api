@@ -312,5 +312,5 @@ functions:
           batchWindow: 30
           batchSize: 100
           maximumRetryAttempts: 3
-            destinations:
+          destinations:
             onFailure: !Ref eventFailureDestQueue
