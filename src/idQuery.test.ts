@@ -257,7 +257,7 @@ test('should return reviewed parameters', async () => {
   // @ts-ignore
   const lambdaResult1 = await publicHandler(event1) as APIGatewayProxyResult
   const body1 = JSON.parse(lambdaResult1.body)
-  expect(body1[0].ID.reviewed).toBe(false)
+  expect(body1[0].reviewed).toBe(false)
 
   const event2 = {
     queryStringParameters: {
