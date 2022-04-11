@@ -39,6 +39,7 @@ export const _handler: PropIdHandler = async (event, context) => {
   const idOut: any = {
     ID: estateIdObj.estateId,
     normalization_level: prenormalizedAddress.level.toString(),
+    reviewed: estateIdObj.status !== 'addressPending',
   };
 
   if (authentication.plan === 'paid') {

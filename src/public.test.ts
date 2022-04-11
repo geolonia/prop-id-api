@@ -572,11 +572,8 @@ describe('banchi-go database', () => {
         for (const key in expectedIdObject) {
           expect(`${key}=${item[key]}`).toEqual(`${key}=${expectedIdObject[key]}`)
         }
-
-        if(expectedIdObject.status) {
-          expect(body[0].status).toEqual(expectedIdObject.status)
-        }
       }
+      expect(body[0].reviewed).toEqual(expectedIdObject?.status !== 'addressPending')
     });
   }
 });
