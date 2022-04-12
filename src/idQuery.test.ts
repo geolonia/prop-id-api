@@ -242,8 +242,8 @@ test('should not include building name in address2', async () => {
   expect(body2[0].address.ja.other).toEqual('おはようビル123F')
 })
 
-test('should return reviewed parameters', async () => {
-  const { apiKey, accessToken } = await dynamodb.createApiKey('should return reviewed parameters', { plan: "paid" })
+test('should return addressPending parameters', async () => {
+  const { apiKey, accessToken } = await dynamodb.createApiKey('should return addressPending parameters', { plan: "paid" })
 
   const event1 = {
     queryStringParameters: {
@@ -257,7 +257,7 @@ test('should return reviewed parameters', async () => {
   // @ts-ignore
   const lambdaResult1 = await publicHandler(event1) as APIGatewayProxyResult
   const body1 = JSON.parse(lambdaResult1.body)
-  expect(body1[0].reviewed).toBe(false)
+  expect(body1[0].addressPending).toBe(true)
 
   const event2 = {
     queryStringParameters: {
@@ -275,5 +275,5 @@ test('should return reviewed parameters', async () => {
   expect(lambdaResult2.statusCode).toBe(200)
   const body2 = JSON.parse(lambdaResult2.body)
 
-  expect(body2[0].reviewed).toEqual(false)
+  expect(body2[0].addressPending).toEqual(true)
 })
