@@ -120,7 +120,7 @@ test('should get estate ID without details if authenticated with a free API key'
 })
 
 test('should get estate ID with details if authenticated with a paid API key', async () => {
-  const { apiKey, accessToken } = await dynamodb.createApiKey('sshould get estate ID with details if authenticated with a paid API key', { plan: "paid" })
+  const { apiKey, accessToken } = await dynamodb.createApiKey('should get estate ID with details if authenticated with a paid API key', { plan: "paid" })
 
   const event1 = {
     queryStringParameters: {
