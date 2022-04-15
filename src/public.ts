@@ -226,6 +226,14 @@ export const _handler: PropIdHandler = async (event, context) => {
 
   let existing: boolean;
   let rawEstateIds: BaseEstateId[];
+
+  // NOTE:
+  // 番地・号を発見できなかったとき(最終正規化レベル <= 6 かつ IPC <=5)は `addressPending` としてマークされ、別途確認を行うことになります。
+  // この住所は未知の番地・号か、あるいは単純に不正な入力値である可能性があります。
+  // また、ビル名の抽出ができないため、`address2` フィールドに番地・号とビル名が混在します。
+  // 修正のプロセスにより住所文字列は変更される可能性があります。
+  const status = finalNormalized.level <= 6 && ipc_geocoding_level_int <= 5 ? 'addressPending' : undefined;
+
   try {
     const lockId = `${finalAddress}/${normalizedBuilding}`;
     const estateIdIssuance = await withLock(lockId, async () => {
@@ -236,12 +244,6 @@ export const _handler: PropIdHandler = async (event, context) => {
           rawEstateIds: existingEstateIds,
         };
       } else {
-        // NOTE:
-        // 番地・号を発見できなかったとき(最終正規化レベル <= 6 かつ IPC <=5)は `addressPending` としてマークされ、別途確認を行うことになります。
-        // この住所は未知の番地・号か、あるいは単純に不正な入力値である可能性があります。
-        // また、ビル名の抽出ができないため、`address2` フィールドに番地・号とビル名が混在します。
-        // 修正のプロセスにより住所文字列は変更される可能性があります。
-        const status = finalNormalized.level <= 6 && ipc_geocoding_level_int <= 5 ? 'addressPending' : undefined;
         const storeParams: StoreEstateIdReq = {
           zoom: ZOOM,
           tileXY: `${x}/${y}`,
@@ -291,6 +293,7 @@ export const _handler: PropIdHandler = async (event, context) => {
           other: estateId.rawBuilding || '',
         },
       },
+      status: status === 'addressPending' ? 'addressPending' : null,
     };
     if (richIdResp) {
       baseResp.geocoding_level = geocodingLevel;
