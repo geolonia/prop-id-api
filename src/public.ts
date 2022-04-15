@@ -293,7 +293,7 @@ export const _handler: PropIdHandler = async (event, context) => {
           other: estateId.rawBuilding || '',
         },
       },
-      addressPending: status === 'addressPending',
+      status: status === 'addressPending' ? 'addressPending' : null,
     };
     if (richIdResp) {
       baseResp.geocoding_level = geocodingLevel;
