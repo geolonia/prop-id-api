@@ -1,5 +1,4 @@
 import AWS from 'aws-sdk';
-import { AuthenticationPlanIdentifier } from './authentication';
 import { hashToken, hashTokenV2, hashXY, randomToken } from './index';
 import { DateTime } from 'luxon';
 

@@ -107,6 +107,7 @@ custom:
   awsDynamodbApiKeyTableName: estate-id-api-key-${self:provider.stage}
   awsDynamodbEstateIdTableName: estate-id-${self:provider.stage}
   awsS3LogStreamOutputBucketName: prop-id-log-stream-output-bucket-${self:provider.stage}
+  awsSqsEventFailureDestQueueName: prop-id-event-failure-dest-queue-${self:provider.stage}
 
   local:
     AUTH0_CLIENT_ID: "Odt4Kq2h7HTJsbkzhVrY4Rm7QLhMkFLH"
@@ -223,6 +224,11 @@ resources:
       Properties:
         BucketName: ${self:custom.awsS3LogStreamOutputBucketName}
 
+    eventFailureDestQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.awsSqsEventFailureDestQueueName}
+
 functions:
   public:
     handler: src/public.handler
@@ -293,11 +299,9 @@ functions:
           arn: !GetAtt estateIdTable.StreamArn
           batchWindow: 30
           batchSize: 10
-          # parallelizationFactor: 1
-          # bisectBatchOnFunctionError: true
-          # maximumRetryAttempts: 5
-          # destinations:
-          #   onFailure: !Ref some SQS queue
+          maximumRetryAttempts: 3
+          destinations:
+            onFailure: arn:aws:sqs:ap-northeast-1:${aws:accountId}:${self:custom.awsSqsEventFailureDestQueueName}
 
   logEvents:
     handler: src/logEvents.handler
@@ -307,3 +311,6 @@ functions:
           arn: !GetAtt logTable.StreamArn
           batchWindow: 30
           batchSize: 100
+          maximumRetryAttempts: 3
+          destinations:
+            onFailure: arn:aws:sqs:ap-northeast-1:${aws:accountId}:${self:custom.awsSqsEventFailureDestQueueName}

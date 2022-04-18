@@ -4,11 +4,10 @@ import { coord2XY, getPrefCode, incrementPGeocode } from './lib/index';
 import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
 import { joinNormalizeResult, normalize, NormalizeResult, versions } from './lib/nja';
-import { Handler, APIGatewayProxyResult } from 'aws-lambda';
-import { authenticateEvent, extractApiKey } from './lib/authentication';
 import { createLog, normalizeBanchiGo, withLock } from './lib/dynamodb_logs';
 import { ipcNormalizationErrorReport } from './outerApiErrorReport';
 import { extractBuildingName, normalizeBuildingName } from './lib/building_normalization';
+import { authenticator, AuthenticatorContext, decorate, Decorator, logger, LoggerContext } from './lib/decorators';
 
 const NORMALIZATION_ERROR_CODE_DETAILS = [
   'prefecture_not_recognized',
@@ -27,28 +26,23 @@ const IPC_NORMALIZATION_ERROR_CODE_DETAILS: { [key: string]: string } = {
   '-1': 'geo_undefined',
 };
 
-export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = async (event) => {
+export const _handler: PropIdHandler = async (event, context) => {
   const address = event.queryStringParameters?.q;
   const ZOOM = parseInt(process.env.ZOOM, 10);
-  const quotaType = 'id-req';
-
-  const { apiKey } = extractApiKey(event);
-  const authenticationResult = await authenticateEvent(event, quotaType);
-  if ('statusCode' in authenticationResult) {
-    return authenticationResult;
-  }
-
-  const quotaParams = {
-    quotaLimit: authenticationResult.quotaLimit,
-    quotaRemaining: authenticationResult.quotaRemaining,
-    quotaResetDate: authenticationResult.quotaResetDate,
-  };
+  const {
+    propIdAuthenticator: {
+      apiKey,
+      authentication,
+      quotaParams,
+    },
+    propIdLogger: {
+      background,
+    },
+  }= (context as AuthenticatorContext & LoggerContext);
 
   if (!address) {
     return errorResponse(400, 'Missing querystring parameter `q`.', quotaParams);
   }
-
-  const background: Promise<any>[] = [];
   Sentry.setContext('query', {
     address,
     debug: event.isDebugMode,
@@ -69,7 +63,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     deps: versions,
     normalized: JSON.stringify(prenormalized),
   }, { apiKey }));
-
   if (
     prenormalized.level <= 2 ||
     // NOTE: 以下の条件判定は NJA のレスポンスとしてはあり得ないため不要だが、念の為入れている
@@ -84,7 +77,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   if (prenormalized.level <= 2) {
     const error_code_detail = NORMALIZATION_ERROR_CODE_DETAILS[prenormalized.level];
-    await Promise.all(background);
     return json(
       {
         error: true,
@@ -104,7 +96,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     background.push(ipcNormalizationErrorReport('normFailNoIPCGeomNull', {
       input: prenormalizedStr,
     }));
-    await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
@@ -126,7 +117,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       prenormalized: prenormalizedStr,
     }));
 
-    await Promise.all(background);
     return json(
       {
         error: true,
@@ -185,7 +175,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       IPC_NORMALIZATION_ERROR_CODE_DETAILS[ipc_geocoding_level_int.toString()]
       || IPC_NORMALIZATION_ERROR_CODE_DETAILS['-1']
     );
-    await Promise.all(background);
     return json(
       {
         error: true,
@@ -201,7 +190,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   if (!prefCode) {
     console.log(`[FATAL] Invalid \`properties.pref\` response from API: '${feature.properties.pref}'.`);
     Sentry.captureException(new Error(`Invalid \`properties.pref\` response from API: '${feature.properties.pref}'`));
-    await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
@@ -238,6 +226,14 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
 
   let existing: boolean;
   let rawEstateIds: BaseEstateId[];
+
+  // NOTE:
+  // 番地・号を発見できなかったとき(最終正規化レベル <= 6 かつ IPC <=5)は `addressPending` としてマークされ、別途確認を行うことになります。
+  // この住所は未知の番地・号か、あるいは単純に不正な入力値である可能性があります。
+  // また、ビル名の抽出ができないため、`address2` フィールドに番地・号とビル名が混在します。
+  // 修正のプロセスにより住所文字列は変更される可能性があります。
+  const status = finalNormalized.level <= 6 && ipc_geocoding_level_int <= 5 ? 'addressPending' : undefined;
+
   try {
     const lockId = `${finalAddress}/${normalizedBuilding}`;
     const estateIdIssuance = await withLock(lockId, async () => {
@@ -248,12 +244,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
           rawEstateIds: existingEstateIds,
         };
       } else {
-        // NOTE:
-        // 番地・号を発見できなかったとき(最終正規化レベル <= 6 かつ IPC <=5)は `addressPending` としてマークされ、別途確認を行うことになります。
-        // この住所は未知の番地・号か、あるいは単純に不正な入力値である可能性があります。
-        // また、ビル名の抽出ができないため、`address2` フィールドに番地・号とビル名が混在します。
-        // 修正のプロセスにより住所文字列は変更される可能性があります。
-        const status = finalNormalized.level <= 6 && ipc_geocoding_level_int <= 5 ? 'addressPending' : undefined;
         const storeParams: StoreEstateIdReq = {
           zoom: ZOOM,
           tileXY: `${x}/${y}`,
@@ -276,7 +266,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     console.error({ ZOOM, addressObject, apiKey, error });
     console.error('[FATAL] Something happend with DynamoDB connection.');
     Sentry.captureException(error);
-    await Promise.all(background);
     return errorResponse(500, 'Internal server error', quotaParams);
   }
   background.push(createLog(
@@ -288,7 +277,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
     { apiKey },
   ));
 
-  const richIdResp = !!(authenticationResult.plan === 'paid' || event.isDemoMode);
+  const richIdResp = !!(authentication.plan === 'paid' || event.isDemoMode);
   const normalizationLevel = finalNormalized.level.toString();
   const geocodingLevel = geocoding_level.toString();
 
@@ -304,6 +293,7 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
           other: estateId.rawBuilding || '',
         },
       },
+      status: status === 'addressPending' ? 'addressPending' : null,
     };
     if (richIdResp) {
       baseResp.geocoding_level = geocodingLevel;
@@ -313,7 +303,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   });
 
   if (event.isDebugMode === true) {
-    await Promise.all(background);
     // aggregate debug info
     return json(
       {
@@ -330,7 +319,6 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
       quotaParams,
     );
   } else {
-    await Promise.all(background);
     return json(
       apiResponse,
       quotaParams,
@@ -338,4 +326,10 @@ export const _handler: Handler<PublicHandlerEvent, APIGatewayProxyResult> = asyn
   }
 };
 
-export const handler = Sentry.AWSLambda.wrapHandler(_handler);
+export const handler = decorate(_handler,
+  [
+    logger,
+    authenticator('id-req'),
+    Sentry.AWSLambda.wrapHandler as Decorator,
+  ]
+);

@@ -93,6 +93,7 @@ https://api.propid.jp/v1
         "other": "xxx ビル"
       }
     }
+    "status": null | "addressPending"
   }
 ]
 ```
@@ -118,7 +119,8 @@ https://api.propid.jp/v1
       "lat": "緯度",
       "lng": "経度"
     }
-  }
+  },
+  "status": null | "addressPending"
 ]
 ```
 
@@ -170,6 +172,7 @@ https://api.propid.jp/v1
         "other": "xxx ビル"
       }
     },
+    "status": null | "addressPending",
     "location": {
       "lat": "緯度",
       "lng": "経度"

@@ -1,7 +1,11 @@
 import { APIGatewayProxyResult } from 'aws-lambda'
+import { authenticator, decorate, logger } from './lib/decorators'
 import * as dynamodb from './lib/dynamodb'
 import { _getServiceUsageQuotaItem, _updateServiceUsageQuota } from './lib/dynamodb_test_helpers.test'
-import { _handler as handler } from './public'
+import { _handler } from './public'
+
+// TODO: logger、authenticator をテストから分離する
+const handler = decorate(_handler, [logger, authenticator('id-req')]);
 
 test('should specify the ZOOM environmental variable.', () => {
   const ZOOM = parseInt(process.env.ZOOM, 10)
@@ -568,6 +572,9 @@ describe('banchi-go database', () => {
         for (const key in expectedIdObject) {
           expect(`${key}=${item[key]}`).toEqual(`${key}=${expectedIdObject[key]}`)
         }
+      }
+      if(expectedIdObject?.status === 'addressPending') {
+        expect(body[0].status).toEqual('addressPending')
       }
     });
   }
