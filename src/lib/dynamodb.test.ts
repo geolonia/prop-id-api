@@ -267,7 +267,7 @@ describe('getResetQuotaTime', () => {
 })
 
 test('createdAt and updatedAt params', async () => {
-  const now = '2022-01-01T00:00:00.000Z'
+  const now =
   await dynamodb.store({
     rawAddress: "京都市中京区寺町通御池上る上本能寺前町488番地",
     address: "京都市中京区寺町通御池上る上本能寺前町488番地",
@@ -278,6 +278,6 @@ test('createdAt and updatedAt params', async () => {
     prefCode: "11",
   })
   const idObj = await dynamodb.getEstateIdForAddress('京都市中京区寺町通御池上る上本能寺前町488番地')
-  expect(typeof idObj[0].createdAt).toEqual('string')
-  expect(typeof idObj[0].updatedAt).toEqual('string')
+  expect(new Date(idObj[0].createdAt).getTime()).not.toBeNaN()
+  expect(new Date(idObj[0].updatedAt).getTime()).not.toBeNaN()
 })
