@@ -34,6 +34,9 @@ export interface BaseEstateId {
   building?: string
   rawBuilding?: string
   status?: 'confirmed' | 'addressPending' | undefined
+
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface ConsolidatedEstateId extends BaseEstateId {
@@ -214,10 +217,13 @@ export const store = async (idObj: StoreEstateIdReq): Promise<EstateId> => {
       tries += 1;
       const serial = _generateSerial();
       const [x, y] = idObj.tileXY.split('/');
+      const now = new Date().toISOString();
       const Item: EstateId = {
         ...idObj,
         estateId: `${idObj.prefCode}-${hashXY(x, y, serial)}`,
         serial,
+        createdAt: now,
+        updatedAt: now,
       };
       const putItemInput: AWS.DynamoDB.DocumentClient.PutItemInput = {
         TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
