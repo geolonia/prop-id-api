@@ -4,6 +4,7 @@ import AWS from 'aws-sdk';
 import Sentry from './lib/sentry';
 import { EstateId, DB } from './lib/dynamodb';
 import { sendSlackNotification } from './lib/slack';
+import { ActionsBlock, SectionBlock } from '@slack/types';
 
 const _findDuplicateAddress = async (estateId: EstateId) => {
   const resp = await DB.query({
@@ -127,6 +128,45 @@ const _findDuplicates = async (id: EstateId) => {
     parameterSection,
     addressSection,
   );
+
+  if (isPending) {
+    const leadingTextSectionBlock: SectionBlock = {
+      type: 'section',
+      text: {
+        type: 'plain_text',
+        text: '住所を承認しますか？ (2人以上の承認が必要です)',
+      },
+    };
+    const addressPendingReviewActionsBlock: ActionsBlock = {
+      type: 'actions',
+      elements: [
+        {
+          type: 'button',
+          text: {
+            type: 'plain_text',
+            text: '承認',
+          },
+          style: 'primary',
+          value: 'the-task-token', // TODO: 認証する
+          action_id: 'approveAddress',
+        },
+        {
+          type: 'button',
+          text: {
+            type: 'plain_text',
+            text: '拒絶',
+          },
+          style: 'danger',
+          value: 'the-task-token', // TODO: 認証する
+          action_id: 'rejectAddress',
+        },
+      ],
+    };
+    sectionBlocks.push(
+      leadingTextSectionBlock,
+      addressPendingReviewActionsBlock,
+    );
+  }
 
   const channels = {
     local: 'dev-propid-id-notifications-dev',
