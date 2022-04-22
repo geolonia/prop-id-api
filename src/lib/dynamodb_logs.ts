@@ -29,7 +29,7 @@ export const createLog = async (
   metadata: { [key: string]: any },
   userIdentifier: { apiKey?: string, userId?: string } = {},
   now: Date = new Date(),
-): Promise<void> => {
+): Promise<{ PK: string, SK: string }> => {
   const nowStr = now.toISOString();
   const datePart = nowStr.slice(0, 10);
   const PK = `LOG#${logIdentifier}#${datePart}`;
@@ -37,17 +37,21 @@ export const createLog = async (
 
   const { apiKey, userId } = userIdentifier;
 
+  const item = {
+    PK,
+    SK,
+    userId,
+    apiKey,
+    createAt: nowStr,
+    ...metadata,
+  };
+
   await DB.put({
     TableName,
-    Item: {
-      PK,
-      SK,
-      userId,
-      apiKey,
-      createAt: nowStr,
-      ...metadata,
-    },
+    Item: item,
   }).promise();
+
+  return item;
 };
 
 export const withLock = async <T = any>(lockId: string, inner: () => Promise<T>): Promise<T> => {

@@ -9,7 +9,7 @@
     "@geolonia/eslint-config": "^0.0.1",
     "@sentry/serverless": "^6.2.3",
     "@shelf/jest-dynamodb": "^2.2.3",
-    "@slack/types": "^2.2.0",
+    "@slack/types": "^2.4.0",
     "@tsconfig/node14": "^1.0.0",
     "@types/auth0": "^2.33.3",
     "@types/aws-lambda": "^8.10.76",
