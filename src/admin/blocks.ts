@@ -33,8 +33,18 @@ export const idSplitBlock = (feedback: any) => {
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: 'test', // TODO: これを作る
+      text: `*${feedbackTypes[feedback.feedbackType] || feedback.feedbackType}*`,
     },
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: `*分離が必要なIDのリスト*\n${feedback.idSplit?.latLng}`,
+      },
+      {
+        type: 'mrkdwn',
+        text: `*別の物件であることの確認方法*\n${feedback.idMerge?.confirm}`,
+      },
+    ],
   };
 };
 
