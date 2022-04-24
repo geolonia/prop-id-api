@@ -54,6 +54,12 @@ export const createLog = async (
   return item;
 };
 
+export const getLog = async (PK: string, SK: string) => DB.get({
+  TableName,
+  Key: { PK, SK },
+}).promise().catch(() => false);
+
+
 export const withLock = async <T = any>(lockId: string, inner: () => Promise<T>): Promise<T> => {
   // Get lock
   let tries = 0, lockAcquired = false;

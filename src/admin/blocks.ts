@@ -1,4 +1,4 @@
-import { ActionsBlock, SectionBlock } from '@slack/types';
+import type { ActionsBlock, SectionBlock } from '@slack/types';
 
 const feedbackTypes: { [key: string]: string } = {
   'idMerge': 'IDの統合依頼',
@@ -18,11 +18,11 @@ export const idMergeBlock = (feedback: any) => {
     fields: [
       {
         type: 'mrkdwn',
-        text: `*統合が必要なIDのリスト*\n${feedback.idMerge?.list}`,
+        text: `*統合が必要なIDのリスト*\n${feedback.idMerge?.list || ''}`,
       },
       {
         type: 'mrkdwn',
-        text: `*同じ物件であることの確認方法*\n${feedback.idMerge?.confirm}`,
+        text: `*同じ物件であることの確認方法*\n${feedback.idMerge?.confirm || ''}`,
       },
     ],
   };
@@ -38,11 +38,11 @@ export const idSplitBlock = (feedback: any) => {
     fields: [
       {
         type: 'mrkdwn',
-        text: `*分離が必要なIDのリスト*\n${feedback.idSplit?.latLng}`,
+        text: `*別の物件の緯度経度*\n\`${feedback.idSplit?.latLng || ''}\``,
       },
       {
         type: 'mrkdwn',
-        text: `*別の物件であることの確認方法*\n${feedback.idMerge?.confirm}`,
+        text: `*別の物件であることの確認方法*\n${feedback.idSplit?.confirm || ''}`,
       },
     ],
   };
@@ -58,11 +58,11 @@ export const locationFixBlock = (feedback: any) => {
     fields: [
       {
         type: 'mrkdwn',
-        text: `*修正後の緯度と経度*\n\`${feedback.locationFix?.latLng}\``,
+        text: `*修正後の緯度と経度*\n\`${feedback.locationFix?.latLng || ''}\``,
       },
       {
         type: 'mrkdwn',
-        text: `*建物の場所の確認方法*\n${feedback.locationFix?.confirm}`,
+        text: `*建物の場所の確認方法*\n${feedback.locationFix?.confirm || ''}`,
       },
     ],
   };
@@ -78,11 +78,11 @@ export const nameChangeBlock = (feedback: any) => {
     fields: [
       {
         type: 'mrkdwn',
-        text: `*変更内容*\n${feedback.nameChange?.contents}`,
+        text: `*変更内容*\n${feedback.nameChange?.contents || ''}`,
       },
       {
         type: 'mrkdwn',
-        text: `*地名変更、住所変更の確認方法*\n${feedback.nameChange?.confirm}`,
+        text: `*地名変更、住所変更の確認方法*\n${feedback.nameChange?.confirm || ''}`,
       },
     ],
   };
@@ -98,11 +98,11 @@ export const addBanchiGoBlock = (feedback: any) => {
     fields: [
       {
         type: 'mrkdwn',
-        text: `*新しい番地または号*\n${feedback.addBanchiGo?.contents}`,
+        text: `*新しい番地または号*\n${feedback.addBanchiGo?.contents || ''}`,
       },
       {
         type: 'mrkdwn',
-        text: `*地名変更、住所変更の確認方法*\n${feedback.addBanchiGo?.confirm}`,
+        text: `*地名変更、住所変更の確認方法*\n${feedback.addBanchiGo?.confirm || ''}`,
       },
     ],
   };

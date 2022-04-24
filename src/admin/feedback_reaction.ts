@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { URLSearchParams } from 'url';
 import axios from 'axios';
-import { createLog } from '../lib/dynamodb_logs';
+import { createLog, getLog } from '../lib/dynamodb_logs';
 
 export const _handler = async (event: APIGatewayProxyEvent) => {
   const { body } = event;
@@ -11,6 +11,11 @@ export const _handler = async (event: APIGatewayProxyEvent) => {
   const payload = JSON.parse(new URLSearchParams(body).get('payload') || '');
   const { actions: [ { action_id, value } ], response_url, user, message: { blocks } } = payload;
   const { logId: { PK, SK } } = JSON.parse(value);
+
+  if (!(await getLog(PK, SK))) {
+    throw new Error('Invalid log identifiers.');
+  }
+
   let review: string;
   let reviewText: string;
   blocks.pop();
