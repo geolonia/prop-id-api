@@ -296,6 +296,15 @@ functions:
           cors: *default_cors
 
       - http:
+          path: '/admin/query/{estateId}/split'
+          method: post
+          request:
+            parameters:
+              paths:
+                estateId: true
+          cors: *default_cors
+
+      - http:
           path: '/admin/feedback'
           method: post
           cors: *default_cors

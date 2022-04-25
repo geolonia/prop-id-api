@@ -9,7 +9,7 @@ import * as keys from './admin/keys';
 import * as feedback from './admin/feedback';
 import * as feedbackReaction from './admin/feedback_reaction';
 import { _handler as publicHandler } from './public';
-import { _handler as idQueryHandler } from './idQuery';
+import { _handler as idQueryHandler, _splitHandler as isQuerySplitHandler } from './idQuery';
 
 import { decapitalize } from './lib';
 import { AUTH0_DOMAIN, AUTH0_MGMT_DOMAIN } from './lib/auth0_client';
@@ -90,6 +90,11 @@ const _handler: Handler<PublicHandlerEvent, void | APIGatewayProxyResult> = asyn
     event.preauthenticatedUserId = userId;
     event.isDebugMode = event.queryStringParameters?.debug === 'true';
     const handler = decorate(idQueryHandler, [logger, authenticator('id-req')]);
+    return await handler(event, context, callback);
+  } else if (event.resource === '/admin/query/{estateId}/split' && event.httpMethod === 'POST') {
+    event.preauthenticatedUserId = userId;
+    event.isDebugMode = event.queryStringParameters?.debug === 'true';
+    const handler = decorate(isQuerySplitHandler, [logger, authenticator('id-req')]);
     return await handler(event, context, callback);
   } else if (event.resource === '/admin/feedback' && event.httpMethod === 'POST') {
     return feedback.create(adminEvent);
