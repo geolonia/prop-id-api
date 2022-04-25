@@ -104,7 +104,7 @@ export const _handler: PropIdHandler = async (event, context) => {
 export const _splitHandler: PropIdHandler = async (event, context) => {
 
   const {
-    propIdAuthenticator: { quotaParams },
+    propIdAuthenticator: { authentication, quotaParams },
   } = context as AuthenticatorContext;
 
   const estateId = event.pathParameters?.estateId;
@@ -149,14 +149,11 @@ export const _splitHandler: PropIdHandler = async (event, context) => {
   const lockId = `${finalAddress}/${normalizedBuilding}`;
   const splitIdObj = await withLock(lockId, () => store(storeParams, { location: { lat, lng } }));
 
-  const idOut: Required<IdQueryOut> = {
+  const idOut: IdQueryOut = {
     ID: splitIdObj.estateId,
     normalization_level: prenormalizedResult.level.toString(),
     status: splitIdObj.status === 'addressPending' ? 'addressPending' : null,
 
-    // geocoding_level は最大の 8 にする
-    geocoding_level: '8',
-    location: { lat: lat.toString(), lng: lng.toString() },
     address: {
       ja: {
         prefecture: prenormalizedResult.pref,
@@ -167,6 +164,35 @@ export const _splitHandler: PropIdHandler = async (event, context) => {
       },
     },
   };
+
+  if (authentication.plan === 'paid') {
+    const ipcResult = await incrementPGeocode(estateIdObj.address);
+    if (!ipcResult) {
+      return errorResponse(500, 'Internal server error', quotaParams);
+    }
+
+    const { feature } = ipcResult;
+    // NOTE: Use the location submitted by the user
+    const location = { lat: lat.toString(), lng: lng.toString() };
+
+    const { geocoding_level } = feature.properties;
+
+    const extracted = extractBuildingName(estateIdObj.address, prenormalizedResult, ipcResult);
+
+    const addressObject = {
+      ja: {
+        prefecture: extracted.pref,
+        city: extracted.city,
+        address1: extracted.town,
+        address2: extracted.addr,
+        other: building,
+      },
+    };
+
+    idOut.geocoding_level = geocoding_level.toString(),
+    idOut.location = location;
+    idOut.address = addressObject;
+  }
 
   return json([ idOut ]);
 };
