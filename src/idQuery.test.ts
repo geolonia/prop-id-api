@@ -320,8 +320,8 @@ test('should split and generate new ID.', async () => {
   expect(idObj3.ID).toBe(idObj1.ID)
   expect(idObj2.normalization_level).toBe('3')
   expect(idObj2.status).toEqual('addressPending')
-  expect(idObj2.geocoding_level).toEqual('9')
-  expect(idObj3.geocoding_level).toEqual('9')
+  expect(idObj2.geocoding_level).toEqual('8')
+  expect(idObj3.geocoding_level).toEqual('8')
   expect(idObj2.location.lat).toBe(event2.queryStringParameters.lat)
   expect(idObj2.location.lng).toBe(event2.queryStringParameters.lng)
   expect(idObj2.address.ja).toMatchObject({
