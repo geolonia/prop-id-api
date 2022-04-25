@@ -126,14 +126,15 @@ export const _splitHandler: PropIdHandler = async (event, context) => {
     status: 'addressPending',
   };
 
-  await store(storeParams, { location: { lat, lng } });
+  // TODO: lock
+  const splitIdObj = await store(storeParams, { location: { lat, lng } });
 
-  const prenormalizedAddress = await normalize(estateIdObj.rawAddress);
+  const prenormalizedAddress = await normalize(splitIdObj.rawAddress);
 
   const idOut: any = {
-    ID: estateIdObj.estateId,
+    ID: splitIdObj.estateId,
     normalization_level: prenormalizedAddress.level.toString(),
-    status: estateIdObj.status === 'addressPending' ? 'addressPending' : null,
+    status: splitIdObj.status === 'addressPending' ? 'addressPending' : null,
   };
 
   return json([ idOut ]);
