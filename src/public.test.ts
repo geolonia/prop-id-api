@@ -3,9 +3,11 @@ import { authenticator, decorate, logger } from './lib/decorators'
 import * as dynamodb from './lib/dynamodb'
 import { _getServiceUsageQuotaItem, _updateServiceUsageQuota } from './lib/dynamodb_test_helpers.test'
 import { _handler } from './public'
+import { _splitHandler } from './idQuery'
 
 // TODO: logger、authenticator をテストから分離する
 const handler = decorate(_handler, [logger, authenticator('id-req')]);
+const idQuerySplitHandler = decorate(_splitHandler, [logger, authenticator('id-req')]);
 
 test('should specify the ZOOM environmental variable.', () => {
   const ZOOM = parseInt(process.env.ZOOM, 10)
@@ -673,7 +675,7 @@ test('should split and generate new ID.', async () => {
     },
   }
   // @ts-ignore
-  const lambdaResult1 = await publicHandler(event1) as APIGatewayProxyResult
+  const lambdaResult1 = await handler(event1) as APIGatewayProxyResult
   const [idObj1] = JSON.parse(lambdaResult1.body)
 
   const event2 = {
@@ -689,7 +691,7 @@ test('should split and generate new ID.', async () => {
   }
 
   // @ts-ignore
-  const lambdaResult2 = await　idQuerySplitHandler(event2) as APIGatewayProxyResult
+  const lambdaResult2 = await idQuerySplitHandler(event2) as APIGatewayProxyResult
 
   const event3 = {
     isDemoMode: true,
@@ -699,7 +701,7 @@ test('should split and generate new ID.', async () => {
   }
 
   // @ts-ignore
-  const lambdaResult3 = await idQueryHandler(event3) as APIGatewayProxyResult
+  const lambdaResult3 = await handler(event3) as APIGatewayProxyResult
 
   expect(lambdaResult2.statusCode).toBe(200)
   expect(lambdaResult3.statusCode).toBe(200)
