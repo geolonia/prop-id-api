@@ -7,6 +7,7 @@ import jwks from 'jwks-rsa';
 
 import * as keys from './admin/keys';
 import * as feedback from './admin/feedback';
+import * as feedbackReaction from './admin/feedback_reaction';
 import { _handler as publicHandler } from './public';
 import { _handler as idQueryHandler } from './idQuery';
 
@@ -23,6 +24,12 @@ const jwksClient = jwks({
 });
 
 const _handler: Handler<PublicHandlerEvent, void | APIGatewayProxyResult> = async (event, context, callback) => {
+
+  // POST from Slack interaction
+  if (event.resource === '/admin/feedback_reaction' && event.httpMethod === 'POST') {
+    return feedbackReaction.handler(event);
+  }
+
   const headers = decapitalize(event.headers);
   const tokenHeader = headers['authorization'];
   if (!tokenHeader || !tokenHeader.match(/^bearer /i)) {

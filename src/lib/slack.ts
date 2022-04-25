@@ -7,7 +7,7 @@ let cachedWebhookUrl: string | undefined = undefined;
 export const sendSlackNotification = async (payload: IncomingWebhookSendArguments) => {
   if (typeof cachedWebhookUrl === 'undefined') {
     const parameterResp = await SSM.getParameter({
-      Name: '/propid/slack/main',
+      Name: `/propid/slack/${process.env.STAGE}`,
       WithDecryption: true,
     }).promise();
     cachedWebhookUrl = parameterResp.Parameter?.Value;

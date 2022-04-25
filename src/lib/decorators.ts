@@ -6,7 +6,7 @@ import { authenticateEvent, extractApiKey } from './authentication';
 export type Decorator = (handler: PropIdHandler) => PropIdHandler;
 export interface LoggerContext extends Context {
   propIdLogger: {
-    background: Promise<void>[]
+    background: Promise<any>[]
   }
 };
 export const logger: Decorator = (handler) => {

@@ -3,6 +3,7 @@ import { errorResponse, json } from '../lib/proxy-response';
 import type { IncomingWebhookSendArguments } from '@slack/webhook';
 import { sendSlackNotification } from '../lib/slack';
 import { auth0ManagementClient } from '../lib/auth0_client';
+import { addBanchiGoBlock, idMergeBlock, idSplitBlock, locationFixBlock, markAsProcessedActionsBlocks, nameChangeBlock } from './blocks';
 
 export const create: AdminHandler = async (event) => {
   const rawBody = event.body;
@@ -16,25 +17,12 @@ export const create: AdminHandler = async (event) => {
   const auth0 = await auth0ManagementClient();
   const user = await auth0.getUser({id: event.userId});
 
-  await createLog('feedbackRequest', {
+  const { PK, SK } = await createLog('feedbackRequest', {
     userEmail: user.email,
     feedback,
   }, {
     userId: event.userId,
   });
-
-  const channels = {
-    local: 'dev-propid-id-notifications-dev',
-    dev: 'dev-propid-id-notifications-dev',
-    v1: 'dev-propid-id-notifications',
-  };
-
-  const feedbackTypes: { [key: string]: string } = {
-    'idMerge': 'IDの統合依頼',
-    'locationFix': '緯度経度修正依頼',
-    'nameChange': '地名・住所・ビル名変更依頼',
-    'addBanchiGo': '番地または号の追加依頼',
-  };
 
   const blocks: IncomingWebhookSendArguments['blocks'] = [
     {
@@ -61,83 +49,33 @@ export const create: AdminHandler = async (event) => {
   ];
 
   if (feedback.feedbackType === 'idMerge') {
-    blocks.push({
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: `*${feedbackTypes[feedback.feedbackType] || feedback.feedbackType}*`,
-      },
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: `*統合が必要なIDのリスト*\n${feedback.idMerge?.list}`,
-        },
-        {
-          type: 'mrkdwn',
-          text: `*同じ物件であることの確認方法*\n${feedback.idMerge?.confirm}`,
-        },
-      ],
-    });
+    blocks.push(
+      idMergeBlock(feedback),
+      ...markAsProcessedActionsBlocks({ PK, SK }),
+    );
+  } else if (feedback.feedbackType === 'idSplit') {
+    blocks.push(
+      idSplitBlock(feedback),
+      ...markAsProcessedActionsBlocks({ PK, SK }),
+    );
   } else if (feedback.feedbackType === 'locationFix') {
-    blocks.push({
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: `*${feedbackTypes[feedback.feedbackType] || feedback.feedbackType}*`,
-      },
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: `*修正後の緯度と経度*\n\`${feedback.locationFix?.latLng}\``,
-        },
-        {
-          type: 'mrkdwn',
-          text: `*建物の場所の確認方法*\n${feedback.locationFix?.confirm}`,
-        },
-      ],
-    });
+    blocks.push(
+      locationFixBlock(feedback),
+      ...markAsProcessedActionsBlocks({ PK, SK }),
+    );
   } else if (feedback.feedbackType === 'nameChange') {
-    blocks.push({
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: `*${feedbackTypes[feedback.feedbackType] || feedback.feedbackType}*`,
-      },
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: `*変更内容*\n${feedback.nameChange?.contents}`,
-        },
-        {
-          type: 'mrkdwn',
-          text: `*地名変更、住所変更の確認方法*\n${feedback.nameChange?.confirm}`,
-        },
-      ],
-    });
+    blocks.push(
+      nameChangeBlock(feedback),
+      ...markAsProcessedActionsBlocks({ PK, SK }),
+    );
   } else if (feedback.feedbackType === 'addBanchiGo') {
-    blocks.push({
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: `*${feedbackTypes[feedback.feedbackType] || feedback.feedbackType}*`,
-      },
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: `*新しい番地または号*\n${feedback.addBanchiGo?.contents}`,
-        },
-        {
-          type: 'mrkdwn',
-          text: `*地名変更、住所変更の確認方法*\n${feedback.addBanchiGo?.confirm}`,
-        },
-      ],
-    });
+    blocks.push(
+      addBanchiGoBlock(feedback),
+      ...markAsProcessedActionsBlocks({ PK, SK }),
+    );
   }
 
-  await sendSlackNotification({
-    channel: channels[process.env.STAGE],
-    blocks,
-  });
+  await sendSlackNotification({ blocks });
 
   return json({
     error: false,
