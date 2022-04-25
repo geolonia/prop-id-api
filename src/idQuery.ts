@@ -153,7 +153,6 @@ export const _splitHandler: PropIdHandler = async (event, context) => {
     status: splitIdObj.status === 'addressPending' ? 'addressPending' : null,
 
     // ID 分割時は建物名と緯度経度をユーザーから受け付けているため、geocoding_level は 9 になる
-    // TODO: IDQuery でいつも 9がちゃんと帰ってくる？確認
     geocoding_level: '9',
     location: { lat: lat.toString(), lng: lng.toString() },
     address: {
