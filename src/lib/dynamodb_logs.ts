@@ -54,7 +54,7 @@ export const createLog = async (
   return item;
 };
 
-export const getLog = async (PK: string, SK: string) => DB.get({
+export const getLog = (PK: string, SK: string) => DB.get({
   TableName,
   Key: { PK, SK },
 }).promise().catch(() => false);
