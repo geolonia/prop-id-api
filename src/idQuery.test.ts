@@ -7,6 +7,7 @@ import { authenticator, logger, decorate } from './lib/decorators';
 // TODO: logger、authenticator をテストから分離する
 const publicHandler = decorate(_publicHandler, [logger, authenticator('id-req')]);
 const idQueryHandler = decorate(_idQueryHandler, [logger, authenticator('id-req')]);
+const idQuerySplitHandler = decorate(_idQuerySplitHandler, [logger, authenticator('id-req')]);
 
 test('returns 400 when estateId is not available', async () => {
   const event = {
@@ -279,6 +280,35 @@ test('should return status parameters', async () => {
   expect(body2[0].status).toEqual('addressPending')
 })
 
-test('id Split', async () => {
-  // TODO:
+test('should split and generate new ID.', async () => {
+  const event1 = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '滋賀県大津市京町４丁目１−１こんにちはビルA棟',
+    },
+  }
+  // @ts-ignore
+  const lambdaResult1 = await publicHandler(event1) as APIGatewayProxyResult
+  const [idObj1] = JSON.parse(lambdaResult1.body)
+
+  const event2 = {
+    isDemoMode: true,
+    pathParameters: {
+      estateId: idObj1.ID,
+    },
+    queryStringParameters: {
+      lat: '35.0000',
+      lng: '135.0000',
+      building: 'こんにちはビルB棟',
+    }
+
+  }
+  // @ts-ignore
+  const lambdaResult2 = await idQuerySplitHandler(event2) as APIGatewayProxyResult
+  expect(lambdaResult2.statusCode).toBe(200)
+
+  const [idObj2] = JSON.parse(lambdaResult2.body)
+
+  expect(idObj2.ID).not.toBe(idObj1.ID)
+  expect(idObj2.status).toEqual('addressPending')
 })

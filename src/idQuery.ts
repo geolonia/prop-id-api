@@ -84,7 +84,7 @@ export const _splitHandler: PropIdHandler = async (event, context) => {
 
   const {
     propIdAuthenticator: {
-      authentication,
+      authentication, // TODO: 認証
       quotaParams,
     },
   } = context as AuthenticatorContext;
