@@ -297,8 +297,8 @@ test('should split and generate new ID.', async () => {
       estateId: idObj1.ID,
     },
     queryStringParameters: {
-      lat: '35.0000',
-      lng: '135.0000',
+      lat: '35.1234',
+      lng: '135.1234',
       building: 'こんにちはビルB棟',
     }
 
