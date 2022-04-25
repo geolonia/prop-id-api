@@ -6,6 +6,26 @@ import Sentry from './lib/sentry';
 import { normalize } from './lib/nja';
 import { extractBuildingName, normalizeBuildingName } from './lib/building_normalization';
 import { authenticator, AuthenticatorContext, decorate, Decorator } from './lib/decorators';
+import { String } from 'aws-sdk/clients/apigateway';
+
+export type IdQueryOut = {
+  ID: string
+  normalization_level: string
+  status: 'addressPending' | null
+
+  // paid response
+  geocoding_level?: String
+  location?: { lat: string, lng: string }
+  address?: {
+    ja: {
+      prefecture: string
+      city: string
+      address1: string
+      address2: string
+      other: string
+    },
+  }
+};
 
 export const _handler: PropIdHandler = async (event, context) => {
 
@@ -36,7 +56,7 @@ export const _handler: PropIdHandler = async (event, context) => {
 
   const prenormalizedAddress = await normalize(estateIdObj.rawAddress);
 
-  const idOut: any = {
+  const idOut: IdQueryOut = {
     ID: estateIdObj.estateId,
     normalization_level: prenormalizedAddress.level.toString(),
     status: estateIdObj.status === 'addressPending' ? 'addressPending' : null,
@@ -83,10 +103,7 @@ export const _handler: PropIdHandler = async (event, context) => {
 export const _splitHandler: PropIdHandler = async (event, context) => {
 
   const {
-    propIdAuthenticator: {
-      authentication, // TODO: 認証
-      quotaParams,
-    },
+    propIdAuthenticator: { quotaParams },
   } = context as AuthenticatorContext;
 
   const estateId = event.pathParameters?.estateId;
@@ -108,7 +125,6 @@ export const _splitHandler: PropIdHandler = async (event, context) => {
   if (!estateIdObj) {
     return errorResponse(404, 'The given Prop ID is not found.', quotaParams);
   } else if (estateIdObj.building === normalizedBuidingName) {
-    // TODO: 複数ある場合は?
     return errorResponse(400, 'The given building name is duplicated.', quotaParams);
   }
 
@@ -129,12 +145,26 @@ export const _splitHandler: PropIdHandler = async (event, context) => {
   // TODO: lock
   const splitIdObj = await store(storeParams, { location: { lat, lng } });
 
-  const prenormalizedAddress = await normalize(splitIdObj.rawAddress);
+  const prenormalizedResult = await normalize(splitIdObj.rawAddress);
 
-  const idOut: any = {
+  const idOut: Required<IdQueryOut> = {
     ID: splitIdObj.estateId,
-    normalization_level: prenormalizedAddress.level.toString(),
+    normalization_level: prenormalizedResult.level.toString(),
     status: splitIdObj.status === 'addressPending' ? 'addressPending' : null,
+
+    // ID 分割時は建物名と緯度経度をユーザーから受け付けているため、geocoding_level は 9 になる
+    // TODO: IDQuery でいつも 9がちゃんと帰ってくる？確認
+    geocoding_level: '9',
+    location: { lat: lat.toString(), lng: lng.toString() },
+    address: {
+      ja: {
+        prefecture: prenormalizedResult.pref,
+        city: prenormalizedResult.city,
+        address1: prenormalizedResult.town,
+        address2: prenormalizedResult.addr,
+        other: normalizedBuidingName,
+      },
+    },
   };
 
   return json([ idOut ]);

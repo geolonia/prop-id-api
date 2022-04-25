@@ -660,3 +660,8 @@ describe('Logging', () => {
       expect(logItem.output.level).toEqual(2)
     })
 })
+
+// TODO: ID 分割をしたときの挙動
+// - 建物名前でマッチできること
+// - 同じ住所なら複数の ID が帰ってくること
+// - geocoding_level が幾つになるのか、いつも同じになるのかを確認すること
