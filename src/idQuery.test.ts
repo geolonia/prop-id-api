@@ -325,7 +325,7 @@ test('should split and generate new ID.', async () => {
   expect(idObj2.location.lat).toBe(event2.queryStringParameters.lat)
   expect(idObj2.location.lng).toBe(event2.queryStringParameters.lng)
   expect(idObj2.address.ja).toMatchObject({
-    pref: '滋賀県',
+    prefecture: '滋賀県',
     city: '大津市',
     address1: '京町四丁目',
     address2: '1-1',
