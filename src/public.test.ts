@@ -661,10 +661,49 @@ describe('Logging', () => {
     })
 })
 
-test('Split ID test', () => {
-
-})
-
 // TODO: ID 分割をしたときの挙動
-// - 建物名前でマッチできること
 // - 同じ住所なら複数の ID が帰ってくること
+// - B棟でクエリできる？
+
+test('should split and generate new ID.', async () => {
+  const event1 = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '滋賀県草津市草津３丁目１３−３０こんにちはビルA棟',
+    },
+  }
+  // @ts-ignore
+  const lambdaResult1 = await publicHandler(event1) as APIGatewayProxyResult
+  const [idObj1] = JSON.parse(lambdaResult1.body)
+
+  const event2 = {
+    isDemoMode: true,
+    pathParameters: {
+      estateId: idObj1.ID,
+    },
+    queryStringParameters: {
+      lat: '35.1234',
+      lng: '135.1234',
+      building: 'こんにちはビルB棟',
+    }
+  }
+
+  // @ts-ignore
+  const lambdaResult2 = await　idQuerySplitHandler(event2) as APIGatewayProxyResult
+
+  const event3 = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '滋賀県草津市草津３丁目１３−３０',
+    },
+  }
+
+  // @ts-ignore
+  const lambdaResult3 = await idQueryHandler(event3) as APIGatewayProxyResult
+
+  expect(lambdaResult2.statusCode).toBe(200)
+  expect(lambdaResult3.statusCode).toBe(200)
+
+  const idObjects = JSON.parse(lambdaResult3.body)
+  expect(idObjects).toHaveLength(2)
+})
