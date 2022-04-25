@@ -1,5 +1,6 @@
 import { _handler as _publicHandler } from './public'
 import { _handler as _idQueryHandler } from './idQuery'
+import { _splitHandler as _idQuerySplitHandler } from './idQuery';
 import * as dynamodb from './lib/dynamodb'
 import { authenticator, logger, decorate } from './lib/decorators';
 
@@ -276,4 +277,8 @@ test('should return status parameters', async () => {
   const body2 = JSON.parse(lambdaResult2.body)
 
   expect(body2[0].status).toEqual('addressPending')
+})
+
+test('id Split', async () => {
+  // TODO:
 })
