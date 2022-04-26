@@ -359,11 +359,15 @@ test('should generate new ID from that of existing.', async () => {
 
   if(idObj4.ID === idObj1.ID) {
     expect(idObj4).toMatchObject(idObj1)
-    expect(idObj5).toMatchObject(idObjects3[0])
-    expect(idObj5).toMatchObject(idObjects3[1])
-    } else {
+  } else {
     expect(idObj5).toMatchObject(idObj1)
-    expect(idObj4).toMatchObject(idObjects3[0])
+  }
+
+  if(idObj5.ID === idObjects3[0].ID) {
+    expect(idObj5).toMatchObject(idObjects3[0])
     expect(idObj4).toMatchObject(idObjects3[1])
-    }
+  } else {
+    expect(idObj5).toMatchObject(idObjects3[1])
+    expect(idObj4).toMatchObject(idObjects3[0])
+  }
 })
