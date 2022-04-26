@@ -327,12 +327,14 @@ test('should generate new ID from that of existing.', async () => {
   expect(idObjects3[1]).toMatchObject(idObj2)
 
   // id query with query handler
-  const [event4, event5] = idObjects3.map(idObj => ({
+  const [event4, event5] = idObjects3.map((idObj: any) => ({
     isDemoMode: true,
     pathParameters: {
       estateId: idObj.ID,
     },
   }))
+
+  // @ts-ignore
   const [lambdaResult4, lambdaResult5] = await Promise.all([
     // @ts-ignore
     idQueryHandler(event4),
