@@ -363,6 +363,8 @@ test('should generate new ID from that of existing.', async () => {
     expect(idObj5).toMatchObject(idObj1)
   }
 
+  console.log(JSON.stringify({idObjects3, idObj4, idObj5}, null, 2))
+
   if(idObj5.ID === idObjects3[0].ID) {
     expect(idObj5).toMatchObject(idObjects3[0])
     expect(idObj4).toMatchObject(idObjects3[1])
