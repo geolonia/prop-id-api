@@ -308,7 +308,7 @@ test('should generate new ID from that of existing.', async () => {
   const lambdaResult2 = await idQuerySplitHandler(event2) as APIGatewayProxyResult
   expect(lambdaResult2.statusCode).toBe(200)
   const idObj2 = JSON.parse(lambdaResult2.body)
-  expect(typeof idObj2 === 'string').toBeTruthy()
+  expect(typeof idObj2.ID === 'string').toBeTruthy()
   expect(idObj2.ID).not.toBe(idObj1.ID)
 
   // id query with public handler
