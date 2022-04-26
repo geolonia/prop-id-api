@@ -307,8 +307,7 @@ test('should generate new ID from that of existing.', async () => {
   // @ts-ignore
   const lambdaResult2 = await idQuerySplitHandler(event2) as APIGatewayProxyResult
   expect(lambdaResult2.statusCode).toBe(200)
-  const idObj2 = JSON.parse(lambdaResult2.body)
-  console.log(JSON.stringify({idObj2}))
+  const [idObj2] = JSON.parse(lambdaResult2.body)
   expect(typeof idObj2.ID === 'string').toBeTruthy()
   expect(idObj2.ID).not.toBe(idObj1.ID)
 
