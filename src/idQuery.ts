@@ -94,7 +94,10 @@ export const _handler: PropIdHandler = async (event, context) => {
     };
 
     idOut.geocoding_level = geocoding_level.toString(),
-    idOut.location = location;
+    idOut.location = estateIdObj.location ? {
+      lat: estateIdObj.location.lat.toString(),
+      lng: estateIdObj.location.lng.toString(),
+    } : location;
     idOut.address = addressObject;
   }
 
