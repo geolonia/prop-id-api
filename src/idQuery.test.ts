@@ -305,7 +305,7 @@ test('should generate new ID from that of existing.', async () => {
     }
   }
   // @ts-ignore
-  const lambdaResult2 = idQuerySplitHandler(event2) as APIGatewayProxyResult
+  const lambdaResult2 = await idQuerySplitHandler(event2) as APIGatewayProxyResult
   expect(lambdaResult2.statusCode).toBe(200)
   const idObj2 = JSON.parse(lambdaResult2.body)
   expect(typeof idObj2 === 'string').toBeTruthy()
@@ -319,7 +319,7 @@ test('should generate new ID from that of existing.', async () => {
     },
   }
   // @ts-ignore
-  const lambdaResult3 = publicHandler(event3) as APIGatewayProxyResult
+  const lambdaResult3 = await publicHandler(event3) as APIGatewayProxyResult
   expect(lambdaResult3.statusCode).toBe(200)
   const idObjects3 = JSON.parse(lambdaResult3.body)
   expect(idObjects3).toHaveLength(2)
