@@ -1,6 +1,5 @@
 import { _handler as _publicHandler } from './public'
-import { _handler as _idQueryHandler } from './idQuery'
-import { _splitHandler as _idQuerySplitHandler } from './idQuery';
+import { _handler as _idQueryHandler, _splitHandler as _idQuerySplitHandler } from './idQuery';
 import * as dynamodb from './lib/dynamodb'
 import { authenticator, logger, decorate } from './lib/decorators';
 
@@ -280,7 +279,8 @@ test('should return status parameters', async () => {
   expect(body2[0].status).toEqual('addressPending')
 })
 
-test('should split and generate new ID.', async () => {
+test('should generate new ID from that of existing.', async () => {
+  // id issue with public handler
   const event1 = {
     isDemoMode: true,
     queryStringParameters: {
@@ -289,8 +289,10 @@ test('should split and generate new ID.', async () => {
   }
   // @ts-ignore
   const lambdaResult1 = await publicHandler(event1) as APIGatewayProxyResult
+  expect(lambdaResult1.statusCode).toBe(200)
   const [idObj1] = JSON.parse(lambdaResult1.body)
 
+  // id split
   const event2 = {
     isDemoMode: true,
     pathParameters: {
@@ -301,34 +303,52 @@ test('should split and generate new ID.', async () => {
       lng: '135.1234',
       building: 'こんにちはビルB棟',
     }
-
   }
-  const [lambdaResult2, lambdaResult3] = await Promise.all([
   // @ts-ignore
-  idQuerySplitHandler(event2) as APIGatewayProxyResult,
-  // @ts-ignore
-  idQueryHandler(event2) as APIGatewayProxyResult,
-  ])
-
+  const lambdaResult2 = idQuerySplitHandler(event2) as APIGatewayProxyResult
   expect(lambdaResult2.statusCode).toBe(200)
-  expect(lambdaResult3.statusCode).toBe(200)
-
-  const [idObj2] = JSON.parse(lambdaResult2.body)
-  const [idObj3] = JSON.parse(lambdaResult3.body)
-
+  const idObj2 = JSON.parse(lambdaResult2.body)
+  expect(typeof idObj2 === 'string').toBeTruthy()
   expect(idObj2.ID).not.toBe(idObj1.ID)
-  expect(idObj3.ID).toBe(idObj1.ID)
-  expect(idObj2.normalization_level).toBe('3')
-  expect(idObj2.status).toEqual('addressPending')
-  expect(idObj2.geocoding_level).toEqual('8')
-  expect(idObj3.geocoding_level).toEqual('8')
-  expect(idObj2.location.lat).toBe(event2.queryStringParameters.lat)
-  expect(idObj2.location.lng).toBe(event2.queryStringParameters.lng)
-  expect(idObj2.address.ja).toMatchObject({
-    prefecture: '滋賀県',
-    city: '大津市',
-    address1: '京町四丁目',
-    address2: '1-1',
-    other: 'こんにちはビルB棟',
-  })
+
+  // id query with public handler
+  const event3 = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '滋賀県大津市京町４丁目１−１',
+    },
+  }
+  // @ts-ignore
+  const lambdaResult3 = publicHandler(event3) as APIGatewayProxyResult
+  expect(lambdaResult3.statusCode).toBe(200)
+  const idObjects3 = JSON.parse(lambdaResult3.body)
+  expect(idObjects3).toHaveLength(2)
+  expect(idObjects3[0]).toMatchObject(idObj1)
+  expect(idObjects3[1]).toMatchObject(idObj2)
+
+  // id query with query handler
+  const [event4, event5] = idObjects3.map(idObj => ({
+    isDemoMode: true,
+    pathParameters: {
+      estateId: idObj.ID,
+    },
+  }))
+  const [lambdaResult4, lambdaResult5] = await Promise.all([
+    // @ts-ignore
+    idQueryHandler(event4),
+    // @ts-ignore
+    idQueryHandler(event5),
+  ])
+  // @ts-ignore
+  expect(lambdaResult4.statusCode).toBe(200)
+  // @ts-ignore
+  expect(lambdaResult5.statusCode).toBe(200)
+  // @ts-ignore
+  const idObj4 = JSON.parse(lambdaResult4.body)
+  // @ts-ignore
+  const idObj5 = JSON.parse(lambdaResult5.body)
+
+  expect(idObj4).toMatchObject(idObj1)
+  expect(idObj5).toMatchObject(idObjects3[0])
+  expect(idObj5).toMatchObject(idObjects3[1])
 })

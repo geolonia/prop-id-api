@@ -21,7 +21,6 @@ export const extractApiKey = (event: PublicHandlerEvent) => {
 
 export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: string): Promise<APIGatewayProxyResult | AuthenticationResult> => {
   const { apiKey, accessToken } = extractApiKey(event);
-
   // authentication is skipped when in demo mode
   if (event.isDemoMode) {
     return { valid: true, plan: 'paid', quotaLimit: 10000, quotaRemaining: 10000, quotaResetDate: '' };
