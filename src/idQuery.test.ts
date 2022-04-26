@@ -310,6 +310,7 @@ test('should generate new ID from that of existing.', async () => {
   const [idObj2] = JSON.parse(lambdaResult2.body)
   expect(typeof idObj2.ID === 'string').toBeTruthy()
   expect(idObj2.ID).not.toBe(idObj1.ID)
+  expect(idObj2.status).toEqual('addressPending')
 
   // id query with public handler
   const event3 = {
