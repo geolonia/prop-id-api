@@ -323,7 +323,6 @@ test('should generate new ID from that of existing.', async () => {
   expect(lambdaResult3.statusCode).toBe(200)
   const idObjects3 = JSON.parse(lambdaResult3.body)
   expect(idObjects3).toHaveLength(2)
-  console.log(JSON.stringify({idObjects3}))
   expect(idObjects3[0]).toMatchObject(idObj1)
   expect(idObjects3[1]).toMatchObject(idObj2)
 

@@ -37,6 +37,7 @@ export interface BaseEstateId {
 
   createdAt?: string
   updatedAt?: string
+  location?: { lat: number, lng: number }
 }
 
 export interface ConsolidatedEstateId extends BaseEstateId {
@@ -231,6 +232,7 @@ export const store = async (idObj: StoreEstateIdReq, hashOptions: HashOptions = 
         serial,
         createdAt: now,
         updatedAt: now,
+        location: hashOptions.location,
       };
       const putItemInput: AWS.DynamoDB.DocumentClient.PutItemInput = {
         TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,
