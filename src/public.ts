@@ -297,7 +297,10 @@ export const _handler: PropIdHandler = async (event, context) => {
     };
     if (richIdResp) {
       baseResp.geocoding_level = geocodingLevel;
-      baseResp.location = estateId.location || location;
+      baseResp.location = estateId.location ? {
+        lat: estateId.location.lat.toString(),
+        lng: estateId.location.lng.toString(),
+      } : location;
     }
     return baseResp;
   });
