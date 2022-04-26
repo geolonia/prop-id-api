@@ -323,8 +323,13 @@ test('should generate new ID from that of existing.', async () => {
   expect(lambdaResult3.statusCode).toBe(200)
   const idObjects3 = JSON.parse(lambdaResult3.body)
   expect(idObjects3).toHaveLength(2)
-  expect(idObjects3.find((idObj: any) => idObj.ID === idObj1.ID)).toMatchObject(idObj1)
-  expect(idObjects3.find((idObj: any) => idObj.ID === idObj2.ID)).toMatchObject(idObj2)
+  if(idObjects3[0].ID === idObj1.ID) {
+    expect(idObjects3[0]).toMatchObject(idObj1)
+    expect(idObjects3[1]).toMatchObject(idObj2)
+  } else {
+    expect(idObjects3[0]).toMatchObject(idObj2)
+    expect(idObjects3[1]).toMatchObject(idObj1)
+  }
 
   // id query with query handler
   const [event4, event5] = idObjects3.map((idObj: any) => ({
@@ -350,7 +355,13 @@ test('should generate new ID from that of existing.', async () => {
   // @ts-ignore
   const [idObj5] = JSON.parse(lambdaResult5.body)
 
-  expect(idObj4).toMatchObject(idObj1)
-  expect(idObj5).toMatchObject(idObjects3[0])
-  expect(idObj5).toMatchObject(idObjects3[1])
+  if(idObj4.ID === idObj1.ID) {
+    expect(idObj4).toMatchObject(idObj1)
+    expect(idObj5).toMatchObject(idObjects3[0])
+    expect(idObj5).toMatchObject(idObjects3[1])
+    } else {
+    expect(idObj5).toMatchObject(idObj1)
+    expect(idObj4).toMatchObject(idObjects3[0])
+    expect(idObj4).toMatchObject(idObjects3[1])
+    }
 })
