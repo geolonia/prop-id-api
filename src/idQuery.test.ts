@@ -355,6 +355,8 @@ test('should generate new ID from that of existing.', async () => {
   // @ts-ignore
   const [idObj5] = JSON.parse(lambdaResult5.body)
 
+  console.log({idObjects3, idObj4, idObj5})
+
   if(idObj4.ID === idObj1.ID) {
     expect(idObj4).toMatchObject(idObj1)
     expect(idObj5).toMatchObject(idObjects3[0])
