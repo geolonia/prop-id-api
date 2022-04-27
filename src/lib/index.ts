@@ -1,13 +1,16 @@
 import axios from 'axios';
 import * as crypto from 'crypto';
 import { promisify } from 'util';
+import { HashOptions } from './dynamodb';
 import prefs from './prefs.json';
 import Sentry from './sentry';
 
 const scrypt = promisify(crypto.scrypt);
 
-export const hashXY = (x: string | number, y: string | number, serial: number): string => {
-  const tileIdentifier = `${x}/${y}/${serial}`;
+export const hashXY = (x: string | number, y: string | number, serial: number, hashOptions: HashOptions = {}): string => {
+  const { location } = hashOptions;
+  const locationIdentifierPrefix = location ? `/${location.lat}/${location.lng}` : '';
+  const tileIdentifier = `${x}/${y}/${serial}${locationIdentifierPrefix}`;
   const sha256 = crypto.createHash('sha256').update(tileIdentifier).digest('hex');
   return (sha256.slice(0, 16).match(/.{4}/g) as string[]).join('-');
 };

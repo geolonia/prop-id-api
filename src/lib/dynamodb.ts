@@ -37,6 +37,7 @@ export interface BaseEstateId {
 
   createdAt?: string
   updatedAt?: string
+  userLocation?: { lat: number, lng: number }
 }
 
 export interface ConsolidatedEstateId extends BaseEstateId {
@@ -209,7 +210,14 @@ export interface StoreEstateIdReq {
   status?: 'confirmed' | 'addressPending' | undefined
 }
 
-export const store = async (idObj: StoreEstateIdReq): Promise<EstateId> => {
+export type HashOptions = {
+  location?: {
+    lat: number
+    lng: number
+  }
+};
+
+export const store = async (idObj: StoreEstateIdReq, hashOptions: HashOptions = {}): Promise<EstateId> => {
   let successfulItem: EstateId | false = false, tries = 0;
 
   while (successfulItem === false && tries < 3) {
@@ -220,10 +228,11 @@ export const store = async (idObj: StoreEstateIdReq): Promise<EstateId> => {
       const now = new Date().toISOString();
       const Item: EstateId = {
         ...idObj,
-        estateId: `${idObj.prefCode}-${hashXY(x, y, serial)}`,
+        estateId: `${idObj.prefCode}-${hashXY(x, y, serial, hashOptions)}`,
         serial,
         createdAt: now,
         updatedAt: now,
+        userLocation: hashOptions.location,
       };
       const putItemInput: AWS.DynamoDB.DocumentClient.PutItemInput = {
         TableName: process.env.AWS_DYNAMODB_ESTATE_ID_TABLE_NAME,

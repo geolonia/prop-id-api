@@ -239,11 +239,19 @@ functions:
           method: get
 
   idQuery:
-    handler: src/idQuery.handler
+    handler: src/idQuery/index.handler
     events:
       - http:
           path: '/{estateId}'
           method: get
+          request:
+            parameters:
+              paths:
+                estateId: true
+
+      - http:
+          path: '/{estateId}/split'
+          method: post
           request:
             parameters:
               paths:
@@ -281,6 +289,15 @@ functions:
       - http:
           path: '/admin/query/{estateId}'
           method: get
+          request:
+            parameters:
+              paths:
+                estateId: true
+          cors: *default_cors
+
+      - http:
+          path: '/admin/query/{estateId}/split'
+          method: post
           request:
             parameters:
               paths:

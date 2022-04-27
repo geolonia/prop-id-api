@@ -1,18 +1,18 @@
-import '.';
-import { incrementPGeocode } from './lib';
-import { getEstateId } from './lib/dynamodb';
-import { errorResponse, json } from './lib/proxy-response';
-import Sentry from './lib/sentry';
-import { normalize } from './lib/nja';
-import { extractBuildingName } from './lib/building_normalization';
-import { authenticator, AuthenticatorContext, decorate, Decorator } from './lib/decorators';
+import { incrementPGeocode } from '../lib';
+import { getEstateId } from '../lib/dynamodb';
+import { errorResponse, json } from '../lib/proxy-response';
+import { normalize } from '../lib/nja';
+import { extractBuildingName } from '../lib/building_normalization';
 
-export const _handler: PropIdHandler = async (event, context) => {
+import type { AuthenticatorContext } from '../lib/decorators';
+import type { IdQueryOut } from './';
+
+
+export const _queryHandler: PropIdHandler = async (event, context) => {
 
   const {
     propIdAuthenticator: {
-      authentication,
-      quotaParams,
+      authentication, quotaParams,
     },
   } = context as AuthenticatorContext;
 
@@ -36,7 +36,7 @@ export const _handler: PropIdHandler = async (event, context) => {
 
   const prenormalizedAddress = await normalize(estateIdObj.rawAddress);
 
-  const idOut: any = {
+  const idOut: IdQueryOut = {
     ID: estateIdObj.estateId,
     normalization_level: prenormalizedAddress.level.toString(),
     status: estateIdObj.status === 'addressPending' ? 'addressPending' : null,
@@ -73,16 +73,12 @@ export const _handler: PropIdHandler = async (event, context) => {
     };
 
     idOut.geocoding_level = geocoding_level.toString(),
-    idOut.location = location;
+    idOut.location = estateIdObj.userLocation ? {
+      lat: estateIdObj.userLocation.lat.toString(),
+      lng: estateIdObj.userLocation.lng.toString(),
+    } : location;
     idOut.address = addressObject;
   }
 
-  return json([ idOut ], quotaParams);
+  return json([idOut], quotaParams);
 };
-
-export const handler = decorate(_handler,
-  [
-    authenticator('id-req'),
-    Sentry.AWSLambda.wrapHandler as Decorator,
-  ]
-);
