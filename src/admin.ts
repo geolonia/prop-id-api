@@ -9,7 +9,8 @@ import * as keys from './admin/keys';
 import * as feedback from './admin/feedback';
 import * as feedbackReaction from './admin/feedback_reaction';
 import { _handler as publicHandler } from './public';
-import { _handler as idQueryHandler, _splitHandler as idQuerySplitHandler } from './idQuery';
+import { _queryHandler as idQueryHandler } from './idQuery/queryHandler';
+import { _splitHandler as idQuerySplitHandler } from './idQuery/splitHandler';
 
 import { decapitalize } from './lib';
 import { AUTH0_DOMAIN, AUTH0_MGMT_DOMAIN } from './lib/auth0_client';

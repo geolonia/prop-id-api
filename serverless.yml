@@ -239,7 +239,7 @@ functions:
           method: get
 
   idQuery:
-    handler: src/idQuery.handler
+    handler: src/idQuery/index.handler
     events:
       - http:
           path: '/{estateId}'
