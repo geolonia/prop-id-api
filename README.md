@@ -109,6 +109,7 @@ $ node ./bin/list-api-keys.mjs
 - `normLogsIPCFail` -  IPC リクエストに成功したが、番地・号の情報が得られなかった場合
 - `idIssSts` - ID の発行に成功した
 - `feedbackRequest` - フィードバック受付
+- `feedbackRequestReview` - フィードバックに対するレビュー
 
 ### DB の回帰テストを実行
 
