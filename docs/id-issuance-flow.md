@@ -10,7 +10,7 @@ NJA_norm -- NJA正規化レベル2 --> NJA_error_2(400レスポンス<br>normali
 NJA_norm -- NJA正規化レベル1 --> NJA_error_1(400レスポンス<br>normalization_failed<br>city_not_recognized)
 NJA_norm -- NJA正規化レベル0 --> NJA_error_0(400レスポンス<br>normalization_failed<br>neiborhood_not_recognized)
 
-IPC_norm -- ジオコーディングレベルが6以上 --> norm_finalize[最終正規化レベル決定] %% ああ
+IPC_norm -- ジオコーディングレベルが6以上 --> norm_finalize[最終正規化レベル決定]
 IPC_norm -- ジオコーディングレベルが3-5 --> query_internal_banchigo[内部番地号DB問い合わせ]
 IPC_norm -- エラー --> IPC_error_500(500レスポンス)
 IPC_norm -- レスポンスがnull --> IPC_error_null(404レスポンス<br>address_not_verified)
