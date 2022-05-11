@@ -660,3 +660,73 @@ describe('Logging', () => {
       expect(logItem.output.level).toEqual(2)
     })
 })
+
+
+test('aaa', async () => {
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '高松市上林町字川向',
+    },
+  }
+  // @ts-ignore
+  const lambdaResult = await handler(event) as APIGatewayProxyResult
+  const body1 = JSON.parse(lambdaResult.body)
+  expect(body1.error).toBeTruthy()
+})
+
+// describe.only('banchi-go normalization', () => {
+
+
+//   test('号が認識されなかったので発行したくない', async () => {
+//     const event = {
+//       isDemoMode: true,
+//       queryStringParameters: {
+//         q: '東京都狛江市元和泉1丁目2',
+//       },
+//     }
+//     // @ts-ignore
+//     const lambdaResult = await handler(event) as APIGatewayProxyResult
+//     const body1 = JSON.parse(lambdaResult.body)
+//     expect(body1.error).toBeTruthy()
+//   })
+
+//   test('号が認識された', async () => {
+//     const event = {
+//       isDemoMode: true,
+//       queryStringParameters: {
+//         q: '東京都狛江市元和泉1丁目2-3',
+//       },
+//     }
+//     // @ts-ignore
+//     const lambdaResult = await handler(event) as APIGatewayProxyResult
+//     const body1 = JSON.parse(lambdaResult.body)
+//     expect(body1.error).toBeFalsy()
+//   })
+
+//   test('addressPending', async () => {
+//     const event = {
+//       isDemoMode: true,
+//       queryStringParameters: {
+//         q: '東京都狛江市元和泉1丁目2-10000',
+//       },
+//     }
+//     // @ts-ignore
+//     const lambdaResult = await handler(event) as APIGatewayProxyResult
+//     const body1 = JSON.parse(lambdaResult.body)
+//     expect(body1.error).toBeFalsy()
+//   })
+
+//   test('addressPending', async () => {
+//     const event = {
+//       isDemoMode: true,
+//       queryStringParameters: {
+//         q: '東京都狛江市元和泉1丁目字アイウエオ',
+//       },
+//     }
+//     // @ts-ignore
+//     const lambdaResult = await handler(event) as APIGatewayProxyResult
+//     const body1 = JSON.parse(lambdaResult.body)
+//     expect(body1.error).toBeTruthy()
+//   })
+// })

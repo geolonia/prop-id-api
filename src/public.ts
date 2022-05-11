@@ -135,9 +135,19 @@ export const _handler: PropIdHandler = async (event, context) => {
   const prefCode = getPrefCode(feature.properties.pref);
   const { x, y } = coord2XY([lat, lng], ZOOM);
 
-  if (ipc_geocoding_level_int >= 3 && ipc_geocoding_level_int <= 5) {
-    /* IPC からの返答が 3, 4, 5 の場合（つまり、番地が認識できなったまたは、
-     * 番地は認識できたけど号が認識できなかった）は、自分のデータベースを問い合わせ、
+  if (ipc_geocoding_level_int >= 3 && ipc_geocoding_level_int <= 3) {
+    /* IPC からの返答が 3の場合（つまり、番地が認識できなかったとき）はエラーを返します */
+    return json(
+      {
+        error: true,
+        error_code: 'banchi_not_found',
+        address,
+      },
+      quotaParams,
+      400,
+    );
+  } else if (ipc_geocoding_level_int >= 4 && ipc_geocoding_level_int <= 5) {
+    /* IPC からの返答が 4, 5 の場合（つまり、少なくとも番地は認識できたとき）は、自分のデータベースを問い合わせ、
      * 実在するかの確認を取ります。
      */
     const internalBGNormalized = await normalizeBanchiGo(prenormalized);
