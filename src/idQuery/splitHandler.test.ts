@@ -37,6 +37,12 @@ test('should generate new ID from that of existing.', async () => {
       lng: '135.1234',
       building: 'こんにちはビルB棟',
     },
+    body: JSON.stringify({
+      feedback: {
+        currentAddress: 'test',
+        idSplit: {},
+      }
+    }),
   };
   // @ts-ignore
   const lambdaResult2 = await idQuerySplitHandler(event2, context) as APIGatewayProxyResult;
