@@ -4,6 +4,13 @@ import zlib from 'zlib';
 import AWS from 'aws-sdk';
 import { DB } from './lib/dynamodb';
 import Sentry from './lib/sentry';
+import { normalize } from '@geolonia/normalize-japanese-addresses';
+import crypto from 'crypto';
+
+const md5hash = (str: string) => {
+  const md5 = crypto.createHash('md5');
+  return md5.update(str, 'binary').digest('hex');
+};
 
 const ApiKeyTableName = process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME;
 export const s3 = new AWS.S3();
@@ -20,41 +27,49 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
     ) {
       const item = AWS.DynamoDB.Converter.unmarshall(record.dynamodb.NewImage);
 
-      const {
-        PK,
-        SK,
-        apiKey,
-        createAt,
-        ...others
-      } = item;
-      let userId = item.userId || ((typeof apiKey === 'string') ? keyOwnerCache[apiKey] : undefined);
-
-      if (!userId && apiKey && typeof apiKey === 'string') {
-        const { Item } = await DB.get({
-          TableName: ApiKeyTableName,
-          Key: { apiKey },
-        }).promise();
-        if (Item && typeof Item.GSI1PK === 'string') {
-          userId = Item.GSI1PK;
-          keyOwnerCache[apiKey] = userId;
-        }
-      }
-
+      const { PK, SK, ...remainingItem } = item;
       const [type, logType, date] = (PK as string).split('#');
-      const [year, month, day] = (date || '').split('-');
-      if (
-        type === 'LOG' &&
-        logType &&
-        [year, month, day].every((val) => !Number.isNaN(parseInt(val)))
-      ) {
 
-        const key = `json/year=${year}/month=${month}/day=${day}`;
+      if (type === 'LOG') {
+        const [year, month, day] = (date || '').split('-');
+        if (logType && [year, month, day].every((val) => !Number.isNaN(parseInt(val)))) {
+          const {
+            apiKey,
+            createAt,
+            ...others
+          } = remainingItem;
+          let userId = item.userId || ((typeof apiKey === 'string') ? keyOwnerCache[apiKey] : undefined);
+
+          if (!userId && apiKey && typeof apiKey === 'string') {
+            const { Item } = await DB.get({
+              TableName: ApiKeyTableName,
+              Key: { apiKey },
+            }).promise();
+            if (Item && typeof Item.GSI1PK === 'string') {
+              userId = Item.GSI1PK;
+              keyOwnerCache[apiKey] = userId;
+            }
+          }
+
+          const key = `json/year=${year}/month=${month}/day=${day}`;
+          if (!prev[key]) {
+            prev[key] = [];
+          }
+          // SK is unique because it is numbered by ULID.
+          const logItem = { id: SK as string, logType, userId, apiKey, createAt, json: JSON.stringify(others) };
+          prev[key].push(logItem);
+        }
+      } else if (type === 'AddrDB') {
+        const address = logType;
+        const banchi_go = SK;
+        const { pref, city, town } = await normalize(address);
+        const key = `addrdb_json/pref=${pref}/city=${city}/town=${town}`;
         if (!prev[key]) {
           prev[key] = [];
         }
-        // SK is unique because it is numbered by ULID.
-        const item = { id: SK as string, logType, userId, apiKey, createAt, json: JSON.stringify(others) };
-        prev[key].push(item);
+        const id = md5hash(`${PK}${SK}`);
+        const logItem = { id, address, banchi_go, json: remainingItem };
+        prev[key].push(logItem);
       }
     }
     return prev;
