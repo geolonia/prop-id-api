@@ -135,7 +135,7 @@ export const _handler: PropIdHandler = async (event, context) => {
   const prefCode = getPrefCode(feature.properties.pref);
   const { x, y } = coord2XY([lat, lng], ZOOM);
 
-  if (ipc_geocoding_level_int >= 3 && ipc_geocoding_level_int <= 3) {
+  if (ipc_geocoding_level_int === 3) {
     /* IPC からの返答が 3の場合（つまり、番地が認識できなかったとき）はエラーを返します */
     return json(
       {
