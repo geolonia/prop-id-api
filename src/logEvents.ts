@@ -68,7 +68,7 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
           prev[key] = [];
         }
         const id = md5hash(`${PK}${SK}`);
-        const logItem = { id, address, banchi_go, json: remainingItem };
+        const logItem = { id, address, banchi_go, json: JSON.stringify(remainingItem) };
         prev[key].push(logItem);
       }
     }

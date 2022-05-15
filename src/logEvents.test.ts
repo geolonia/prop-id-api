@@ -138,7 +138,7 @@ test('should store address as s3 object', async () => {
         id: '090f3d3379eba390e79ce53f2a3795e4',
         address: '滋賀県大津市御陵町',
         banchi_go: '1234-5678',
-        json: { foo: 'bar' },
+        json: JSON.stringify({ foo: 'bar' }),
       }
     ]
       .map(obj => JSON.stringify(obj))
