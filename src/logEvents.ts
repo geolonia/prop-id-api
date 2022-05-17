@@ -63,12 +63,13 @@ export const _handler: DynamoDBStreamHandler = async (event) => {
         const address = logType;
         const banchi_go = SK;
         const { pref, city, town } = await normalize(address);
-        const key = `addrdb_json/pref=${pref}/city=${city}/town=${town}`;
+        // NOTE: no partitions
+        const key = `addrdb_json/${pref}/${city}/${town}`;
         if (!prev[key]) {
           prev[key] = [];
         }
         const id = md5hash(`${PK}${SK}`);
-        const logItem = { id, address, banchi_go, json: JSON.stringify(remainingItem) };
+        const logItem = { id, address, banchi_go, pref, city, town, json: JSON.stringify(remainingItem) };
         prev[key].push(logItem);
       }
     }
