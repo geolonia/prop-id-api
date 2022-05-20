@@ -1,6 +1,6 @@
 import '.';
 import { BaseEstateId, getEstateIdForAddress, store, StoreEstateIdReq } from './lib/dynamodb';
-import { coord2XY, getPrefCode, incrementPGeocode } from './lib/index';
+import { coord2XY, getPrefCode, getSpatialId, incrementPGeocode } from './lib/index';
 import { errorResponse, json } from './lib/proxy-response';
 import Sentry from './lib/sentry';
 import { joinNormalizeResult, normalize, NormalizeResult, versions } from './lib/nja';
@@ -281,9 +281,11 @@ export const _handler: PropIdHandler = async (event, context) => {
   const normalizationLevel = finalNormalized.level.toString();
   const geocodingLevel = geocoding_level.toString();
 
+  const spatialId = await getSpatialId(x, y, ZOOM);
   const apiResponse = rawEstateIds.map((estateId) => {
     const baseResp: { [key: string]: any } = {
       ID: estateId.estateId,
+      spatialId,
       normalization_level: normalizationLevel,
       address: {
         ja: {

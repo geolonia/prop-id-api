@@ -8,6 +8,10 @@ import { _queryHandler } from './queryHandler';
 
 export type IdQueryOut = {
   ID: string
+  spatialId?: {
+    id: string
+    alt: number
+  }
   normalization_level: string
   status: 'addressPending' | null
 

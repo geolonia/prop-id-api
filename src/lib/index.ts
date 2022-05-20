@@ -128,3 +128,34 @@ export const zen2hanAscii = (str: string) => {
 export const yokobo2zenchoonSymbol = (str: string) => {
   return str.replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/gi, 'ー'); // 長音記号に変換
 };
+
+export const getSpatialId = async (
+  x: number, y: number, zoom: number,
+): Promise<{ id: string, alt: number }> => {
+
+  // NOTE: とりあえずタイルの中心に近い緯度経度（緯度経度の相加平均）における標高を使う
+  const n = 2 ^ zoom;
+  let leftTop, rightBottom;
+  {
+    const lng_deg = x / n * 360.0 - 180.0;
+    const lat_rad = Math.atan(Math.sinh(Math.PI * (1 - 2 * y / n)));
+    const lat_deg = lat_rad * 180.0 / Math.PI;
+    leftTop = [lat_deg, lng_deg];
+  }
+  {
+    const lng_deg = (x + 1) / n * 360.0 - 180.0;
+    const lat_rad = Math.atan(Math.sinh(Math.PI * (1 - 2 * (y + 1) / n)));
+    const lat_deg = lat_rad * 180.0 / Math.PI;
+    rightBottom = [lat_deg, lng_deg];
+  }
+  const lat = (leftTop[0] + rightBottom[0]) / 2;
+  const lng = (leftTop[1] + rightBottom[1]) / 2;
+
+
+  const { data: { elevation: h } } = await axios(`https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=${lng}&lat=${lat}&outtype=JSON`);
+  const f = Math.floor((h / 2 ^ (25 - zoom)));
+  return {
+    id: `${zoom}/${f}/${x}/${y}`,
+    alt: h,
+  };
+};

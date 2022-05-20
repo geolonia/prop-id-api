@@ -1,4 +1,4 @@
-import { incrementPGeocode } from '../lib';
+import { getSpatialId, incrementPGeocode } from '../lib';
 import { getEstateId } from '../lib/dynamodb';
 import { errorResponse, json } from '../lib/proxy-response';
 import { normalize } from '../lib/nja';
@@ -78,6 +78,10 @@ export const _queryHandler: PropIdHandler = async (event, context) => {
       lng: estateIdObj.userLocation.lng.toString(),
     } : location;
     idOut.address = addressObject;
+
+    const ZOOM = parseInt(process.env.ZOOM, 10);
+    const [ x, y ] = estateIdObj.tileXY.split('/').map((numStr) => parseInt(numStr, 10));
+    idOut.spatialId = await getSpatialId(x, y, ZOOM);
   }
 
   return json([idOut], quotaParams);
