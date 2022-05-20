@@ -11,7 +11,7 @@ export type IdQueryOut = {
   spatialId?: {
     id: string
     alt: number
-  }
+  } | null
   normalization_level: string
   status: 'addressPending' | null
 

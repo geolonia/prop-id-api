@@ -660,3 +660,24 @@ describe('Logging', () => {
       expect(logItem.output.level).toEqual(2)
     })
 })
+
+test('[experimental] should return spatial ID', async () => {
+
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス',
+      spatialId: 'true',
+    },
+  }
+  // @ts-ignore
+  const lambdaResult1 = await handler(event) as APIGatewayProxyResult
+  const body1 = JSON.parse(lambdaResult1.body)
+
+  // @ts-ignore
+  const lambdaResult2 = await handler(event) as APIGatewayProxyResult
+  const body2 = JSON.parse(lambdaResult2.body)
+
+  expect(typeof body1[0].spatialId.id).toEqual('string')
+  expect(typeof body1[0].spatialId.alt).toEqual('number')
+})

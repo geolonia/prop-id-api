@@ -28,6 +28,7 @@ const IPC_NORMALIZATION_ERROR_CODE_DETAILS: { [key: string]: string } = {
 
 export const _handler: PropIdHandler = async (event, context) => {
   const address = event.queryStringParameters?.q;
+  const requireSpatialId = !!event.queryStringParameters?.spatialId;
   const ZOOM = parseInt(process.env.ZOOM, 10);
   const {
     propIdAuthenticator: {
@@ -281,7 +282,7 @@ export const _handler: PropIdHandler = async (event, context) => {
   const normalizationLevel = finalNormalized.level.toString();
   const geocodingLevel = geocoding_level.toString();
 
-  const spatialId = await getSpatialId(x, y, ZOOM);
+  const spatialId = requireSpatialId ? await getSpatialId(x, y, ZOOM) : null;
   const apiResponse = rawEstateIds.map((estateId) => {
     const baseResp: { [key: string]: any } = {
       ID: estateId.estateId,

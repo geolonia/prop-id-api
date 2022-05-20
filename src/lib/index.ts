@@ -151,8 +151,15 @@ export const getSpatialId = async (
   const lat = (leftTop[0] + rightBottom[0]) / 2;
   const lng = (leftTop[1] + rightBottom[1]) / 2;
 
+  let h = 0;
 
-  const { data: { elevation: h } } = await axios(`https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=${lng}&lat=${lat}&outtype=JSON`);
+  try {
+    const resp = await axios(`https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=${lng}&lat=${lat}&outtype=JSON`);
+    h = resp.data.elevation;
+  } catch (error) {
+    // on sea ?
+  }
+
   const f = Math.floor((h / 2 ^ (25 - zoom)));
   return {
     id: `${zoom}/${f}/${x}/${y}`,

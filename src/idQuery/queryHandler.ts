@@ -21,6 +21,8 @@ export const _queryHandler: PropIdHandler = async (event, context) => {
     return errorResponse(400, 'Missing estate ID.', quotaParams);
   }
 
+  const requireSpatialId = !!event.queryStringParameters?.spatialId;
+
   const estateIdObj = await getEstateId(estateId);
 
   if (!estateIdObj) {
@@ -81,7 +83,7 @@ export const _queryHandler: PropIdHandler = async (event, context) => {
 
     const ZOOM = parseInt(process.env.ZOOM, 10);
     const [ x, y ] = estateIdObj.tileXY.split('/').map((numStr) => parseInt(numStr, 10));
-    idOut.spatialId = await getSpatialId(x, y, ZOOM);
+    idOut.spatialId = requireSpatialId ? await getSpatialId(x, y, ZOOM) : null;
   }
 
   return json([idOut], quotaParams);
