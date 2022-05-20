@@ -155,7 +155,8 @@ export const getSpatialId = async (
 
   try {
     const resp = await axios(`https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=${lng}&lat=${lat}&outtype=JSON`);
-    h = resp.data.elevation;
+    h = parseFloat(resp.data.elevation);
+    if (Number.isNaN(h)) h = 0;
   } catch (error) {
     // on sea ?
   }
