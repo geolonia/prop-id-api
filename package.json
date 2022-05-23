@@ -51,6 +51,7 @@
   },
   "dependencies": {
     "@geolonia/normalize-japanese-addresses": "2.3.5",
+    "@mapbox/tilebelt": "^1.0.2",
     "@slack/webhook": "^6.1.0",
     "auth0": "^2.40.0",
     "axios": "^0.27.2",

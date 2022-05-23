@@ -4,6 +4,8 @@ import { promisify } from 'util';
 import { HashOptions } from './dynamodb';
 import prefs from './prefs.json';
 import Sentry from './sentry';
+// @ts-ignore
+import tilebelt from '@mapbox/tilebelt';
 
 const scrypt = promisify(crypto.scrypt);
 
@@ -134,27 +136,16 @@ export const getSpatialId = async (
 ): Promise<{ id: string, alt: number }> => {
 
   // NOTE: とりあえずタイルの中心に近い緯度経度（緯度経度の相加平均）における標高を使う
-  const n = 2 ^ zoom;
-  let leftTop, rightBottom;
-  {
-    const lng_deg = x / n * 360.0 - 180.0;
-    const lat_rad = Math.atan(Math.sinh(Math.PI * (1 - 2 * y / n)));
-    const lat_deg = lat_rad * 180.0 / Math.PI;
-    leftTop = [lat_deg, lng_deg];
-  }
-  {
-    const lng_deg = (x + 1) / n * 360.0 - 180.0;
-    const lat_rad = Math.atan(Math.sinh(Math.PI * (1 - 2 * (y + 1) / n)));
-    const lat_deg = lat_rad * 180.0 / Math.PI;
-    rightBottom = [lat_deg, lng_deg];
-  }
-  const lat = (leftTop[0] + rightBottom[0]) / 2;
-  const lng = (leftTop[1] + rightBottom[1]) / 2;
+  const bbox = tilebelt.tileToBBOX([x, y, zoom]);
+  const lat = (bbox[1] + bbox[3]) / 2;
+  const lng = (bbox[0] + bbox[2]) / 2;
 
   let h = 0;
+  let data;
 
   try {
     const resp = await axios(`https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=${lng}&lat=${lat}&outtype=JSON`);
+    data = resp.data;
     h = parseFloat(resp.data.elevation);
     if (Number.isNaN(h)) h = 0;
   } catch (error) {
