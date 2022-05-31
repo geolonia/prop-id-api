@@ -403,6 +403,22 @@ describe("normalization error cases",  () => {
     expect(statusCode).toEqual(400)
     expect(message).toEqual('Missing querystring parameter `q`.')
   })
+
+  test('should handle invalid query characters.', async () => {
+
+    const event = {
+      isDemoMode: true,
+      queryStringParameters: {
+        q: '岩手県盛岡市盛岡駅西通２/９/１',
+      },
+    }
+    // @ts-ignore
+    const lambdaResult1 = await handler(event) as APIGatewayProxyResult
+    const { statusCode, body } = lambdaResult1
+    const { message } = JSON.parse(body)
+    expect(statusCode).toEqual(400)
+    expect(message).toEqual('The parameter `q` contains an invalid character \'/\'.')
+  })
 })
 
 test('should return 403 if not authenticated.', async () => {
