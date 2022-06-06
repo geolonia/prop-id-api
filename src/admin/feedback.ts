@@ -38,7 +38,7 @@ export const create: AdminHandler = async (event) => {
         },
         {
           type: 'mrkdwn',
-          text: `*不動産オープンID*\n\`${feedback.id}\``,
+          text: `*不動産オープン ID*\n\`${feedback.id}\``,
         },
         {
           type: 'mrkdwn',

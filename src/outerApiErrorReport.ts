@@ -12,13 +12,13 @@ export const ipcNormalizationErrorReport = async (identifier: string, metadata: 
   const fields: (PlainTextElement | MrkdwnElement)[] = [];
 
   if (identifier === 'normFailNoIPCGeomNull') {
-    title =  'APIのレスポンスが null でした';
+    title =  'API のレスポンスが null でした';
 
   } else if (identifier === 'normFailNoIPCGeom') {
     title = '住所を確認できませんでした';
 
   } else if (identifier === 'normLogsIPCGeom') {
-    title = 'Geocodingレベル4(丁目/小字)以下の住所を検出しました';
+    title = 'Geocoding レベル4(丁目/小字)以下の住所を検出しました';
     fields.push({
       type: 'mrkdwn',
       text: `*Geocodingレベル*\n${geocoding_level}`,
