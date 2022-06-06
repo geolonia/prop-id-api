@@ -409,7 +409,7 @@ describe("normalization error cases",  () => {
     const event = {
       isDemoMode: true,
       queryStringParameters: {
-        q: '岩手県盛岡市盛岡駅西通２/９/１',
+        q: '岩手県盛岡市盛岡駅西通２-９-１ おはようビル2F/304',
       },
     }
     // @ts-ignore
