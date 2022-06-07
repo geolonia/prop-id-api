@@ -21,7 +21,7 @@ export const ipcNormalizationErrorReport = async (identifier: string, metadata: 
     title = 'Geocoding レベル4(丁目/小字)以下の住所を検出しました';
     fields.push({
       type: 'mrkdwn',
-      text: `*Geocodingレベル*\n${geocoding_level}`,
+      text: `*Geocoding レベル*\n${geocoding_level}`,
     });
   }
 
