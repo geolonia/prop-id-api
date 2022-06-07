@@ -1,8 +1,8 @@
-# 不動産共通ID仕様
+# 不動産オープンID仕様
 
 ## API 共通仕様
 
-### 不動産共通IDのフォーマット
+### 不動産オープンIDのフォーマット
 
 ```
 [都道府県コード]-[UUID]
@@ -44,9 +44,9 @@ X-Access-Token: {access-token}
 Content-Type: application/json
 ```
 
-## 不動産共通ID取得API
+## 不動産オープンID取得API
 
-住所から不動産共通IDを取得します。有料プラン向けには正規化後の住所や位置情報などもレスポンスに追加されます。
+住所から不動産オープンIDを取得します。有料プラン向けには正規化後の住所や位置情報などもレスポンスに追加されます。
 
 ### エンドポイント
 
@@ -124,9 +124,9 @@ https://api.propid.jp/v1
 ]
 ```
 
-## 不動産共通ID参照API
+## 不動産オープンID参照API
 
-不動産共通IDから物件情報を取得することができます。有料プランでのご提供です。
+不動産オープンIDから物件情報を取得することができます。有料プランでのご提供です。
 
 ```
 [GET] https://api.propid.jp/v1/{id}?api-key={api-key}&lang={language}
@@ -145,7 +145,7 @@ https://api.propid.jp/v1
     <td>id</td>
     <td>string</td>
     <td>path</td>
-    <td>不動産共通ID</td>
+    <td>不動産オープンID</td>
   </tr>
   <tr>
     <td>language</td>
@@ -181,9 +181,9 @@ https://api.propid.jp/v1
 ]
 ```
 
-## 不動産共通ID統合時の仕様
+## 不動産オープンID統合時の仕様
 
-地名変更等で不動産共通IDが統合された時、レスポンスの ID は統合先のIDを返します。
+地名変更等で不動産オープンIDが統合された時、レスポンスの ID は統合先のIDを返します。
 
 #### 例
 
@@ -201,7 +201,7 @@ https://api.propid.jp/v1
 ```
 
 ## 解析レベル
-不動産共通ID取得API及び、不動産共通ID参照APIのレスポンスは、住所の解析レベル情報を含みます。
+不動産オープンID取得API及び、不動産オープンID参照APIのレスポンスは、住所の解析レベル情報を含みます。
 無料版では `normalization_level` のみ、有料版ではより詳細な解析レベルの `geocoding_level` も含みます。
 
 ### `normalization_level`
@@ -342,7 +342,7 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
 
 ## エラー
 
-不動産共通ID取得API及び、不動産共通ID参照APIが リクエストの処理に成功すると、API はステータスコード「200」を返します。リクエストでエラーが発生すると、エラーの種類に基づいて HTTP ステータスコード、理由を含むレスポンスが API から返されます。 レスポンスの本文には、エラーの原因についての詳しい説明が記述されています。
+不動産オープンID取得API及び、不動産オープンID参照APIが リクエストの処理に成功すると、API はステータスコード「200」を返します。リクエストでエラーが発生すると、エラーの種類に基づいて HTTP ステータスコード、理由を含むレスポンスが API から返されます。 レスポンスの本文には、エラーの原因についての詳しい説明が記述されています。
 
 ## 標準エラーレスポンス
 
@@ -364,7 +364,7 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
   </tr>
 </table>
 
-## 不動産共通ID取得API
+## 不動産オープンID取得API
 
 住所の正規化に失敗した場合、 `{ "error_code":"normalization_failed" }` のと共に `error_code_detail` としてその理由を示す解析レベルの情報が返却されます。解析レベルは、 `normalization_level` または `geocoding_level` を示す文字列が返却されます。
 
@@ -416,7 +416,7 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
   </tr>
 </table>
 
-## 不動産共通ID参照API
+## 不動産オープンID参照API
 
 <table>
   <tr>
