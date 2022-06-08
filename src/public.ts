@@ -26,6 +26,9 @@ const IPC_NORMALIZATION_ERROR_CODE_DETAILS: { [key: string]: string } = {
   '-1': 'geo_undefined',
 };
 
+// アドレスクエリとして使用できない文字
+const IPC_INVALID_CHARS = ['/'];
+
 export const _handler: PropIdHandler = async (event, context) => {
   const address = event.queryStringParameters?.q;
   const ZOOM = parseInt(process.env.ZOOM, 10);
@@ -43,6 +46,12 @@ export const _handler: PropIdHandler = async (event, context) => {
   if (!address) {
     return errorResponse(400, 'Missing querystring parameter `q`.', quotaParams);
   }
+
+  const invalidAddressChar = IPC_INVALID_CHARS.find((char) => address.indexOf(char) !== -1);
+  if (invalidAddressChar) {
+    return errorResponse(400, `The parameter \`q\` contains an invalid character '${invalidAddressChar}'.`);
+  }
+
   Sentry.setContext('query', {
     address,
     debug: event.isDebugMode,

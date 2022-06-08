@@ -130,7 +130,7 @@ test('should store address as s3 object', async () => {
 
   await logEvent._handler(event, {} as any, () => {})
 
-  expect(putObjectArgs[0].key).toMatch(/^addrdb_json\/pref=滋賀県\/city=大津市\/town=御陵町\/[0-9]*\.json\.gz$/)
+  expect(putObjectArgs[0].key).toMatch(/^addrdb_json\/滋賀県\/大津市\/御陵町\/[0-9]*\.json\.gz$/)
   const body0 = zlib.gunzipSync(putObjectArgs[0].body).toString('utf-8')
   expect(body0).toEqual(
     [
@@ -138,6 +138,9 @@ test('should store address as s3 object', async () => {
         id: '090f3d3379eba390e79ce53f2a3795e4',
         address: '滋賀県大津市御陵町',
         banchi_go: '1234-5678',
+        pref: '滋賀県',
+        city: '大津市',
+        town: '御陵町',
         json: JSON.stringify({ foo: 'bar' }),
       }
     ]
