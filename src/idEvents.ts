@@ -142,7 +142,7 @@ const _findDuplicates = async (id: EstateId) => {
           type: 'header',
           text: {
             type: 'plain_text',
-            text: ':mag: 確認が必要な不動産共通 ID が発行されました',
+            text: ':mag: 確認が必要な不動産オープン ID が発行されました',
           },
         },
         ...sectionBlocks,
