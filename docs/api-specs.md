@@ -386,6 +386,14 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
     <td>400</td>
     <td>Bad Request</td>
     <td>
+      <small>※ パラメーター <code>q</code> に使用できない文字が含まれている場合</small><br />
+      <code>{"message": "The parameter `q` contains an invalid character '/'."}</code>
+    </td>
+  </tr>
+    <tr>
+    <td>400</td>
+    <td>Bad Request</td>
+    <td>
         <small>※ 都道府県名が正規化できなかったケース</small><br />
         <code>{ "error": true, "error_code": "normalization_failed", "error_code_detail": "prefecture_not_recognized", "address": "あああ県" }</code>
       </td>
