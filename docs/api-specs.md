@@ -201,6 +201,7 @@ https://api.propid.jp/v1
 ```
 
 ## 解析レベル
+
 不動産オープン ID 取得 API 及び、不動産オープン ID 参照 API のレスポンスは、住所の解析レベル情報を含みます。
 無料版では `normalization_level` のみ、有料版ではより詳細な解析レベルの `geocoding_level` も含みます。
 
