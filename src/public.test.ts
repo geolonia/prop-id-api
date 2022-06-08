@@ -742,5 +742,5 @@ describe.only('banchi-go normalization', () => {
     const lambdaResult = await handler(event) as APIGatewayProxyResult
     const body1 = JSON.parse(lambdaResult.body)
     expect(body1.error).toBeTruthy()
-//   })
+  })
 })
