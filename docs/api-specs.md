@@ -187,7 +187,7 @@ https://api.propid.jp/v1
 
 #### 例
 
-地名変更で、東京府千代田区永田町1丁目7-1（ID：`xxxx-xxxx-xxxx-xxxx`）が、東京都千代田区永田町1丁目7-2（ID：`zzzz-zzzz-zzzz-zzzz`）に統合。
+地名変更で、東京府千代田区永田町1丁目7-1（ID: `xxxx-xxxx-xxxx-xxxx`）が、東京都千代田区永田町1丁目7-2（ID: `zzzz-zzzz-zzzz-zzzz`）に統合。
 
 #### レスポンス
 
@@ -201,7 +201,7 @@ https://api.propid.jp/v1
 ```
 
 ## 解析レベル
-不動産オープン ID 取得API及び、不動産オープン ID 参照 API のレスポンスは、住所の解析レベル情報を含みます。
+不動産オープン ID 取得 API 及び、不動産オープン ID 参照 API のレスポンスは、住所の解析レベル情報を含みます。
 無料版では `normalization_level` のみ、有料版ではより詳細な解析レベルの `geocoding_level` も含みます。
 
 ### `normalization_level`
