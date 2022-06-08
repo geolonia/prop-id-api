@@ -262,9 +262,6 @@ test('should return status parameters', async () => {
   const lambdaResult1 = await publicHandler(event1, context) as APIGatewayProxyResult
   const body1 = JSON.parse(lambdaResult1.body)
   expect(body1.error).toBe(true)
-
-  // 番地号データベースに登録
-
 })
 
 
