@@ -1,8 +1,8 @@
-# 不動産共通ID仕様
+# 不動産オープン ID 仕様
 
 ## API 共通仕様
 
-### 不動産共通IDのフォーマット
+### 不動産オープン ID のフォーマット
 
 ```
 [都道府県コード]-[UUID]
@@ -44,9 +44,9 @@ X-Access-Token: {access-token}
 Content-Type: application/json
 ```
 
-## 不動産共通ID取得API
+## 不動産オープン ID 取得 API
 
-住所から不動産共通IDを取得します。有料プラン向けには正規化後の住所や位置情報などもレスポンスに追加されます。
+住所から不動産オープン ID を取得します。有料プラン向けには正規化後の住所や位置情報などもレスポンスに追加されます。
 
 ### エンドポイント
 
@@ -124,9 +124,9 @@ https://api.propid.jp/v1
 ]
 ```
 
-## 不動産共通ID参照API
+## 不動産オープン ID 参照 API
 
-不動産共通IDから物件情報を取得することができます。有料プランでのご提供です。
+不動産オープン ID から物件情報を取得することができます。有料プランでのご提供です。
 
 ```
 [GET] https://api.propid.jp/v1/{id}?api-key={api-key}&lang={language}
@@ -145,7 +145,7 @@ https://api.propid.jp/v1
     <td>id</td>
     <td>string</td>
     <td>path</td>
-    <td>不動産共通ID</td>
+    <td>不動産オープン ID</td>
   </tr>
   <tr>
     <td>language</td>
@@ -181,13 +181,13 @@ https://api.propid.jp/v1
 ]
 ```
 
-## 不動産共通ID統合時の仕様
+## 不動産オープン ID 統合時の仕様
 
-地名変更等で不動産共通IDが統合された時、レスポンスの ID は統合先のIDを返します。
+地名変更等で不動産オープン ID が統合された時、レスポンスの ID は統合先の ID を返します。
 
 #### 例
 
-地名変更で、東京府千代田区永田町1丁目7-1（ID：`xxxx-xxxx-xxxx-xxxx`）が、東京都千代田区永田町1丁目7-2（ID：`zzzz-zzzz-zzzz-zzzz`）に統合。
+地名変更で、東京府千代田区永田町1丁目7-1（ID: `xxxx-xxxx-xxxx-xxxx`）が、東京都千代田区永田町1丁目7-2（ID: `zzzz-zzzz-zzzz-zzzz`）に統合。
 
 #### レスポンス
 
@@ -201,7 +201,8 @@ https://api.propid.jp/v1
 ```
 
 ## 解析レベル
-不動産共通ID取得API及び、不動産共通ID参照APIのレスポンスは、住所の解析レベル情報を含みます。
+
+不動産オープン ID 取得 API 及び、不動産オープン ID 参照 API のレスポンスは、住所の解析レベル情報を含みます。
 無料版では `normalization_level` のみ、有料版ではより詳細な解析レベルの `geocoding_level` も含みます。
 
 ### `normalization_level`
@@ -315,7 +316,7 @@ https://api.propid.jp/v1
 各APIは現在のレート制限状況を確認できる、レスポンスヘッダーを返します。制限を超えた場合はこのヘッダーを確認して、いつ再試行できるかを判断できます。
 
 ```
-$ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-urlencode "q=東京都千代田区永田町1-7-1" --data-urlencode "api-key=<APIキー>" "https://api.propid.jp/v1/"
+$ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-urlencode "q=東京都千代田区永田町1-7-1" --data-urlencode "api-key=<API キー>" "https://api.propid.jp/v1/"
 > x-ratelimit-limit: 10000
 > x-ratelimit-remaining: 9938
 > x-ratelimit-reset: 2021-06-01T00:00:00.000+09:00
@@ -342,7 +343,7 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
 
 ## エラー
 
-不動産共通ID取得API及び、不動産共通ID参照APIが リクエストの処理に成功すると、API はステータスコード「200」を返します。リクエストでエラーが発生すると、エラーの種類に基づいて HTTP ステータスコード、理由を含むレスポンスが API から返されます。 レスポンスの本文には、エラーの原因についての詳しい説明が記述されています。
+不動産オープン ID 取得 API 及び、不動産オープン ID 参照 API がリクエストの処理に成功すると、API はステータスコード「200」を返します。リクエストでエラーが発生すると、エラーの種類に基づいて HTTP ステータスコード、理由を含むレスポンスが API から返されます。 レスポンスの本文には、エラーの原因についての詳しい説明が記述されています。
 
 ## 標準エラーレスポンス
 
@@ -364,7 +365,7 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
   </tr>
 </table>
 
-## 不動産共通ID取得API
+## 不動産オープン ID 取得 API
 
 住所の正規化に失敗した場合、 `{ "error_code":"normalization_failed" }` のと共に `error_code_detail` としてその理由を示す解析レベルの情報が返却されます。解析レベルは、 `normalization_level` または `geocoding_level` を示す文字列が返却されます。
 
@@ -380,6 +381,14 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
     <td>
       <small>※ パラメーター <code>q</code> が存在しない、または空白文字列の場合</small><br />
       <code>{"message":"Missing querystring parameter `q`."}</code>
+    </td>
+  </tr>
+    <tr>
+    <td>400</td>
+    <td>Bad Request</td>
+    <td>
+      <small>※ パラメーター <code>q</code> に使用できない文字が含まれている場合</small><br />
+      <code>{"message": "The parameter `q` contains an invalid character '/'."}</code>
     </td>
   </tr>
     <tr>
@@ -416,7 +425,7 @@ $ curl -D /dev/stderr -G -H "x-access-token: <アクセストークン>" --data-
   </tr>
 </table>
 
-## 不動産共通ID参照API
+## 不動産オープン ID 参照 API
 
 <table>
   <tr>

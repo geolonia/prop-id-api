@@ -6,12 +6,12 @@ graph TD
   input(住所入力) --> validation{住所バリデーション}
 
   validation -- 空文字を入力 --> validation_error(400レスポンス)
-  validation -- 空文字以外を入力 --> NJA_norm[NJA正規化]
+  validation -- 空文字以外を入力 --> NJA_norm[NJA 正規化]
 
   NJA_norm --> normLogsNJA["ログ発行 (normLogsNJA)"]
   normLogsNJA --> NJA_norm_level{正規化結果判定}
   NJA_norm_level -- NJA正規化レベル0-2 --> normFailNoTown
-  NJA_norm_level -- NJA正規化レベル3 ----> IPC_norm[IPC正規化] --> IPC_norm_level{IPC正規化結果判定}
+  NJA_norm_level -- NJA正規化レベル3 ----> IPC_norm[GT 社正規化] --> IPC_norm_level{GT 社正規化結果判定}
 
   IPC_norm_level -- エラー --> IPC_error_500(500レスポンス)
   IPC_norm_level -- レスポンスがnull --> IPC_error_null(404レスポンス<br>address_not_verified)
@@ -29,9 +29,9 @@ graph TD
   geoc_lecvel -- 最終正規化レベルが3 --> id_issue_error_3(400レスポンス<br>geo_okaza)
   geoc_lecvel -- 最終正規化レベルが4 --> id_issue_error_4(400レスポンス<br>geo_koaza)
   geoc_lecvel -- 最終正規化レベルが5 --> issue_prop_id
-  geoc_lecvel -- 最終正規化レベルが6以上 --> ビル名抽出 --> issue_prop_id[不動産共通ID発行]
+  geoc_lecvel -- 最終正規化レベルが6以上 --> ビル名抽出 --> issue_prop_id[不動産オープン ID 発行]
 
-  issue_prop_id -- 最終正規化レベル6以下 --> addressPendingステータスを発行 --> idIssSts
+  issue_prop_id -- 最終正規化レベル6以下 --> addressPending ステータスを発行 --> idIssSts
   issue_prop_id --> idIssSts["ログ発行 (idIssSts)"]
   idIssSts --> id_issue_ok(200レスポンス)
 ```
