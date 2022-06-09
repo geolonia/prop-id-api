@@ -690,7 +690,7 @@ test('番地がないときは ID を発行しない', async () => {
   expect(body1.error).toBeTruthy()
 })
 
-describe.only('banchi-go normalization', () => {
+describe('banchi-go normalization', () => {
 
   test('号が認識されなかったので発行したくない', async () => {
     const event = {
@@ -702,8 +702,7 @@ describe.only('banchi-go normalization', () => {
     // @ts-ignore
     const lambdaResult = await handler(event) as APIGatewayProxyResult
     const body1 = JSON.parse(lambdaResult.body)
-    console.log({body1})
-    expect(body1.error).toBeTruthy()
+    expect(body1.error).toBe(true)
   })
 
   test('号が認識された', async () => {
@@ -716,7 +715,8 @@ describe.only('banchi-go normalization', () => {
     // @ts-ignore
     const lambdaResult = await handler(event) as APIGatewayProxyResult
     const body1 = JSON.parse(lambdaResult.body)
-    expect(body1.error).toBeFalsy()
+    expect(body1.error).toBe(undefined)
+    expect(body1[0].status).not.toBe('addressPending')
   })
 
   test('addressPending', async () => {
@@ -729,6 +729,7 @@ describe.only('banchi-go normalization', () => {
     // @ts-ignore
     const lambdaResult = await handler(event) as APIGatewayProxyResult
     const body1 = JSON.parse(lambdaResult.body)
-    expect(body1.error).toBeFalsy()
+    expect(body1.error).toBe(undefined)
+    expect(body1[0].status).toBe('addressPending')
   })
 })

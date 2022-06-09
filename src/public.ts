@@ -183,11 +183,11 @@ export const _handler: PropIdHandler = async (event, context) => {
     }));
   }
 
-  // IPC LV 4 以下（小字以下が正規化けるできなかった）かつ正規化できなかったパートが存在しない場合は不十分な住所が入力されているケースだと判断できる
+  // IPC LV 5 以下（小字以下が正規化できなかった）かつ正規化できなかったパートが存在しない場合は不十分な住所が入力されているケースだと判断できる
   // この場合はエラーとして処理
   if (
     finalNormalized.level <= 3 &&
-    ipc_geocoding_level_int <= 4 &&
+    ipc_geocoding_level_int <= 5 &&
     !ipc_not_normalized_address_part
   ) {
     const error_code_detail = (
