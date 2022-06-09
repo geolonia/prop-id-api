@@ -702,6 +702,7 @@ describe.only('banchi-go normalization', () => {
     // @ts-ignore
     const lambdaResult = await handler(event) as APIGatewayProxyResult
     const body1 = JSON.parse(lambdaResult.body)
+    console.log({body1})
     expect(body1.error).toBeTruthy()
   })
 
@@ -729,18 +730,5 @@ describe.only('banchi-go normalization', () => {
     const lambdaResult = await handler(event) as APIGatewayProxyResult
     const body1 = JSON.parse(lambdaResult.body)
     expect(body1.error).toBeFalsy()
-  })
-
-  test('addressPending', async () => {
-    const event = {
-      isDemoMode: true,
-      queryStringParameters: {
-        q: '東京都狛江市元和泉1丁目字アイウエオ',
-      },
-    }
-    // @ts-ignore
-    const lambdaResult = await handler(event) as APIGatewayProxyResult
-    const body1 = JSON.parse(lambdaResult.body)
-    expect(body1.error).toBeTruthy()
   })
 })
