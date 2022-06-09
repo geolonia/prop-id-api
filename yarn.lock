@@ -962,17 +962,17 @@
     eslint-plugin-react "^7.25.1"
     typescript "^4.4.2"
 
-"@geolonia/japanese-numeral@^0.1.15":
-  version "0.1.15"
-  resolved "https://registry.yarnpkg.com/@geolonia/japanese-numeral/-/japanese-numeral-0.1.15.tgz#e6e476e403efac60e6b3270fd19c46afb8200b91"
-  integrity sha512-g8xizIJH7sfd5JSJyN6pCbNNWVkasMpw84gpYQZJ09VDuTT5qzT5cKhr3+pFyS4SpfwQ9rrsJBmeD6z3vI2bjA==
+"@geolonia/japanese-numeral@^0.1.16":
+  version "0.1.16"
+  resolved "https://registry.yarnpkg.com/@geolonia/japanese-numeral/-/japanese-numeral-0.1.16.tgz#651b11f29e837545f0a9d8b7ffd8b832f67e2239"
+  integrity sha512-xzSsIHhyyjqNpW8qSh5bFMu3FJvyJGBbNZ/t8clPHkigjUdZ7Ck8wkzCkcwlVd00RkoHwGDLnvXx5W0WiGK0TQ==
 
-"@geolonia/normalize-japanese-addresses@2.3.5":
-  version "2.3.5"
-  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-2.3.5.tgz#e550dab9fe5b274b16beaf6ffea4068871f6ad9e"
-  integrity sha512-D9vYumQyEUQ6S0SecV1QvBogG1+ju4Q+GA+d5jELIr8fl1T+ez2y3W5rAk/fRJdlVvO+a+3DzBr24F2cM0xZdA==
+"@geolonia/normalize-japanese-addresses@2.5.7":
+  version "2.5.7"
+  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-2.5.7.tgz#ef7d415747cb3a18022835262cb6e68d1a4c0900"
+  integrity sha512-cWLySrgP87tDnP0uPBA/ZtRixi4hr885TsuYl+glk29SZI08qJDbAw0sbpqxzp/sb+56szLjTmP+djp3hoU2TQ==
   dependencies:
-    "@geolonia/japanese-numeral" "^0.1.15"
+    "@geolonia/japanese-numeral" "^0.1.16"
     isomorphic-unfetch "^3.1.0"
     lru-cache "^6.0.0"
 
