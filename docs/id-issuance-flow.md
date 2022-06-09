@@ -28,10 +28,14 @@ graph TD
 
   geoc_lecvel -- 最終正規化レベルが3 --> id_issue_error_3(400レスポンス<br>geo_okaza)
   geoc_lecvel -- 最終正規化レベルが4 --> id_issue_error_4(400レスポンス<br>geo_koaza)
-  geoc_lecvel -- 最終正規化レベルが5 --> issue_prop_id
-  geoc_lecvel -- 最終正規化レベルが6以上 --> ビル名抽出 --> issue_prop_id[不動産オープン ID 発行]
+  geoc_lecvel -- 最終正規化レベルが5 --> not_normalized{未正規化文字列の判定}
+  geoc_lecvel -- 最終正規化レベルが6 --> address_pending_check(addressPending ステータス発行)
+  geoc_lecvel -- 最終正規化レベルが7以上 --> ビル名抽出 --> issue_prop_id[不動産オープン ID 発行]
 
-  issue_prop_id -- 最終正規化レベル6以下 --> addressPending ステータスを発行 --> idIssSts
+
+  not_normalized -- 未正規化文字列が存在しない --> id_issue_error_5(400レスポンス<br>geo_banchi)
+  not_normalized -- 未正規化文字列が存在 --> address_pending_check --> issue_prop_id
+
   issue_prop_id --> idIssSts["ログ発行 (idIssSts)"]
   idIssSts --> id_issue_ok(200レスポンス)
 ```
