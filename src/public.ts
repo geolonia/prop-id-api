@@ -183,7 +183,7 @@ export const _handler: PropIdHandler = async (event, context) => {
     }));
   }
 
-  // IPC LV 5 以下（小字以下が正規化できなかった）かつ正規化できなかったパートが存在しない場合は不十分な住所が入力されているケースだと判断できる
+  // GT社 LV 5 以下 かつ正規化できなかったパートが存在しない場合は不十分な住所が入力されているケースだと判断できる
   // この場合はエラーとして処理
   if (
     finalNormalized.level <= 3 &&

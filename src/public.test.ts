@@ -505,7 +505,7 @@ test('should get same estate ID by normalization', async () => {
   expect(body1[0].ID).toEqual(body2[0].ID)
 })
 
-describe('banchi-go database', () => {
+describe.only('banchi-go database', () => {
   beforeAll(async () => {
     const testData = [
       { addr: '東京都文京区水道二丁目', bg: '80-6' },
