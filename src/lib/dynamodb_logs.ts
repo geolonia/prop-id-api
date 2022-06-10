@@ -17,6 +17,7 @@ export interface AddressDatabaseRecord {
   SK: string
 
   latLng?: [string, string]
+  status?: string
 
   createdBy: string
   updatedBy: string
@@ -116,7 +117,7 @@ export const withLock = async <T = any>(lockId: string, inner: () => Promise<T>)
   }
 };
 
-export const normalizeBanchiGo: (prenormalized: NormalizeResult) => Promise<NormalizeResult>
+export const normalizeBanchiGo: (prenormalized: NormalizeResult) => Promise<NormalizeResult & { status?: string }>
   =
   async (nja: NormalizeResult) => {
     const dbItems = await DB.query({
@@ -135,7 +136,7 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult) => Promise<Norm
     for (const item of items) {
       if (nja.addr.startsWith(item.SK)) {
         // we have a match
-        const narrowedNormal = {
+        const narrowedNormal: NormalizeResult & { status?: string } = {
           ...nja,
           addr: item.SK,
           building: nja.addr.slice(item.SK.length).trim(),
@@ -151,9 +152,27 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult) => Promise<Norm
           narrowedNormal.lat = parseFloat(item.latLng[0]);
           narrowedNormal.lng = parseFloat(item.latLng[1]);
         }
+
+        if (typeof item.status === 'string') {
+          narrowedNormal.status = item.status;
+        }
         return narrowedNormal;
       }
     }
 
     return nja;
   };
+
+export const addBanchiGo = async (banchiGoItem: Omit<NormalizeResult, 'level'> & { status?: string }) => {
+  const { pref, city, town, addr, lat, lng, status } = banchiGoItem;
+  const putItemInput: AWS.DynamoDB.DocumentClient.PutItemInput = {
+    TableName,
+    Item: {
+      SK: addr,
+      PK: `AddrDB#${pref}${city}${town}`,
+      latLng: [lat, lng],
+      status,
+    },
+  };
+  return await DB.put(putItemInput).promise();
+};

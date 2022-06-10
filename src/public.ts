@@ -143,6 +143,7 @@ export const _handler: PropIdHandler = async (event, context) => {
   const ipc_not_normalized_address_part = not_normalized;
   const prefCode = getPrefCode(feature.properties.pref);
   const { x, y } = coord2XY([lat, lng], ZOOM);
+  let internalBanchiGoStatus: string | undefined = undefined;
 
   if (ipc_geocoding_level_int === 3) {
     /* IPC からの返答が 3の場合（つまり、番地が認識できなかったとき）はエラーを返します */
@@ -168,6 +169,8 @@ export const _handler: PropIdHandler = async (event, context) => {
     // 最終正規化レベルは 3 以外に、以下の2つのレベルを取りえます
     // - 7: 番地・号を認識できなかった
     // - 8: 番地・号を認識できた
+
+    internalBanchiGoStatus = internalBGNormalized.status;
 
     background.push(createLog('normLogsIPCFail', {
       prenormalized: prenormalizedStr,
@@ -312,7 +315,7 @@ export const _handler: PropIdHandler = async (event, context) => {
           other: estateId.rawBuilding || '',
         },
       },
-      status: estateId.status === 'addressPending' ? 'addressPending' : null,
+      status: (estateId.status === 'addressPending' || internalBanchiGoStatus === 'addressPending') ? 'addressPending' : null,
     };
     if (richIdResp) {
       baseResp.geocoding_level = geocodingLevel;

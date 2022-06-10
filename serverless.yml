@@ -305,6 +305,11 @@ functions:
           cors: *default_cors
 
       - http:
+          path: '/admin/addBanchiGo'
+          method: post
+          cors: *default_cors
+
+      - http:
           path: '/admin/feedback'
           method: post
           cors: *default_cors
