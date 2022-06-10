@@ -261,25 +261,7 @@ test('should return status parameters', async () => {
   // @ts-ignore
   const lambdaResult1 = await publicHandler(event1, context) as APIGatewayProxyResult
   const body1 = JSON.parse(lambdaResult1.body)
-  expect(body1[0].status).toBe('addressPending')
-
-  const event2 = {
-    queryStringParameters: {
-      'api-key': apiKey,
-    },
-    pathParameters: {
-      estateId: body1[0].ID,
-    },
-    headers: {
-      'X-Access-Token': accessToken,
-    }
-  }
-  // @ts-ignore
-  const lambdaResult2 = await idQueryHandler(event2, context) as APIGatewayProxyResult
-  expect(lambdaResult2.statusCode).toBe(200)
-  const body2 = JSON.parse(lambdaResult2.body)
-
-  expect(body2[0].status).toEqual('addressPending')
+  expect(body1.error).toBe(true)
 })
 
 

@@ -11,6 +11,7 @@ import * as feedbackReaction from './admin/feedback_reaction';
 import { _handler as publicHandler } from './public';
 import { _queryHandler as idQueryHandler } from './idQuery/queryHandler';
 import { _splitHandler as idQuerySplitHandler } from './idQuery/splitHandler';
+import { _addBanchiGoHandler as addBanchiGoHandler } from './idQuery/addBanchiGoHandler';
 
 import { decapitalize } from './lib';
 import { AUTH0_DOMAIN, AUTH0_MGMT_DOMAIN } from './lib/auth0_client';
@@ -96,6 +97,11 @@ const _handler: Handler<PublicHandlerEvent, void | APIGatewayProxyResult> = asyn
     event.preauthenticatedUserId = userId;
     event.isDebugMode = event.queryStringParameters?.debug === 'true';
     const handler = decorate(idQuerySplitHandler, [logger, authenticator('id-req')]);
+    return await handler(event, context, callback);
+  } else if (event.resource === '/admin/addBanchiGo' && event.httpMethod === 'POST') {
+    event.preauthenticatedUserId = userId;
+    event.isDebugMode = event.queryStringParameters?.debug === 'true';
+    const handler = decorate(addBanchiGoHandler, [logger, authenticator('id-req')]);
     return await handler(event, context, callback);
   } else if (event.resource === '/admin/feedback' && event.httpMethod === 'POST') {
     return feedback.create(adminEvent);

@@ -43,7 +43,7 @@ export interface NormalizeResult extends NormalizeResultBase {
 const japaneseAddressesVersion = '0.2.0';
 NJAConfig.japaneseAddressesApi = `https://japanese-addresses.geolonia.com/v${japaneseAddressesVersion}/ja`;
 
-export const joinNormalizeResult = (n: NormalizeResult) => (
+export const joinNormalizeResult = (n: Omit<NormalizeResult, 'lat' | 'lng' | 'level'>) => (
   `${n.pref}${n.city}${n.town}${n.addr}`
 );
 

@@ -505,7 +505,7 @@ test('should get same estate ID by normalization', async () => {
   expect(body1[0].ID).toEqual(body2[0].ID)
 })
 
-describe('banchi-go database', () => {
+describe.only('banchi-go database', () => {
   beforeAll(async () => {
     const testData = [
       { addr: '東京都文京区水道二丁目', bg: '80-6' },
@@ -542,7 +542,6 @@ describe('banchi-go database', () => {
     ['東京都文京区水道2丁目1-9999マンションGLV5NLV3', '', { geocoding_level: '5', normalization_level: '3' }, { status: 'addressPending' }],
     ['東京都文京区水道2丁目1-9998マンションGLV5NLV8', 'マンションGLV5NLV8', { geocoding_level: '5', normalization_level: '8' }, { status: undefined }],
     ['大阪府高槻市富田町1-999-888マンションGLV4NLV3', '', { geocoding_level: '4', normalization_level: '3' }, { status: 'addressPending' }],
-    ['京都府京都市右京区西院西貝川町100マンションGLV3NLV3', '', { geocoding_level: '3', normalization_level: '3' }, { status: 'addressPending' }],
   ];
 
   for (const [inputAddr, building, expectedNormResult, expectedIdObject] of cases) {
@@ -675,4 +674,62 @@ describe('Logging', () => {
       expect(logItem.output.town).toEqual('')
       expect(logItem.output.level).toEqual(2)
     })
+})
+
+
+test('番地がないときは ID を発行しない', async () => {
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '高松市上林町字川向',
+    },
+  }
+  // @ts-ignore
+  const lambdaResult = await handler(event) as APIGatewayProxyResult
+  const body1 = JSON.parse(lambdaResult.body)
+  expect(body1.error).toBeTruthy()
+})
+
+describe('banchi-go normalization', () => {
+
+  test('号が認識されなかったので発行したくない', async () => {
+    const event = {
+      isDemoMode: true,
+      queryStringParameters: {
+        q: '東京都狛江市元和泉1丁目2',
+      },
+    }
+    // @ts-ignore
+    const lambdaResult = await handler(event) as APIGatewayProxyResult
+    const body1 = JSON.parse(lambdaResult.body)
+    expect(body1.error).toBe(true)
+  })
+
+  test('号が認識された', async () => {
+    const event = {
+      isDemoMode: true,
+      queryStringParameters: {
+        q: '東京都狛江市元和泉1丁目2-3',
+      },
+    }
+    // @ts-ignore
+    const lambdaResult = await handler(event) as APIGatewayProxyResult
+    const body1 = JSON.parse(lambdaResult.body)
+    expect(body1.error).toBe(undefined)
+    expect(body1[0].status).not.toBe('addressPending')
+  })
+
+  test('addressPending', async () => {
+    const event = {
+      isDemoMode: true,
+      queryStringParameters: {
+        q: '東京都狛江市元和泉1丁目2-10000',
+      },
+    }
+    // @ts-ignore
+    const lambdaResult = await handler(event) as APIGatewayProxyResult
+    const body1 = JSON.parse(lambdaResult.body)
+    expect(body1.error).toBe(undefined)
+    expect(body1[0].status).toBe('addressPending')
+  })
 })
