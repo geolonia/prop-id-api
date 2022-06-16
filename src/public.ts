@@ -26,6 +26,9 @@ const IPC_NORMALIZATION_ERROR_CODE_DETAILS: { [key: string]: string } = {
   '-1': 'geo_undefined',
 };
 
+// アドレスクエリとして使用できない文字
+const IPC_INVALID_CHARS = ['/'];
+
 export const _handler: PropIdHandler = async (event, context) => {
   const address = event.queryStringParameters?.q;
   const ZOOM = parseInt(process.env.ZOOM, 10);
@@ -43,6 +46,12 @@ export const _handler: PropIdHandler = async (event, context) => {
   if (!address) {
     return errorResponse(400, 'Missing querystring parameter `q`.', quotaParams);
   }
+
+  const invalidAddressChar = IPC_INVALID_CHARS.find((char) => address.indexOf(char) !== -1);
+  if (invalidAddressChar) {
+    return errorResponse(400, `The parameter \`q\` contains an invalid character '${invalidAddressChar}'.`);
+  }
+
   Sentry.setContext('query', {
     address,
     debug: event.isDebugMode,
@@ -89,7 +98,10 @@ export const _handler: PropIdHandler = async (event, context) => {
     );
   }
 
-  const ipcResult = await incrementPGeocode(prenormalizedStr);
+  const [ipcResult, internalBGNormalized] = await Promise.all([
+    incrementPGeocode(prenormalizedStr),
+    normalizeBanchiGo(prenormalized),
+  ]);
 
   if (!ipcResult) {
     Sentry.captureException(new Error('IPC result null'));
@@ -128,23 +140,32 @@ export const _handler: PropIdHandler = async (event, context) => {
     );
   }
 
-  const [lng, lat] = feature.geometry.coordinates as [number, number];
+  let [lng, lat] = feature.geometry.coordinates as [number, number];
+  // 内部番地号データベースに信頼できる緯度経度がある場合はそちらを使う
+  if (
+    internalBGNormalized.int_geocoding_level === 8 &&
+    typeof internalBGNormalized.lng === 'number' &&
+    typeof internalBGNormalized.lat === 'number'
+  ) {
+    lng = internalBGNormalized.lng;
+    lat = internalBGNormalized.lat;
+  }
+
   const { geocoding_level, not_normalized } = feature.properties;
   const ipc_geocoding_level_int = parseInt(geocoding_level, 10);
   const ipc_not_normalized_address_part = not_normalized;
   const prefCode = getPrefCode(feature.properties.pref);
   const { x, y } = coord2XY([lat, lng], ZOOM);
 
+  /* IPC からの返答が 3, 4, 5 の場合（つまり、番地が認識できなったまたは、
+   * 番地は認識できたけど号が認識できなかった）も、問い合わせた内部番地号データベースのデータを用いる
+   */
+  if (internalBGNormalized.level >= 7) {
+    // 内部で番地号情報がありました。
+    finalNormalized = internalBGNormalized;
+  }
+
   if (ipc_geocoding_level_int >= 3 && ipc_geocoding_level_int <= 5) {
-    /* IPC からの返答が 3, 4, 5 の場合（つまり、番地が認識できなったまたは、
-     * 番地は認識できたけど号が認識できなかった）は、自分のデータベースを問い合わせ、
-     * 実在するかの確認を取ります。
-     */
-    const internalBGNormalized = await normalizeBanchiGo(prenormalized);
-    if (internalBGNormalized.level >= 7) {
-      // 内部で番地号情報がありました。
-      finalNormalized = internalBGNormalized;
-    }
     // NOTE: これ以降、 normalization_level( = finalNormalized.level、最終正規化レベル) は NJA レベルを継承します。
     // 最終正規化レベルは 3 以外に、以下の2つのレベルを取りえます
     // - 7: 番地・号を認識できなかった

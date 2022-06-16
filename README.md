@@ -1,4 +1,4 @@
-#  不動産共通 ID API
+#  不動産オープン ID API
 
 ## カスタムクオータ
 
@@ -13,7 +13,7 @@ ID リクエストに対して 100,000のリクエスト制限を設ける場合
  "quota_id-req": 100000,
  "plan": "free",
  "GSI1SK": "2022-04-01T12:00:00.000Z",
- "description": "デフォルトAPIキー",
+ "description": "デフォルト API キー",
  "lastRequestAt": 1111111111111,
  "hashedToken": "**********"
 }

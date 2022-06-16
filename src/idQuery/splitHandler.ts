@@ -3,17 +3,19 @@ import { getEstateId, store } from '../lib/dynamodb';
 import { errorResponse, json } from '../lib/proxy-response';
 import { joinNormalizeResult, normalize } from '../lib/nja';
 import { extractBuildingName, normalizeBuildingName } from '../lib/building_normalization';
-import { withLock } from '../lib/dynamodb_logs';
+import { createLog, withLock } from '../lib/dynamodb_logs';
 
 import type {  StoreEstateIdReq } from '../lib/dynamodb';
-import type { AuthenticatorContext } from '../lib/decorators';
+import type { AuthenticatorContext, LoggerContext } from '../lib/decorators';
 import type { IdQueryOut } from './';
+import { auth0ManagementClient } from '../lib/auth0_client';
 
 export const _splitHandler: PropIdHandler = async (event, context) => {
 
   const {
     propIdAuthenticator: { authentication, quotaParams },
-  } = context as AuthenticatorContext;
+    propIdLogger: { background },
+  } = context as AuthenticatorContext & LoggerContext;
 
   const estateId = event.pathParameters?.estateId;
   if (!estateId) {
@@ -21,6 +23,7 @@ export const _splitHandler: PropIdHandler = async (event, context) => {
   }
 
   const { lat: latStr = '', lng: lngStr = '', building } = event.queryStringParameters || {};
+  const { currentAddress, idSplit: { confirm } } = JSON.parse(event.body || '').feedback;
   const lat = parseFloat(latStr);
   const lng = parseFloat(lngStr);
 
@@ -100,6 +103,34 @@ export const _splitHandler: PropIdHandler = async (event, context) => {
     idOut.geocoding_level = geocoding_level.toString(),
     idOut.location = location;
     idOut.address = addressObject;
+  }
+
+  if (event.preauthenticatedUserId) {
+    const auth0 = await auth0ManagementClient();
+    const user = await auth0.getUser({ id: event.preauthenticatedUserId });
+
+    background.push(createLog('feedbackRequest', {
+      userEmail: user.email,
+      feedback: {
+        feedbackType: 'idSplit',
+        currentAddress,
+        id: estateId,
+        idSplit: {
+          dest: splitIdObj.estateId,
+          latLng: [latStr, lngStr].join(','),
+          building,
+          confirm,
+        },
+      },
+    }, {
+      userId: event.preauthenticatedUserId,
+    })
+      .then(({ PK, SK }) =>
+        createLog(
+          'feedbackRequestReview',
+          { feedbackLogId: { PK, SK }, review: 'resolved', slack_user: null }
+        )
+      ));
   }
 
   return json([idOut]);

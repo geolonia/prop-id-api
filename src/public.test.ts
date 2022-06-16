@@ -403,6 +403,22 @@ describe("normalization error cases",  () => {
     expect(statusCode).toEqual(400)
     expect(message).toEqual('Missing querystring parameter `q`.')
   })
+
+  test('should handle invalid query characters.', async () => {
+
+    const event = {
+      isDemoMode: true,
+      queryStringParameters: {
+        q: '岩手県盛岡市盛岡駅西通２-９-１ おはようビル2F/304',
+      },
+    }
+    // @ts-ignore
+    const lambdaResult1 = await handler(event) as APIGatewayProxyResult
+    const { statusCode, body } = lambdaResult1
+    const { message } = JSON.parse(body)
+    expect(statusCode).toEqual(400)
+    expect(message).toEqual('The parameter `q` contains an invalid character \'/\'.')
+  })
 })
 
 test('should return 403 if not authenticated.', async () => {
@@ -578,6 +594,59 @@ describe('banchi-go database', () => {
       }
     });
   }
+
+  test('GT 社と正規化結果が競合するケース', async () => {
+
+    const pref = '東京都'
+    const city = '世田谷区'
+    const town = '北烏山六丁目'
+    const addrdbItem = {
+      PK: `AddrDB#${pref}${city}${town}`,
+      SK: '22-22',
+      latLng: [30, 134], // テストのための値
+    }
+    await dynamodb.DB.put({
+      TableName: process.env.AWS_DYNAMODB_LOG_TABLE_NAME,
+      Item: addrdbItem,
+    }).promise()
+
+    const inputAddr = '東京都世田谷区北烏山６－２２－２２ おはようビル'
+    const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr}`);
+    const event = {
+      queryStringParameters: {
+        q: inputAddr,
+        'api-key': apiKey,
+      },
+      headers: {
+        'X-Access-Token': accessToken,
+      },
+    };
+
+    // @ts-ignore
+    const lambdaResult = await handler(event);
+    // @ts-ignore
+    const [{ ID, ...other }] = JSON.parse(lambdaResult.body);
+
+    expect(ID).toBeDefined()
+    expect(other).toEqual({
+      "address": {
+        "ja": {
+          "address1": town,
+          "address2": "22-22",
+          "city": city,
+          "other": "おはようビル",
+          "prefecture": pref,
+        },
+      },
+      "geocoding_level": "8",
+      "location": {
+        lat: addrdbItem.latLng[0].toString(),
+        lng: addrdbItem.latLng[1].toString(),
+      },
+      "normalization_level": "8",
+      "status": null,
+    })
+  })
 });
 
 describe('Logging', () => {
