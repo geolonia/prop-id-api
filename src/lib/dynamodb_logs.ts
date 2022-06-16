@@ -116,7 +116,7 @@ export const withLock = async <T = any>(lockId: string, inner: () => Promise<T>)
   }
 };
 
-export const normalizeBanchiGo: (prenormalized: NormalizeResult) => Promise<NormalizeResult>
+export const normalizeBanchiGo: (prenormalized: NormalizeResult) => Promise<NormalizeResult & { int_geocoding_level?: number }>
   =
   async (nja: NormalizeResult) => {
     const dbItems = await DB.query({
@@ -139,6 +139,7 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult) => Promise<Norm
           ...nja,
           addr: item.SK,
           building: nja.addr.slice(item.SK.length).trim(),
+          int_geocoding_level: 0,
         };
         if (item.SK.indexOf('-') > 0) {
           // 番地号まで認識できた
@@ -150,6 +151,9 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult) => Promise<Norm
         if (typeof item.latLng !== 'undefined') {
           narrowedNormal.lat = parseFloat(item.latLng[0]);
           narrowedNormal.lng = parseFloat(item.latLng[1]);
+          if (!Number.isNaN(narrowedNormal.lat) && !Number.isNaN(narrowedNormal.lng)) {
+            narrowedNormal.int_geocoding_level = 8;
+          }
         }
         return narrowedNormal;
       }
