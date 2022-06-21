@@ -31,7 +31,7 @@ graph TD
   geoc_lecvel -- 最終正規化レベルが5 --> issue_prop_id
   geoc_lecvel -- 最終正規化レベルが6以上 --> ビル名抽出 --> issue_prop_id[不動産オープン ID 発行]
 
-  issue_prop_id -- 最終正規化レベル6以下 --> addressPending ステータスを発行 --> idIssSts
+  issue_prop_id -- 最終正規化レベル6以下 --> addressPendingステータスを発行 --> idIssSts
   issue_prop_id --> idIssSts["ログ発行 (idIssSts)"]
   idIssSts --> id_issue_ok(200レスポンス)
 ```
