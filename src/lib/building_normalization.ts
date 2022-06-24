@@ -17,7 +17,7 @@ export const extractBuildingName: (
   if (banchiGoPosInAddr >= 0) {
     const normAddrWithoutBuilding = {
       ...normalizedAddr,
-      addr: banchiGoOther.slice(banchiGoPosInAddr, banchiGo.length + banchiGoPosInAddr),
+      addr: banchiGoOther.slice(0, banchiGo.length + banchiGoPosInAddr),
     };
     const buildingNameNJA = banchiGoOther
       .slice(banchiGoPosInAddr + banchiGo.length)
