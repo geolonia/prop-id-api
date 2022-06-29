@@ -65,11 +65,11 @@ test('should generate new ID from that of existing.', async () => {
   const idObjects3 = JSON.parse(lambdaResult3.body);
   expect(idObjects3).toHaveLength(2);
   if (idObjects3[0].ID === idObj1.ID) {
-    expect(idObjects3[0]).toMatchObject(idObj1);
-    expect(idObjects3[1]).toMatchObject(idObj2);
+    expect(idObjects3[0].address.ja).toMatchObject(idObj1.address.ja);
+    expect(idObjects3[1].address.ja).toMatchObject(idObj2.address.ja);
   } else {
-    expect(idObjects3[0]).toMatchObject(idObj2);
-    expect(idObjects3[1]).toMatchObject(idObj1);
+    expect(idObjects3[0].address.ja).toMatchObject(idObj2.address.ja);
+    expect(idObjects3[1].address.ja).toMatchObject(idObj1.address.ja);
   }
 
   // ID を個別にクエリ
@@ -97,16 +97,16 @@ test('should generate new ID from that of existing.', async () => {
   const [idObj5] = JSON.parse(lambdaResult5.body);
 
   if (idObj4.ID === idObj1.ID) {
-    expect(idObj4).toMatchObject(idObj1);
+    expect(idObj4.address.ja).toMatchObject(idObj1.address.ja);
   } else {
-    expect(idObj5).toMatchObject(idObj1);
+    expect(idObj5.address.ja).toMatchObject(idObj1.address.ja);
   }
 
   if (idObj5.ID === idObjects3[0].ID) {
-    expect(idObj5).toMatchObject(idObjects3[0]);
-    expect(idObj4).toMatchObject(idObjects3[1]);
+    expect(idObj5.address.ja).toMatchObject(idObjects3[0].address.ja);
+    expect(idObj4.address.ja).toMatchObject(idObjects3[1].address.ja);
   } else {
-    expect(idObj5).toMatchObject(idObjects3[1]);
-    expect(idObj4).toMatchObject(idObjects3[0]);
+    expect(idObj5.address.ja).toMatchObject(idObjects3[1].address.ja);
+    expect(idObj4.address.ja).toMatchObject(idObjects3[0].address.ja);
   }
 });

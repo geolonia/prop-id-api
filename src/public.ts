@@ -314,6 +314,18 @@ export const _handler: PropIdHandler = async (event, context) => {
           other: estateId.rawBuilding || '',
         },
       },
+      query: {
+        input: address,
+        address: {
+          ja: {
+            prefecture: finalNormalized.pref,
+            city: finalNormalized.city,
+            address1: finalNormalized.town,
+            address2: finalNormalized.addr,
+            other: finalNormalized.building || '',
+          },
+        },
+      },
       status: estateId.status === 'addressPending' ? 'addressPending' : null,
     };
     if (richIdResp) {

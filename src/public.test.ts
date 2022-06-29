@@ -645,6 +645,18 @@ describe('banchi-go database', () => {
       },
       "normalization_level": "8",
       "status": null,
+      query: {
+        input: inputAddr,
+        address: {
+          ja: {
+            address1: town,
+            address2: "22-22",
+            city: city,
+            other: "おはようビル",
+            prefecture: pref,
+          },
+        }
+      }
     })
   })
 });
@@ -728,4 +740,42 @@ describe('Logging', () => {
       expect(logItem.output.town).toEqual('')
       expect(logItem.output.level).toEqual(2)
     })
+})
+
+test('レスポンスに元の住所などを含める', async () => {
+  const inputAddr1 = '大阪府大阪市中央区大手前２丁目１−２２'
+  const inputAddr2 = '大阪府大阪市中央区大手前２丁目１−２２ おはようビル303号室'
+  const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr1}`);
+  const event1 = {
+    queryStringParameters: { q: inputAddr1, 'api-key': apiKey },
+    headers: { 'X-Access-Token': accessToken },
+  };
+  const event2 = {
+    queryStringParameters: { q: inputAddr2, 'api-key': apiKey },
+    headers: { 'X-Access-Token': accessToken },
+  };
+
+  // @ts-ignore
+  await handler(event1);
+  // @ts-ignore
+  const lambdaResult = await handler(event2)
+  // @ts-ignore
+  const [{ ID, address: { ja: addressObj }, query: query }] = JSON.parse(lambdaResult.body);
+
+  expect(ID).toBeDefined()
+  expect(addressObj).toEqual({
+      "address1": '大手前二丁目',
+      "address2": "1-22",
+      "city": '大阪市中央区',
+      "other": "",
+      "prefecture": '大阪府',
+  })
+  expect(query.input).toEqual(inputAddr2)
+  expect(query.address.ja).toEqual({
+    "address1": '大手前二丁目',
+    "address2": "1-22",
+    "city": '大阪市中央区',
+    "other": "おはようビル303号室",
+    "prefecture": '大阪府',
+  })
 })

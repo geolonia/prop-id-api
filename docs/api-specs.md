@@ -90,13 +90,28 @@ https://api.propid.jp/v1
         "city": "千代田区",
         "address1": "永田町一丁目",
         "address2": "7-1",
-        "other": "xxx ビル"
+        "other": "xxxビル"
       }
     }
-    "status": null | "addressPending"
+    "status": null | "addressPending",
+    "query": {
+      "input": "東京都千代田区永田町1-7-1 xxxビル",
+      "address": {
+        "ja": {
+          "prefecture": "東京都",
+          "city": "千代田区",
+          "address1": "永田町一丁目",
+          "address2": "7-1",
+          "other": "xxxビル"
+        }
+      }
+    }
   }
 ]
 ```
+
+- `query.input` フィールドは、クエリとして入力した住所文字列をそのまま返却します
+- `query.address.ja` フィールドは、クエリ文字列を正規化した結果を返却します
 
 #### 有料プラン
 
@@ -120,7 +135,20 @@ https://api.propid.jp/v1
       "lng": "経度"
     }
   },
-  "status": null | "addressPending"
+  "status": null | "addressPending",
+    "query": {
+      "input": "東京都千代田区永田町1-7-1 xxxビル",
+      "address": {
+        "ja": {
+          "prefecture": "東京都",
+          "city": "千代田区",
+          "address1": "永田町一丁目",
+          "address2": "7-1",
+          "other": "xxxビル"
+        }
+      }
+    }
+  }
 ]
 ```
 
