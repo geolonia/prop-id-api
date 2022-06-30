@@ -42,6 +42,7 @@ describe('extractBuildingName', () => {
     { addr: '東京都文京区大塚４－５１－１平澤三陽ビル', expected: '平澤三陽ビル'},
     { addr: '東京都足立区島根２丁目22-10南篠崎二丁目住宅', expected: '南篠崎二丁目住宅'},
     { addr: '東京都新宿区高田馬場１－３１－８東池袋５丁目マンション', expected: '東池袋５丁目マンション'},
+    { addr: '愛知県豊田市若林東町宮間22-1おはようビル', expected: 'おはようビル', expectedBanchiGo: '宮間22-1' }
   ];
   for (const d of testData) {
     test(`should extract '${d.expected}' from '${d.addr}'`, async () => {
@@ -58,6 +59,10 @@ describe('extractBuildingName', () => {
       if (d.expected !== '') {
         expect(normWithoutBuilding.addr).not.toStrictEqual(normalization.addr);
         expect(normWithoutBuilding.addr).not.toContain(d.expected);
+      }
+
+      if(d.expectedBanchiGo) {
+        expect(normWithoutBuilding.addr).toEqual(d.expectedBanchiGo);
       }
 
       expect(extracted).toStrictEqual(d.expected);

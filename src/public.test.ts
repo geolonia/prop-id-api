@@ -788,3 +788,29 @@ test('レスポンスに元の住所などを含める', async () => {
     "prefecture": '大阪府',
   })
 })
+
+test('小字と建物名の分離が正しくなされる', async () => {
+  const q= '愛知県豊田市若林東町宮間22-1おはようビル'
+  const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${q}`);
+
+  const event = {
+    queryStringParameters: {
+      q,
+      'api-key': apiKey,
+    },
+    headers: {
+      'X-Access-Token': accessToken,
+    },
+  };
+
+  // @ts-ignore
+  const lambdaResult = await handler(event) as APIGatewayProxyResult
+  const body = JSON.parse(lambdaResult.body)
+  expect(body[0].address.ja).toEqual({
+    "prefecture": "愛知県",
+    "city": "豊田市",
+    "address1": "若林東町",
+    "address2": "宮間22-1",
+    "other": "おはようビル"
+  })
+})
