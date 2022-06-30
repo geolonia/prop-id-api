@@ -645,6 +645,18 @@ describe('banchi-go database', () => {
       },
       "normalization_level": "8",
       "status": null,
+      query: {
+        input: inputAddr,
+        address: {
+          ja: {
+            address1: town,
+            address2: "22-22",
+            city: city,
+            other: "おはようビル",
+            prefecture: pref,
+          },
+        }
+      }
     })
   })
 });
@@ -730,6 +742,53 @@ describe('Logging', () => {
     })
 })
 
+test('レスポンスに元の住所などを含める', async () => {
+  const inputAddr1 = '大阪府大阪市中央区大手前２丁目１−２２'
+  const inputAddr2 = '大阪府大阪市中央区大手前２丁目１−２２ おはようビル303号室'
+  const inputAddr3 = '大阪府大阪市中央区大手前２丁目１番２２号'
+  const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr1}`);
+  const event1 = {
+    queryStringParameters: { q: inputAddr1, 'api-key': apiKey },
+    headers: { 'X-Access-Token': accessToken },
+  };
+  const event2 = {
+    queryStringParameters: { q: inputAddr2, 'api-key': apiKey },
+    headers: { 'X-Access-Token': accessToken },
+  };
+  const event3 = {
+    queryStringParameters: { q: inputAddr3, 'api-key': apiKey },
+    headers: { 'X-Access-Token': accessToken },
+  };
+
+  // @ts-ignore
+  await handler(event1);
+  // @ts-ignore
+  const lambdaResult2 = await handler(event2)
+  // @ts-ignore
+  const lambdaResult3 = await handler(event3)
+  // @ts-ignore
+  const [{ query: query2 }] = JSON.parse(lambdaResult2.body);
+  // @ts-ignore
+  const [{ query: query3 }] = JSON.parse(lambdaResult3.body);
+
+  expect(query2.input).toEqual(inputAddr2)
+  expect(query3.input).toEqual(inputAddr3)
+  expect(query2.address.ja).toEqual({
+    "address1": '大手前二丁目',
+    "address2": "1-22",
+    "city": '大阪市中央区',
+    "other": "おはようビル303号室",
+    "prefecture": '大阪府',
+  })
+  expect(query3.address.ja).toEqual({
+    "address1": '大手前二丁目',
+    "address2": "1-22",
+    "city": '大阪市中央区',
+    "other": "",
+    "prefecture": '大阪府',
+  })
+})
+
 test('小字と建物名の分離が正しくなされる', async () => {
   const q= '愛知県豊田市若林東町宮間22-1おはようビル'
   const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${q}`);
@@ -753,6 +812,5 @@ test('小字と建物名の分離が正しくなされる', async () => {
     "address1": "若林東町",
     "address2": "宮間22-1",
     "other": "おはようビル"
-  }
-)
+  })
 })
