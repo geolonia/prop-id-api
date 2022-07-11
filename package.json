@@ -50,7 +50,7 @@
     "preset": "ts-jest"
   },
   "dependencies": {
-    "@geolonia/normalize-japanese-addresses": "2.3.5",
+    "@geolonia/normalize-japanese-addresses": "2.5.8",
     "@slack/webhook": "^6.1.0",
     "auth0": "^2.40.0",
     "axios": "^0.27.2",
