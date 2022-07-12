@@ -962,17 +962,17 @@
     eslint-plugin-react "^7.25.1"
     typescript "^4.4.2"
 
-"@geolonia/japanese-numeral@^0.1.15":
-  version "0.1.15"
-  resolved "https://registry.yarnpkg.com/@geolonia/japanese-numeral/-/japanese-numeral-0.1.15.tgz#e6e476e403efac60e6b3270fd19c46afb8200b91"
-  integrity sha512-g8xizIJH7sfd5JSJyN6pCbNNWVkasMpw84gpYQZJ09VDuTT5qzT5cKhr3+pFyS4SpfwQ9rrsJBmeD6z3vI2bjA==
+"@geolonia/japanese-numeral@^0.1.16":
+  version "0.1.16"
+  resolved "https://registry.yarnpkg.com/@geolonia/japanese-numeral/-/japanese-numeral-0.1.16.tgz#651b11f29e837545f0a9d8b7ffd8b832f67e2239"
+  integrity sha512-xzSsIHhyyjqNpW8qSh5bFMu3FJvyJGBbNZ/t8clPHkigjUdZ7Ck8wkzCkcwlVd00RkoHwGDLnvXx5W0WiGK0TQ==
 
-"@geolonia/normalize-japanese-addresses@2.3.5":
-  version "2.3.5"
-  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-2.3.5.tgz#e550dab9fe5b274b16beaf6ffea4068871f6ad9e"
-  integrity sha512-D9vYumQyEUQ6S0SecV1QvBogG1+ju4Q+GA+d5jELIr8fl1T+ez2y3W5rAk/fRJdlVvO+a+3DzBr24F2cM0xZdA==
+"@geolonia/normalize-japanese-addresses@2.5.8":
+  version "2.5.8"
+  resolved "https://registry.yarnpkg.com/@geolonia/normalize-japanese-addresses/-/normalize-japanese-addresses-2.5.8.tgz#3aacb126a0c0a3000f2034f7ad2c2ec5527c742b"
+  integrity sha512-mv3+vHU2qXPjn2wbZH2p8kOKp7zTdcwCAWz8yryyyM5OGCRjHiqGBg+1t78Ut8b0wopyLJ7GjNanIoflEEKVeg==
   dependencies:
-    "@geolonia/japanese-numeral" "^0.1.15"
+    "@geolonia/japanese-numeral" "^0.1.16"
     isomorphic-unfetch "^3.1.0"
     lru-cache "^6.0.0"
 
@@ -7053,10 +7053,10 @@ luxon@^1.28.0:
   resolved "https://registry.yarnpkg.com/luxon/-/luxon-1.28.0.tgz#e7f96daad3938c06a62de0fb027115d251251fbf"
   integrity sha512-TfTiyvZhwBYM/7QdAVDh+7dBTBA29v4ik0Ce9zda3Mnf8on1S5KJI8P2jKFZ8+5C0jhmr0KwJEO/Wdpm0VeWJQ==
 
-luxon@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/luxon/-/luxon-2.4.0.tgz#9435806545bb32d4234dab766ab8a3d54847a765"
-  integrity sha512-w+NAwWOUL5hO0SgwOHsMBAmZ15SoknmQXhSO0hIbJCAmPKSsGeK8MlmhYh2w6Iib38IxN2M+/ooXWLbeis7GuA==
+luxon@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.0.1.tgz#6901111d10ad06fd267ad4e4128a84bef8a77299"
+  integrity sha512-hF3kv0e5gwHQZKz4wtm4c+inDtyc7elkanAsBq+fundaCdUBNJB1dHEGUZIM6SfSBUlbVFduPwEtNjFK8wLtcw==
 
 make-dir@^1.0.0:
   version "1.3.0"
