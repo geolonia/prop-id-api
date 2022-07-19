@@ -17,7 +17,7 @@ export const extractBuildingName: (
   const banchiGoPosInAddr = banchiGoOther.indexOf(banchiGo);
 
   if (ipc_geocoding_level_int === 5) {
-    const banchiGoRegex = new RegExp(`${banchiGo}(-([1-9][0-9]*))+`);
+    const banchiGoRegex = new RegExp(`${banchiGo}-[1-9][0-9]*`);
     const match = normalizedAddr.addr.match(banchiGoRegex);
     if (match) {
       const foundBanchiGo = match[0];
