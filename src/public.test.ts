@@ -815,34 +815,48 @@ test('小字と建物名の分離が正しくなされる', async () => {
   })
 })
 
-test('addressPending であっても、建物名と番地号が分離できる', async () => {
-  const addr1 = '東京都世田谷区新町二丁目18-8おはようビル 201号室'
-  const addr2 = '東京都世田谷区新町二丁目18-8おはようビル'
-  const addr3 = '東京都世田谷区新町二丁目18-8'
-  const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${addr1}`);
+describe('addressPending であっても、建物名と番地号が分離できる', () => {
 
-  const createEvent =  (addr: string) => ({
-    queryStringParameters: { q: addr, 'api-key': apiKey },
-    headers: { 'X-Access-Token': accessToken },
-  })
+  const tester = async (addrs: string[], ExpectedBanchiGo: string) => {
+    const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${addrs[0]}`);
 
-  const events = [addr1, addr2, addr3].map(addr => createEvent(addr))
+    const createEvent =  (addr: string) => ({
+      queryStringParameters: { q: addr, 'api-key': apiKey },
+      headers: { 'X-Access-Token': accessToken },
+    })
 
-  const bodies: any[] = []
+    const events = addrs.map(addr => createEvent(addr))
 
-  for (const event of events) {
-    // @ts-ignore
-    const lambdaResult = await handler(event) as APIGatewayProxyResult
-    const body = JSON.parse(lambdaResult.body)
-    bodies.push(body[0])
+    const bodies: any[] = []
+
+    for (const event of events) {
+      // @ts-ignore
+      const lambdaResult = await handler(event) as APIGatewayProxyResult
+      const body = JSON.parse(lambdaResult.body)
+      bodies.push(body[0])
+    }
+
+    const IDs = bodies.map(body => body.ID)
+    const statuses = bodies.map(body => body.status)
+    const addrObjects = bodies.map(body => body.address.ja)
+    const banchiGos = addrObjects.map(addrObj => addrObj.address2)
+
+    expect(statuses.every(status => status === 'addressPending')).toBe(true)
+    expect(banchiGos.every(banchiGo => banchiGo === ExpectedBanchiGo)).toBe(true)
+    expect(IDs.every(id => id === IDs[0])).toBe(true)
   }
 
-  const IDs = bodies.map(body => body.ID)
-  const statuses = bodies.map(body => body.status)
-  const addrObjects = bodies.map(body => body.address.ja)
-  const banchiGos = addrObjects.map(addrObj => addrObj.address2)
+  test('その1', async () => {
+    const addr1 = '東京都世田谷区新町二丁目18-8おはようビル 201号室'
+    const addr2 = '東京都世田谷区新町二丁目18-8おはようビル'
+    const addr3 = '東京都世田谷区新町二丁目18-8'
+    await tester([addr1, addr2, addr3], '18-8')
+  })
 
-  expect(statuses.every(status => status === 'addressPending')).toBe(true)
-  expect(banchiGos.every(banchiGo => banchiGo === '18-8')).toBe(true)
-  expect(IDs.every(id => id === IDs[0])).toBe(true)
+  test('その2', async () => {
+    const addr1 = '世田谷区奥沢8-24-6こんにちはビル304'
+    const addr2 = '世田谷区奥沢8-24-6こんにちはビル'
+    const addr3 = '世田谷区奥沢8-24-6'
+    await tester([addr1, addr2, addr3], '24-6')
+  })
 })
