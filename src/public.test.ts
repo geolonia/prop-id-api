@@ -817,7 +817,7 @@ test('小字と建物名の分離が正しくなされる', async () => {
 
 describe('addressPending であっても、建物名と番地号が分離できる', () => {
 
-  const tester = async (addrs: string[], ExpectedBanchiGo: string) => {
+  const tester = async (addrs: string[], ExpectedBanchiGo: string, expectedBuilding: string) => {
     const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${addrs[0]}`);
 
     const createEvent =  (addr: string) => ({
@@ -840,23 +840,25 @@ describe('addressPending であっても、建物名と番地号が分離でき�
     const statuses = bodies.map(body => body.status)
     const addrObjects = bodies.map(body => body.address.ja)
     const banchiGos = addrObjects.map(addrObj => addrObj.address2)
+    const buildings = addrObjects.map(addrObj => addrObj.other)
 
     expect(statuses.every(status => status === 'addressPending')).toBe(true)
     expect(banchiGos.every(banchiGo => banchiGo === ExpectedBanchiGo)).toBe(true)
     expect(IDs.every(id => id === IDs[0])).toBe(true)
+    expect(buildings.every(name => name === expectedBuilding))
   }
 
   test('その1', async () => {
     const addr1 = '東京都世田谷区新町二丁目18-8おはようビル 201号室'
     const addr2 = '東京都世田谷区新町二丁目18-8おはようビル'
     const addr3 = '東京都世田谷区新町二丁目18-8'
-    await tester([addr1, addr2, addr3], '18-8')
+    await tester([addr1, addr2, addr3], '18-8', 'おはようビル 201号室')
   })
 
   test('その2', async () => {
-    const addr1 = '世田谷区奥沢8-24-6こんにちはビル304'
+    const addr1 = '世田谷区奥沢8-24-6'
     const addr2 = '世田谷区奥沢8-24-6こんにちはビル'
-    const addr3 = '世田谷区奥沢8-24-6'
-    await tester([addr1, addr2, addr3], '24-6')
+    const addr3 = '世田谷区奥沢8-24-6こんにちはビル304'
+    await tester([addr1, addr2, addr3], '24-6', '')
   })
 })
