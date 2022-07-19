@@ -539,7 +539,7 @@ describe('banchi-go database', () => {
     ['東京都文京区水道2丁目81 おはようビル', 'おはようビル',, { status: undefined }],
     ['東京都町田市木曽東四丁目81-イ22', '',, { status: undefined }],
     ['大阪府大阪市中央区久太郎町三丁目渡辺3小原流ホール', '小原流ホール',, { status: undefined }],
-    ['東京都文京区水道2丁目1-9999マンションGLV5NLV3', '', { geocoding_level: '5', normalization_level: '3' }, { status: 'addressPending' }],
+    ['東京都文京区水道2丁目1-9999マンションGLV5NLV3', 'マンションGLV5NLV3', { geocoding_level: '5', normalization_level: '3' }, { status: 'addressPending' }],
     ['東京都文京区水道2丁目1-9998マンションGLV5NLV8', 'マンションGLV5NLV8', { geocoding_level: '5', normalization_level: '8' }, { status: undefined }],
     ['大阪府高槻市富田町1-999-888マンションGLV4NLV3', '', { geocoding_level: '4', normalization_level: '3' }, { status: 'addressPending' }],
     ['京都府京都市右京区西院西貝川町100マンションGLV3NLV3', '', { geocoding_level: '3', normalization_level: '3' }, { status: 'addressPending' }],
@@ -815,7 +815,7 @@ test('小字と建物名の分離が正しくなされる', async () => {
   })
 })
 
-test.only('addressPending であっても、建物名と緯度経度が分離できる', async () => {
+test('addressPending であっても、建物名と緯度経度が分離できる', async () => {
   const addr1 = '東京都世田谷区新町二丁目18-8おはようビル 201号室'
   const addr2 = '東京都世田谷区新町二丁目18-8おはようビル'
   const addr3 = '東京都世田谷区新町二丁目18-8'

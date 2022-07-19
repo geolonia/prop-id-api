@@ -12,9 +12,26 @@ export const extractBuildingName: (
   }
 
   const { addr: banchiGoOther } = normalizedAddr;
-  const { banchi_go: banchiGo } = geocodedAddr.feature.properties;
+  const { banchi_go: banchiGo, geocoding_level } = geocodedAddr.feature.properties;
+  const ipc_geocoding_level_int = parseInt(geocoding_level, 10);
   const banchiGoPosInAddr = banchiGoOther.indexOf(banchiGo);
-  if (banchiGoPosInAddr >= 0) {
+
+  if (ipc_geocoding_level_int === 5) {
+    const banchiGoRegex = new RegExp(`${banchiGo}(-([1-9][0-9]*))+`);
+    const match = normalizedAddr.addr.match(banchiGoRegex);
+    if (match) {
+      const foundBanchiGo = match[0];
+      const building = normalizedAddr.addr.replace(foundBanchiGo, '');
+      return {
+        ...normalizedAddr,
+        addr: foundBanchiGo,
+        building,
+      };
+    } else {
+      return normalizedAddr;
+    }
+
+  } else if (banchiGoPosInAddr >= 0) {
     const normAddrWithoutBuilding = {
       ...normalizedAddr,
       addr: banchiGoOther.slice(0, banchiGo.length + banchiGoPosInAddr),
