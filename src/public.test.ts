@@ -815,7 +815,7 @@ test('小字と建物名の分離が正しくなされる', async () => {
   })
 })
 
-test('addressPending であっても、建物名と緯度経度が分離できる', async () => {
+test('addressPending であっても、建物名と番地号が分離できる', async () => {
   const addr1 = '東京都世田谷区新町二丁目18-8おはようビル 201号室'
   const addr2 = '東京都世田谷区新町二丁目18-8おはようビル'
   const addr3 = '東京都世田谷区新町二丁目18-8'
