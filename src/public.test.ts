@@ -539,10 +539,10 @@ describe('banchi-go database', () => {
     ['東京都文京区水道2丁目81 おはようビル', 'おはようビル',, { status: undefined }],
     ['東京都町田市木曽東四丁目81-イ22', '',, { status: undefined }],
     ['大阪府大阪市中央区久太郎町三丁目渡辺3小原流ホール', '小原流ホール',, { status: undefined }],
-    ['東京都文京区水道2丁目1-9999マンションGLV5NLV3', '', { geocoding_level: '5', normalization_level: '3' }, { status: 'addressPending' }],
+    ['東京都文京区水道2丁目1-9999マンションGLV5NLV3', 'マンションGLV5NLV3', { geocoding_level: '5', normalization_level: '3' }, { status: 'addressPending' }],
     ['東京都文京区水道2丁目1-9998マンションGLV5NLV8', 'マンションGLV5NLV8', { geocoding_level: '5', normalization_level: '8' }, { status: undefined }],
-    ['大阪府高槻市富田町1-999-888マンションGLV4NLV3', '', { geocoding_level: '4', normalization_level: '3' }, { status: 'addressPending' }],
-    ['京都府京都市右京区西院西貝川町100マンションGLV3NLV3', '', { geocoding_level: '3', normalization_level: '3' }, { status: 'addressPending' }],
+    ['大阪府高槻市富田町1-999-888マンションGLV4NLV3', 'マンションGLV4NLV3', { geocoding_level: '4', normalization_level: '3' }, { status: 'addressPending' }],
+    ['京都府京都市右京区西院西貝川町100マンションGLV3NLV3', 'マンションGLV3NLV3', { geocoding_level: '3', normalization_level: '3' }, { status: 'addressPending' }],
   ];
 
   for (const [inputAddr, building, expectedNormResult, expectedIdObject] of cases) {
@@ -812,5 +812,60 @@ test('小字と建物名の分離が正しくなされる', async () => {
     "address1": "若林東町",
     "address2": "宮間22-1",
     "other": "おはようビル"
+  })
+})
+
+describe('addressPending であっても、建物名と番地号が分離できる', () => {
+
+  const tester = async (addrs: string[], ExpectedBanchiGo: string, expectedBuilding: string) => {
+    const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${addrs[0]}`);
+
+    const createEvent =  (addr: string) => ({
+      queryStringParameters: { q: addr, 'api-key': apiKey },
+      headers: { 'X-Access-Token': accessToken },
+    })
+
+    const events = addrs.map(addr => createEvent(addr))
+
+    const bodies: any[] = []
+
+    for (const event of events) {
+      // @ts-ignore
+      const lambdaResult = await handler(event) as APIGatewayProxyResult
+      const body = JSON.parse(lambdaResult.body)
+      bodies.push(body[0])
+    }
+
+    const IDs = bodies.map(body => body.ID)
+    const statuses = bodies.map(body => body.status)
+    const addrObjects = bodies.map(body => body.address.ja)
+    const banchiGos = addrObjects.map(addrObj => addrObj.address2)
+    const buildings = addrObjects.map(addrObj => addrObj.other)
+
+    expect(statuses.every(status => status === 'addressPending')).toBe(true)
+    expect(banchiGos.every(banchiGo => banchiGo === ExpectedBanchiGo)).toBe(true)
+    expect(IDs.every(id => id === IDs[0])).toBe(true)
+    expect(buildings.every(name => name === expectedBuilding))
+  }
+
+  test('その1', async () => {
+    const addr1 = '東京都世田谷区新町二丁目18-8おはようビル 201号室'
+    const addr2 = '東京都世田谷区新町二丁目18-8おはようビル'
+    const addr3 = '東京都世田谷区新町二丁目18-8'
+    await tester([addr1, addr2, addr3], '18-8', 'おはようビル 201号室')
+  })
+
+  test('その2', async () => {
+    const addr1 = '世田谷区奥沢8-24-6'
+    const addr2 = '世田谷区奥沢8-24-6こんにちはビル'
+    const addr3 = '世田谷区奥沢8-24-6こんにちはビル304'
+    await tester([addr1, addr2, addr3], '24-6', '')
+  })
+
+  test('その3 - ジオコーディングレベル5未満', async () => {
+    const addr1 = '静岡県榛原郡吉田町神戸2205-1'
+    const addr2 = '静岡県榛原郡吉田町神戸2205-1こんにちはビル'
+    const addr3 = '静岡県榛原郡吉田町神戸2205-1こんにちはビル304'
+    await tester([addr1, addr2, addr3], '2205-1', '')
   })
 })

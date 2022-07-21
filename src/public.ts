@@ -214,10 +214,9 @@ export const _handler: PropIdHandler = async (event, context) => {
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
-  // ビル名が以前認識されていない(NJAレベルや、内部DBプロセスで)かつ、IPCのレベルが6以上だと `extractBuildingName`
-  // で抽出可能となります。
-  // IPCレベル5の場合、ビル名の抽出は行わないため、 `address2` プロパティにビル名含まれたままになります。
-  if (typeof finalNormalized.building === 'undefined' && ipc_geocoding_level_int >= 6) {
+  // ビル名が以前認識されていない(NJAレベルや、内部DBプロセスで)かつ、IPCのレベルが6以上だと `extractBuildingName` で抽出可能となります。
+  // また、IPCレベル 3-5の場合、`extractBuldingName` は正規表現で番地号とビル名を抽出します。ただし、存在が保証された番地号に基づかずにロジックのみで処理を行うため、結果の `other` プロパティに含まれるビル名は不正確なものである可能性があります。
+  if (typeof finalNormalized.building === 'undefined' && ipc_geocoding_level_int >= 3) {
     const extractedBuilding = extractBuildingName(
       address,
       prenormalized,
@@ -251,7 +250,6 @@ export const _handler: PropIdHandler = async (event, context) => {
   // NOTE:
   // 番地・号を発見できなかったとき(最終正規化レベル <= 6 かつ IPC <=5)は `addressPending` としてマークされ、別途確認を行うことになります。
   // この住所は未知の番地・号か、あるいは単純に不正な入力値である可能性があります。
-  // また、ビル名の抽出ができないため、`address2` フィールドに番地・号とビル名が混在します。
   // 修正のプロセスにより住所文字列は変更される可能性があります。
   const status = finalNormalized.level <= 6 && ipc_geocoding_level_int <= 5 ? 'addressPending' : undefined;
 
