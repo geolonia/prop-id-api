@@ -31,7 +31,7 @@ const IPC_INVALID_CHARS = ['/'];
 
 export const _handler: PropIdHandler = async (event, context) => {
   const address = event.queryStringParameters?.q;
-  const ignoreBuilding = (event.queryStringParameters?.ignoreBuilding || 'false').toLowerCase() === 'true';
+  const ignoreBuilding = ((event.queryStringParameters || {})['ignore-building'] || 'false').toLowerCase() === 'true';
   const ZOOM = parseInt(process.env.ZOOM, 10);
   const {
     propIdAuthenticator: {

@@ -805,7 +805,7 @@ describe('addressPending であっても、建物名と番地号が分離でき�
   })
 })
 
-test('建物名無視オプション: ignoreBuilding === "true" がクエリに含まれるとき、ビル名抽出は行わない', async () => {
+test('建物名無視オプション: ignore-building === "true" がクエリに含まれるとき、ビル名抽出は行わない', async () => {
   const pref = '東京都'
   const city = '世田谷区'
   const town = '北烏山六丁目'
@@ -823,11 +823,11 @@ test('建物名無視オプション: ignoreBuilding === "true" がクエリに�
   const inputAddr = '東京都世田谷区北烏山6-22-1234' + fakeNumericBuilding
   const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr}`);
   const ignoreBuildingEvent = {
-    queryStringParameters: { q: inputAddr, ignoreBuilding: 'true', 'api-key': apiKey },
+    queryStringParameters: { q: inputAddr, 'ignore-building': 'true', 'api-key': apiKey },
     headers: { 'X-Access-Token': accessToken },
   };
   const respectBuildingEvent = {
-    queryStringParameters: { q: inputAddr, ignoreBuilding: 'false', 'api-key': apiKey },
+    queryStringParameters: { q: inputAddr, 'ignore-building': 'false', 'api-key': apiKey },
     headers: { 'X-Access-Token': accessToken },
   }
   const events = [ignoreBuildingEvent, respectBuildingEvent]
