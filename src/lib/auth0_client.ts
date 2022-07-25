@@ -16,11 +16,13 @@ export const auth0ManagementClient = async (): Promise<ManagementClient<PropIdAp
   if (cachedClient) {
     return cachedClient;
   }
-
+  console.log(1);
+  console.log(`/propid/auth0/${process.env.AUTH0_CLIENT_ID}`);
   const parameterResp = await SSM.getParameter({
     Name: `/propid/auth0/${process.env.AUTH0_CLIENT_ID}`,
     WithDecryption: true,
   }).promise();
+  console.log(2);
   const clientSecret = parameterResp.Parameter?.Value;
 
   console.log('Creating new Auth0 client', process.env.AUTH0_CLIENT_ID);
