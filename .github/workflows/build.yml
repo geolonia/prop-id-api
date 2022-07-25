@@ -81,7 +81,8 @@ jobs:
           INCREMENTP_VERIFICATION_API_ENDPOINT: ${{ secrets.INCREMENTP_VERIFICATION_API_ENDPOINT }}
           INCREMENTP_VERIFICATION_API_KEY: ${{ secrets.INCREMENTP_VERIFICATION_API_KEY }}
           ACCESS_TOKEN_SALT: ${{ secrets.ACCESS_TOKEN_SALT }}
-          AUTH0_CLIENT_ID_DEV: ${{ secrets.AUTH0_CLIENT_ID_DEV }}
+          # v1のユーザープールを使う
+          AUTH0_CLIENT_ID_DEV: ${{ secrets.AUTH0_CLIENT_ID_V1 }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
       - name: "Deploy to v1 environment"
