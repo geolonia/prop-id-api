@@ -116,9 +116,37 @@ export const withLock = async <T = any>(lockId: string, inner: () => Promise<T>)
   }
 };
 
-export const normalizeBanchiGo: (prenormalized: NormalizeResult) => Promise<NormalizeResult & { int_geocoding_level?: number }>
+export const normalizeBanchiGo: (prenormalized: NormalizeResult, ignoreBuilding: boolean) => Promise<NormalizeResult & { int_geocoding_level?: number }>
   =
-  async (nja: NormalizeResult) => {
+  async (nja: NormalizeResult, ignoreBuilding = false) => {
+
+    if (ignoreBuilding) {
+      const { Item: item } = await DB.get({
+        TableName,
+        Key: { PK: `AddrDB#${nja.pref}${nja.city}${nja.town}`, SK: nja.addr },
+      }).promise();
+      const narrowedNormal = {
+        ...nja,
+        building: '',
+        int_geocoding_level: 0,
+      };
+      if (item) {
+        // 番地号まで認識できた
+        narrowedNormal.level = 8;
+        if (typeof item.latLng !== 'undefined') {
+          narrowedNormal.lat = parseFloat(item.latLng[0]);
+          narrowedNormal.lng = parseFloat(item.latLng[1]);
+          if (!Number.isNaN(narrowedNormal.lat) && !Number.isNaN(narrowedNormal.lng)) {
+            narrowedNormal.int_geocoding_level = 8;
+          }
+        }
+      } else {
+        // 号情報がそもそも存在しない
+        narrowedNormal.level = 7;
+      }
+      return narrowedNormal;
+    }
+
     const dbItems = await DB.query({
       TableName,
       KeyConditionExpression: '#pk = :pk',
