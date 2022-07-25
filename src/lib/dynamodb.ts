@@ -53,8 +53,12 @@ export interface ApiKeyCreateResponse {
 }
 
 export const createApiKey = async (description: string, otherParams: {[key: string]: any} = {}): Promise<ApiKeyCreateResponse> => {
-  const apiKey = randomToken(20);
+  let apiKey = randomToken(20);
   const accessToken = randomToken(32);
+
+  if (process.env.STAGE === 'dev') {
+    apiKey = `dev_${apiKey}`;
+  }
 
   await DB.put({
     TableName: process.env.AWS_DYNAMODB_API_KEY_TABLE_NAME,
