@@ -594,71 +594,6 @@ describe('banchi-go database', () => {
       }
     });
   }
-
-  test('GT 社と正規化結果が競合するケース', async () => {
-
-    const pref = '東京都'
-    const city = '世田谷区'
-    const town = '北烏山六丁目'
-    const addrdbItem = {
-      PK: `AddrDB#${pref}${city}${town}`,
-      SK: '22-22',
-      latLng: [30, 134], // テストのための値
-    }
-    await dynamodb.DB.put({
-      TableName: process.env.AWS_DYNAMODB_LOG_TABLE_NAME,
-      Item: addrdbItem,
-    }).promise()
-
-    const inputAddr = '東京都世田谷区北烏山６－２２－２２ おはようビル'
-    const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr}`);
-    const event = {
-      queryStringParameters: {
-        q: inputAddr,
-        'api-key': apiKey,
-      },
-      headers: {
-        'X-Access-Token': accessToken,
-      },
-    };
-
-    // @ts-ignore
-    const lambdaResult = await handler(event);
-    // @ts-ignore
-    const [{ ID, ...other }] = JSON.parse(lambdaResult.body);
-
-    expect(ID).toBeDefined()
-    expect(other).toEqual({
-      "address": {
-        "ja": {
-          "address1": town,
-          "address2": "22-22",
-          "city": city,
-          "other": "おはようビル",
-          "prefecture": pref,
-        },
-      },
-      "geocoding_level": "8",
-      "location": {
-        lat: addrdbItem.latLng[0].toString(),
-        lng: addrdbItem.latLng[1].toString(),
-      },
-      "normalization_level": "8",
-      "status": null,
-      query: {
-        input: inputAddr,
-        address: {
-          ja: {
-            address1: town,
-            address2: "22-22",
-            city: city,
-            other: "おはようビル",
-            prefecture: pref,
-          },
-        }
-      }
-    })
-  })
 });
 
 describe('Logging', () => {
@@ -868,4 +803,53 @@ describe('addressPending であっても、建物名と番地号が分離でき�
     const addr3 = '静岡県榛原郡吉田町神戸2205-1こんにちはビル304'
     await tester([addr1, addr2, addr3], '2205-1', '')
   })
+})
+
+test('建物名無視オプション: ignore-building === "true" がクエリに含まれるとき、ビル名抽出は行わない', async () => {
+  const pref = '東京都'
+  const city = '世田谷区'
+  const town = '北烏山六丁目'
+  const addrdbItem = {
+    PK: `AddrDB#${pref}${city}${town}`,
+    SK: '22-1234',
+    latLng: [30, 134], // テストのための値
+  }
+  await dynamodb.DB.put({
+    TableName: process.env.AWS_DYNAMODB_LOG_TABLE_NAME,
+    Item: addrdbItem,
+  }).promise()
+
+  const fakeNumericBuilding = '56789'
+  const inputAddr = '東京都世田谷区北烏山6-22-1234' + fakeNumericBuilding
+  const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr}`);
+  const ignoreBuildingEvent = {
+    queryStringParameters: { q: inputAddr, 'ignore-building': 'true', 'api-key': apiKey },
+    headers: { 'X-Access-Token': accessToken },
+  };
+  const respectBuildingEvent = {
+    queryStringParameters: { q: inputAddr, 'ignore-building': 'false', 'api-key': apiKey },
+    headers: { 'X-Access-Token': accessToken },
+  }
+  const events = [ignoreBuildingEvent, respectBuildingEvent]
+  // @ts-ignore
+  const lambdaResults = await Promise.all(events.map(event => handler(event)));
+  // @ts-ignore
+  const [ignoreBuildingResult, respectBuildingResult] = lambdaResults.map(lambdaResult => JSON.parse(lambdaResult.body)[0]);
+  expect(true).toBe(true)
+
+  const ign_id = ignoreBuildingResult.ID
+  const res_id = respectBuildingResult.ID
+  const ign_addr = ignoreBuildingResult.address.ja
+  const res_addr = respectBuildingResult.address.ja
+  const ign_status = ignoreBuildingResult.status
+  const res_status = respectBuildingResult.status
+
+  expect(ign_id).toBeDefined()
+  expect(res_id).toBeDefined()
+  expect(ign_id).not.toEqual(res_id)
+
+  expect(ign_addr.other).toEqual('')
+  expect(res_addr.other).toEqual(fakeNumericBuilding)
+  expect(ign_status).toEqual('addressPending')
+  expect(res_status).toEqual(null)
 })
