@@ -99,7 +99,7 @@ describe('normalizeBanchiGo', () => {
   for (const [inputAddr, matching] of cases) {
     test(`recognizes ${inputAddr}`, async () => {
       const prenormalized = await normalize(inputAddr);
-      const normalized = await dynamodb_logs.normalizeBanchiGo(prenormalized);
+      const normalized = await dynamodb_logs.normalizeBanchiGo(prenormalized, false);
       expect(normalized).toMatchObject(matching);
     });
   }

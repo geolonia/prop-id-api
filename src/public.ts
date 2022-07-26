@@ -31,6 +31,7 @@ const IPC_INVALID_CHARS = ['/'];
 
 export const _handler: PropIdHandler = async (event, context) => {
   const address = event.queryStringParameters?.q;
+  const ignoreBuilding = ((event.queryStringParameters || {})['ignore-building'] || 'false').toLowerCase() === 'true';
   const ZOOM = parseInt(process.env.ZOOM, 10);
   const {
     propIdAuthenticator: {
@@ -62,7 +63,7 @@ export const _handler: PropIdHandler = async (event, context) => {
 
   // Internal normalization
   const prenormalized = await normalize(address);
-  const prenormalizedStr = joinNormalizeResult(prenormalized);
+  let prenormalizedStr = joinNormalizeResult(prenormalized);
   let finalNormalized: NormalizeResult = prenormalized;
 
   background.push(createLog('normLogsNJA', {
@@ -98,10 +99,9 @@ export const _handler: PropIdHandler = async (event, context) => {
     );
   }
 
-  const [ipcResult, internalBGNormalized] = await Promise.all([
-    incrementPGeocode(prenormalizedStr),
-    normalizeBanchiGo(prenormalized),
-  ]);
+  const internalBGNormalized = await normalizeBanchiGo(prenormalized, ignoreBuilding);
+  prenormalizedStr = joinNormalizeResult(internalBGNormalized);
+  const ipcResult = await incrementPGeocode(prenormalizedStr);
 
   if (!ipcResult) {
     Sentry.captureException(new Error('IPC result null'));
@@ -140,16 +140,7 @@ export const _handler: PropIdHandler = async (event, context) => {
     );
   }
 
-  let [lng, lat] = feature.geometry.coordinates as [number, number];
-  // 内部番地号データベースに信頼できる緯度経度がある場合はそちらを使う
-  if (
-    internalBGNormalized.int_geocoding_level === 8 &&
-    typeof internalBGNormalized.lng === 'number' &&
-    typeof internalBGNormalized.lat === 'number'
-  ) {
-    lng = internalBGNormalized.lng;
-    lat = internalBGNormalized.lat;
-  }
+  const [lng, lat] = feature.geometry.coordinates as [number, number];
 
   const { geocoding_level, not_normalized } = feature.properties;
   const ipc_geocoding_level_int = parseInt(geocoding_level, 10);
@@ -214,10 +205,9 @@ export const _handler: PropIdHandler = async (event, context) => {
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
-  // ビル名が以前認識されていない(NJAレベルや、内部DBプロセスで)かつ、IPCのレベルが6以上だと `extractBuildingName`
-  // で抽出可能となります。
-  // IPCレベル5の場合、ビル名の抽出は行わないため、 `address2` プロパティにビル名含まれたままになります。
-  if (typeof finalNormalized.building === 'undefined' && ipc_geocoding_level_int >= 6) {
+  // ビル名が以前認識されていない(NJAレベルや、内部DBプロセスで)かつ、IPCのレベルが6以上だと `extractBuildingName` で抽出可能となります。
+  // また、IPCレベル 3-5の場合、`extractBuldingName` は正規表現で番地号とビル名を抽出します。ただし、存在が保証された番地号に基づかずにロジックのみで処理を行うため、結果の `other` プロパティに含まれるビル名は不正確なものである可能性があります。
+  if (typeof finalNormalized.building === 'undefined' && ipc_geocoding_level_int >= 3) {
     const extractedBuilding = extractBuildingName(
       address,
       prenormalized,
@@ -251,9 +241,13 @@ export const _handler: PropIdHandler = async (event, context) => {
   // NOTE:
   // 番地・号を発見できなかったとき(最終正規化レベル <= 6 かつ IPC <=5)は `addressPending` としてマークされ、別途確認を行うことになります。
   // この住所は未知の番地・号か、あるいは単純に不正な入力値である可能性があります。
-  // また、ビル名の抽出ができないため、`address2` フィールドに番地・号とビル名が混在します。
   // 修正のプロセスにより住所文字列は変更される可能性があります。
-  const status = finalNormalized.level <= 6 && ipc_geocoding_level_int <= 5 ? 'addressPending' : undefined;
+  let status = finalNormalized.level <= 6 && ipc_geocoding_level_int <= 5 ? 'addressPending' as const : undefined;
+
+  // また、ビル名抽出をスキップした時も、addressPending としてマークされる場合があります
+  if (ignoreBuilding && finalNormalized.level < 8) {
+    status = 'addressPending';
+  }
 
   try {
     const lockId = `${finalAddress}/${normalizedBuilding}`;

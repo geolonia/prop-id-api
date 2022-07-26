@@ -115,9 +115,13 @@ custom:
     AUTH0_DOMAIN: "prop-id-dev.jp.auth0.com"
     AWS_DYNAMODB_LOG_TABLE_NAME: estate-id-log-local
   dev:
-    AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_DEV, ''}
-    AUTH0_DOMAIN: "prop-id-dev.jp.auth0.com"
-    admin_origins: "http://localhost:*,https://*-g-prop-id-app.netlify.app"
+    # V1 のユーザープールで認証する
+    AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_V1, ''}
+    AUTH0_DOMAIN: "auth.propid.jp"
+    AUTH0_MGMT_DOMAIN: "prop-id.jp.auth0.com"
+    # AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_DEV, ''}
+    # AUTH0_DOMAIN: "prop-id-dev.jp.auth0.com"
+    admin_origins: "http://127.0.0.1:*,http://localhost:*,https://*-g-prop-id-app.netlify.app,https://geolonia.github.io"
     AWS_DYNAMODB_LOG_TABLE_NAME: !Ref logTable
   v1:
     AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID_V1, ''}
