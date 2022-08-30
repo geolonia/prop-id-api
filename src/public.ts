@@ -300,25 +300,8 @@ export const _handler: PropIdHandler = async (event, context) => {
     const baseResp: { [key: string]: any } = {
       ID: estateId.estateId,
       normalization_level: normalizationLevel,
-      address: {
-        ja: {
-          // all addresses should be the same.
-          ...addressObject.ja,
-          // ... but all buildings may not be the same.
-          other: estateId.rawBuilding || '',
-        },
-      },
       query: {
         input: address,
-        address: {
-          ja: {
-            prefecture: finalNormalized.pref,
-            city: finalNormalized.city,
-            address1: finalNormalized.town,
-            address2: finalNormalized.addr,
-            other: finalNormalized.building || '',
-          },
-        },
       },
       status: estateId.status === 'addressPending' ? 'addressPending' : null,
     };
@@ -328,6 +311,24 @@ export const _handler: PropIdHandler = async (event, context) => {
         lat: estateId.userLocation.lat.toString(),
         lng: estateId.userLocation.lng.toString(),
       } : location;
+
+      baseResp.address = {
+        ja: {
+          // all addresses should be the same.
+          ...addressObject.ja,
+          // ... but all buildings may not be the same.
+          other: estateId.rawBuilding || '',
+        },
+      };
+      baseResp.query.address = {
+        ja: {
+          prefecture: finalNormalized.pref,
+          city: finalNormalized.city,
+          address1: finalNormalized.town,
+          address2: finalNormalized.addr,
+          other: finalNormalized.building || '',
+        },
+      };
     }
     return baseResp;
   });
