@@ -84,27 +84,9 @@ https://api.propid.jp/v1
   {
     "ID": "xxxx-xxxx-xxxx-xxxx",
     "normalization_level": 0-3,
-    "address": {
-      "ja": {
-        "prefecture": "東京都",
-        "city": "千代田区",
-        "address1": "永田町一丁目",
-        "address2": "7-1",
-        "other": "xxxビル"
-      }
-    }
     "status": null | "addressPending",
     "query": {
       "input": "東京都千代田区永田町1-7-1 xxxビル",
-      "address": {
-        "ja": {
-          "prefecture": "東京都",
-          "city": "千代田区",
-          "address1": "永田町一丁目",
-          "address2": "7-1",
-          "other": "xxxビル"
-        }
-      }
     }
   }
 ]
