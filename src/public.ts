@@ -335,7 +335,14 @@ export const _handler: PropIdHandler = async (event, context) => {
       };
     }
     return baseResp;
-  });
+  })
+  // item.canonicalId によって ID 統合を行うケースでは、リダイレクトされた場合に重複が生じるのでユニークにする
+    .reduce<{ [key: string]: any }[]>((prev, rawEstateId) => {
+    if (!prev.find((idObj) => idObj.ID === rawEstateId.ID)) {
+      prev.push(rawEstateId);
+    }
+    return prev;
+  }, []);
 
   if (event.isDebugMode === true) {
     // aggregate debug info
