@@ -292,7 +292,7 @@ export const _handler: PropIdHandler = async (event, context) => {
     { apiKey },
   ));
 
-  const richIdResp = !!(authentication.plan === 'paid' || event.preauthenticatedUserId || event.isDemoMode);
+  const richIdResp = !!(authentication.plan === 'paid' || event.isDemoMode);
   const normalizationLevel = finalNormalized.level.toString();
   const geocodingLevel = geocoding_level.toString();
 
@@ -307,8 +307,8 @@ export const _handler: PropIdHandler = async (event, context) => {
     };
     if (richIdResp) {
 
-      // これらのデータは以前から返却していなかったため、Auth0 で認証されている場合は取り除く
-      if (!event.preauthenticatedUserId) {
+      // これらのデータは無料ユーザーに対しては以前から返却していなかったため、Auth0 で認証されている場合は取り除く
+      if (authentication.plan === 'paid' || !event.preauthenticatedUserId) {
         baseResp.geocoding_level = geocodingLevel;
         baseResp.location = estateId.userLocation ? {
           lat: estateId.userLocation.lat.toString(),
