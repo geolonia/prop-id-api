@@ -292,7 +292,7 @@ export const _handler: PropIdHandler = async (event, context) => {
     { apiKey },
   ));
 
-  const richIdResp = !!(authentication.plan === 'paid' || event.isDemoMode);
+  const richIdResp = !!(authentication.plan === 'paid' || event.preauthenticatedUserId || event.isDemoMode);
   const normalizationLevel = finalNormalized.level.toString();
   const geocodingLevel = geocoding_level.toString();
 
