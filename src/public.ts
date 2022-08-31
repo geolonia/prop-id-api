@@ -306,11 +306,15 @@ export const _handler: PropIdHandler = async (event, context) => {
       status: estateId.status === 'addressPending' ? 'addressPending' : null,
     };
     if (richIdResp) {
-      baseResp.geocoding_level = geocodingLevel;
-      baseResp.location = estateId.userLocation ? {
-        lat: estateId.userLocation.lat.toString(),
-        lng: estateId.userLocation.lng.toString(),
-      } : location;
+
+      // これらのデータは以前から返却していなかったため、Auth0 で認証されている場合は取り除く
+      if (!event.preauthenticatedUserId) {
+        baseResp.geocoding_level = geocodingLevel;
+        baseResp.location = estateId.userLocation ? {
+          lat: estateId.userLocation.lat.toString(),
+          lng: estateId.userLocation.lng.toString(),
+        } : location;
+      }
 
       baseResp.address = {
         ja: {
