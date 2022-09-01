@@ -292,7 +292,7 @@ export const _handler: PropIdHandler = async (event, context) => {
     { apiKey },
   ));
 
-  const richIdResp = !!(authentication.plan === 'paid' || event.isDemoMode);
+  const richIdResp = !!(authentication.plan === 'paid' || event.preauthenticatedUserId || event.isDemoMode);
   const normalizationLevel = finalNormalized.level.toString();
   const geocodingLevel = geocoding_level.toString();
 
@@ -306,11 +306,15 @@ export const _handler: PropIdHandler = async (event, context) => {
       status: estateId.status === 'addressPending' ? 'addressPending' : null,
     };
     if (richIdResp) {
-      baseResp.geocoding_level = geocodingLevel;
-      baseResp.location = estateId.userLocation ? {
-        lat: estateId.userLocation.lat.toString(),
-        lng: estateId.userLocation.lng.toString(),
-      } : location;
+
+      // これらのデータは無料ユーザーに対しては以前から返却していなかったため、Auth0 で認証されている場合は取り除く
+      if (authentication.plan === 'paid') {
+        baseResp.geocoding_level = geocodingLevel;
+        baseResp.location = estateId.userLocation ? {
+          lat: estateId.userLocation.lat.toString(),
+          lng: estateId.userLocation.lng.toString(),
+        } : location;
+      }
 
       baseResp.address = {
         ja: {
@@ -331,7 +335,14 @@ export const _handler: PropIdHandler = async (event, context) => {
       };
     }
     return baseResp;
-  });
+  })
+  // item.canonicalId によって ID 統合を行うケースでは、リダイレクトされた場合に重複が生じるのでユニークにする
+    .reduce<{ [key: string]: any }[]>((prev, rawEstateId) => {
+    if (!prev.find((idObj) => idObj.ID === rawEstateId.ID)) {
+      prev.push(rawEstateId);
+    }
+    return prev;
+  }, []);
 
   if (event.isDebugMode === true) {
     // aggregate debug info
