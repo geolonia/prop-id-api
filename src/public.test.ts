@@ -716,9 +716,9 @@ test('レスポンスに元の住所などを含める', async () => {
   })
 })
 
-describe.only('建物名、ビル名の抽出', () => {
+describe('建物名、ビル名の抽出', () => {
 
-  test.only('小字が後に分離されない', async () => {
+  test('小字が後に分離されない', async () => {
     const { apiKey, accessToken } = await dynamodb.createApiKey('小字が後に分離されない')
     const event = {
       queryStringParameters: {

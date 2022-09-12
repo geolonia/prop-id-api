@@ -22,7 +22,6 @@ export const extractBuildingName: (
     const match = normalizedAddr.addr.match(banchiGoRegex);
     if (match) {
       const foundBanchiGo = match[0];
-      console.log({building: normalizedAddr.addr, foundBanchiGo});
       const building = normalizedAddr.addr.replace(foundBanchiGo, '');
       return {
         ...normalizedAddr,
