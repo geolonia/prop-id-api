@@ -716,6 +716,26 @@ test('レスポンスに元の住所などを含める', async () => {
   })
 })
 
+test('小字が後に分離されない', async () => {
+  const { apiKey, accessToken } = await dynamodb.createApiKey('小字が後に分離されない')
+  const event = {
+    queryStringParameters: {
+      q: '福島県会津若松市河東町広田六丁100',
+      'api-key': apiKey,
+  },
+    headers: {
+      'X-Access-Token': accessToken,
+    }
+  }
+  // @ts-ignore
+  const lambdaResult = await handler(event) as APIGatewayProxyResult
+  const body = JSON.parse(lambdaResult.body)
+  const address = body[0].address.ja
+  expect(address.other).not.toEqual('六丁')
+  expect(address.address1).toEqual('河東町広田')
+  expect(address.address2).toEqual('六丁100')
+});
+
 test('小字と建物名の分離が正しくなされる', async () => {
   const q= '愛知県豊田市若林東町宮間22-1おはようビル'
   const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${q}`);
