@@ -11,7 +11,7 @@ export interface NormalizeResult extends NormalizeResultBase {
 }
 
 const japaneseAddressesVersion = 'next';
-NJAConfig.japaneseAddressesApi = `https://japanese-addresses-dev.geolonia.com/v${japaneseAddressesVersion}/ja`;
+NJAConfig.japaneseAddressesApi = `https://japanese-addresses-dev.geolonia.com/${japaneseAddressesVersion}/ja`;
 NJAConfig.geoloniaApiKey = process.env.GEOLONIA_API_KEY;
 
 export const joinNormalizeResult = (n: NormalizeResult) => (
