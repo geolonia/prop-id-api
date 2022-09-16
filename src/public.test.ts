@@ -623,7 +623,7 @@ describe('Logging', () => {
 
       const logItem = (resp.Items || []).find(item => item.input === inputAddr) as any
       expect(logItem.deps.nja).toMatch(/([0-9]+)\.([0-9]+)\.([0-9]+)$/)
-      expect(logItem.deps.ja).toMatch(/([0-9]+)\.([0-9]+)\.([0-9]+)$/)
+      expect(logItem.deps.ja).toMatch(/(([0-9]+)\.([0-9]+)\.([0-9]+)|next)$/)
     })
 
     test('NJA.level <= 2 should create a LOG#normFailNoTown', async () => {
