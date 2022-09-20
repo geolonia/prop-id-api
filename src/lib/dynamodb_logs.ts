@@ -1,7 +1,7 @@
 import { DB } from './dynamodb';
 import { ulid } from 'ulid';
 import { sleep } from './util';
-import { NormalizeResult } from '../lib/nja';
+import { listResidentials, NormalizeResult } from '../lib/nja';
 
 export const TableName = process.env.AWS_DYNAMODB_LOG_TABLE_NAME;
 
@@ -18,10 +18,10 @@ export interface AddressDatabaseRecord {
 
   latLng?: [string, string]
 
-  createdBy: string
-  updatedBy: string
-  createdAt: string
-  updatedAt: string
+  // createdBy: string
+  // updatedBy: string
+  // createdAt: string
+  // updatedAt: string
 }
 
 export const createLog = async (
@@ -121,10 +121,17 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult, ignoreBuilding:
   async (nja: NormalizeResult, ignoreBuilding = false) => {
 
     if (ignoreBuilding) {
-      const { Item: item } = await DB.get({
-        TableName,
-        Key: { PK: `AddrDB#${nja.pref}${nja.city}${nja.town}`, SK: nja.addr },
-      }).promise();
+      let item: { SK: string, latLng?: string } | undefined = undefined;
+      if (nja.exBanchiGo) {
+        item = { SK: nja.exBanchiGo };
+      } else {
+        const result = await DB.get({
+          TableName,
+          Key: { PK: `AddrDB#${nja.pref}${nja.city}${nja.town}`, SK: nja.addr },
+        }).promise();
+        item = result.Item as { SK: string };
+      }
+
       const narrowedNormal = {
         ...nja,
         building: '',
@@ -147,6 +154,11 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult, ignoreBuilding:
       return narrowedNormal;
     }
 
+    const residentials = (await listResidentials(nja.pref, nja.city, nja.town) as { gaiku: string, jyukyo: string }[]).map((res) => ({
+      PK: `AddrDB#${nja.pref}${nja.city}${nja.town}`,
+      SK: `${res.gaiku}-${res.jyukyo}`,
+    })) as AddressDatabaseRecord[];
+
     const dbItems = await DB.query({
       TableName,
       KeyConditionExpression: '#pk = :pk',
@@ -159,7 +171,9 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult, ignoreBuilding:
     }).promise();
 
     const items = (dbItems.Items || []) as AddressDatabaseRecord[];
-    items.sort((a, b) => b.SK.length - a.SK.length);
+    const concatItems = [...items, ...residentials];
+
+    concatItems.sort((a, b) => b.SK.length - a.SK.length);
     for (const item of items) {
       if (nja.addr.startsWith(item.SK)) {
         // we have a match

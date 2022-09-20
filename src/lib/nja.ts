@@ -3,6 +3,7 @@ import {
   config as NJAConfig,
   NormalizeResult as NormalizeResultBase,
 } from '@geolonia/normalize-japanese-addresses';
+import axios from 'axios';
 import njapkg from '@geolonia/normalize-japanese-addresses/package.json';
 
 export interface NormalizeResult extends NormalizeResultBase {
@@ -39,4 +40,21 @@ export const normalize = async (input: string) => {
     }
   }
   return result;
+};
+
+export const listResidentials = async (pref: string, city: string, town: string) => {
+  const url = encodeURI(`${NJAConfig.japaneseAddressesApi}/${pref}/${city}/${town}/住居表示.json?geolonia-api-key=${NJAConfig.geoloniaApiKey}`);
+  let result;
+  try {
+    result = await axios(url);
+    return result.data as { gaiku: string, jyukyo: string }[];
+  } catch (error: any) {
+    // TODO: japanese-addresses.geolonia.com が 404 エラーを返さないため403をハンドリングしている。
+    // japanese-addresses.geolonia.com を改修後、条件分岐を404に返すように改修する。
+    if (error.response.status === 404 || error.response.status === 403) {
+      return [];
+    } else {
+      throw error;
+    }
+  }
 };
