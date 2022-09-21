@@ -7,6 +7,8 @@ import { _handler } from './public'
 // TODO: logger、authenticator をテストから分離する
 const handler = decorate(_handler, [logger, authenticator('id-req')]);
 
+jest.setTimeout(15 * 1000)
+
 test('should specify the ZOOM environmental variable.', () => {
   const ZOOM = parseInt(process.env.ZOOM, 10)
   expect(ZOOM).not.toBe(NaN)
