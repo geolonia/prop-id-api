@@ -31,7 +31,7 @@ jobs:
             ${{ runner.os }}-yarn-
       - run: yarn
       - run: yarn lint
-      - run: curl "https://japanese-addresses-dev.geolonia.com/next/ja.json?geolonia-api-key=$GEOLONIA_API_KEY" -i
+      - run: curl "https://japanese-addresses-dev.geolonia.com/next/ja.json?geolonia-api-key=$GEOLONIA_API_KEY"
         env:
           GEOLONIA_API_KEY: ${{ secrets.GEOLONIA_API_KEY }}
       - run: yarn build
