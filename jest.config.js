@@ -6,6 +6,7 @@ module.exports = {
   },
   testMatch: ["<rootDir>/src/**/*.test.ts"],
   testPathIgnorePatterns: [
+    "bin",
     "__tests__",
     "ipc.test.ts",
     "addresses.test.ts"
