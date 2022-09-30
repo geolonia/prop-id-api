@@ -18,10 +18,10 @@ export interface AddressDatabaseRecord {
 
   latLng?: [string, string]
 
-  createdBy: string
-  updatedBy: string
-  createdAt: string
-  updatedAt: string
+  // createdBy: string
+  // updatedBy: string
+  // createdAt: string
+  // updatedAt: string
 }
 
 export const createLog = async (
