@@ -2,6 +2,8 @@ import { _handler as publicHandler } from '../public'
 import { _queryHandler as idQueryHandler } from './queryHandler';
 import * as dynamodb from '../lib/dynamodb'
 
+jest.setTimeout(15 * 1000)
+
 const context = {
   propIdAuthenticator: { authentication: { plan: 'paid' } },
   propIdLogger: { background: [] },
