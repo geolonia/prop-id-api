@@ -306,6 +306,7 @@ export const _handler: PropIdHandler = async (event, context) => {
       status: estateId.status === 'addressPending' ? 'addressPending' : null,
     };
     if (richIdResp) {
+
       // これらのデータは無料ユーザーに対しては以前から返却していなかったため、Auth0 で認証されている場合は取り除く
       if (authentication.plan === 'paid') {
         baseResp.geocoding_level = geocodingLevel;
@@ -314,24 +315,25 @@ export const _handler: PropIdHandler = async (event, context) => {
           lng: estateId.userLocation.lng.toString(),
         } : location;
       }
+
+      baseResp.address = {
+        ja: {
+          // all addresses should be the same.
+          ...addressObject.ja,
+          // ... but all buildings may not be the same.
+          other: estateId.rawBuilding || '',
+        },
+      };
+      baseResp.query.address = {
+        ja: {
+          prefecture: finalNormalized.pref,
+          city: finalNormalized.city,
+          address1: finalNormalized.town,
+          address2: finalNormalized.addr,
+          other: finalNormalized.building || '',
+        },
+      };
     }
-    baseResp.address = {
-      ja: {
-        // all addresses should be the same.
-        ...addressObject.ja,
-        // ... but all buildings may not be the same.
-        other: estateId.rawBuilding || '',
-      },
-    };
-    baseResp.query.address = {
-      ja: {
-        prefecture: finalNormalized.pref,
-        city: finalNormalized.city,
-        address1: finalNormalized.town,
-        address2: finalNormalized.addr,
-        other: finalNormalized.building || '',
-      },
-    };
     return baseResp;
   })
   // item.canonicalId によって ID 統合を行うケースでは、リダイレクトされた場合に重複が生じるのでユニークにする
