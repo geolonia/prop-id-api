@@ -281,7 +281,7 @@ test('should get estate ID without details if authenticated with a free API key'
   expect(first).toHaveProperty("ID")
   expect(first.normalization_level).toStrictEqual("3")
   expect(first.geocoding_level).toBeUndefined()
-  expect(first.address).not.toBeUndefined()
+  expect(first.address).toBeUndefined()
   expect(first.location).toBeUndefined()
 })
 
