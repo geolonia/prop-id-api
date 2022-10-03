@@ -5,6 +5,8 @@ import {
 } from './building_normalization';
 import { incrementPGeocode } from '.';
 
+jest.setTimeout(15 * 1000)
+
 describe('extractBuildingName', () => {
   const testData = [
     { addr: '東京都文京区春日1-16-21 文京区役所', expected: '文京区役所' },
