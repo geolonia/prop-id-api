@@ -7,6 +7,8 @@ import { _handler } from './public'
 // TODO: logger、authenticator をテストから分離する
 const handler = decorate(_handler, [logger, authenticator('id-req')]);
 
+jest.setTimeout(15 * 1000)
+
 test('should specify the ZOOM environmental variable.', () => {
   const ZOOM = parseInt(process.env.ZOOM, 10)
   expect(ZOOM).not.toBe(NaN)
@@ -279,7 +281,7 @@ test('should get estate ID without details if authenticated with a free API key'
   expect(first).toHaveProperty("ID")
   expect(first.normalization_level).toStrictEqual("3")
   expect(first.geocoding_level).toBeUndefined()
-  expect(first.address).not.toBeUndefined()
+  expect(first.address).toBeUndefined()
   expect(first.location).toBeUndefined()
 })
 
@@ -623,7 +625,7 @@ describe('Logging', () => {
 
       const logItem = (resp.Items || []).find(item => item.input === inputAddr) as any
       expect(logItem.deps.nja).toMatch(/([0-9]+)\.([0-9]+)\.([0-9]+)$/)
-      expect(logItem.deps.ja).toMatch(/([0-9]+)\.([0-9]+)\.([0-9]+)$/)
+      expect(logItem.deps.ja).toMatch(/(([0-9]+)\.([0-9]+)\.([0-9]+)|next)$/)
     })
 
     test('NJA.level <= 2 should create a LOG#normFailNoTown', async () => {
@@ -716,29 +718,32 @@ test('レスポンスに元の住所などを含める', async () => {
   })
 })
 
-test('小字と建物名の分離が正しくなされる', async () => {
-  const q= '愛知県豊田市若林東町宮間22-1おはようビル'
-  const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${q}`);
+describe('建物名、ビル名の抽出', () => {
 
-  const event = {
-    queryStringParameters: {
-      q,
-      'api-key': apiKey,
-    },
-    headers: {
-      'X-Access-Token': accessToken,
-    },
-  };
+  test('小字の分離と建物名の抽出が正しくなされる', async () => {
+    const q= '愛知県豊田市若林東町宮間22-1おはようビル'
+    const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${q}`);
 
-  // @ts-ignore
-  const lambdaResult = await handler(event) as APIGatewayProxyResult
-  const body = JSON.parse(lambdaResult.body)
-  expect(body[0].address.ja).toEqual({
-    "prefecture": "愛知県",
-    "city": "豊田市",
-    "address1": "若林東町",
-    "address2": "宮間22-1",
-    "other": "おはようビル"
+    const event = {
+      queryStringParameters: {
+        q,
+        'api-key': apiKey,
+      },
+      headers: {
+        'X-Access-Token': accessToken,
+      },
+    };
+
+    // @ts-ignore
+    const lambdaResult = await handler(event) as APIGatewayProxyResult
+    const body = JSON.parse(lambdaResult.body)
+    expect(body[0].address.ja).toEqual({
+      "prefecture": "愛知県",
+      "city": "豊田市",
+      "address1": "若林東町",
+      "address2": "宮間22-1",
+      "other": "おはようビル"
+    })
   })
 })
 
@@ -833,8 +838,6 @@ test('建物名無視オプション: ignore-building === "true" がクエリに
   const res_id = respectBuildingResult.ID
   const ign_addr = ignoreBuildingResult.address.ja
   const res_addr = respectBuildingResult.address.ja
-  const ign_status = ignoreBuildingResult.status
-  const res_status = respectBuildingResult.status
 
   expect(ign_id).toBeDefined()
   expect(res_id).toBeDefined()
@@ -842,6 +845,4 @@ test('建物名無視オプション: ignore-building === "true" がクエリに
 
   expect(ign_addr.other).toEqual('')
   expect(res_addr.other).toEqual(fakeNumericBuilding)
-  expect(ign_status).toEqual('addressPending')
-  expect(res_status).toEqual(null)
 })

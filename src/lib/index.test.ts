@@ -111,7 +111,7 @@ describe('IncrementP Verification API', () => {
             geocoding_level: -1,
             geocoding_level_desc: 'マッチレベルが不明です(-1)',
             log: 'NF001:都道府県情報を取得できませんでした | NF002:市区町村情報を取得できませんでした | ZJ005:郵便番号が存在しない住所情報です',
-            "not_normalized": "===Not exisiting address. This string should not be verified via API.===",
+            not_normalized: "===Notexisitingaddress.ThisstringshouldnotbeverifiedviaAPI.===",
           }
         }
       ],

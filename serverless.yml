@@ -12,6 +12,7 @@ provider:
   versionFunctions: false
   stage: ${opt:stage, 'dev'}
   region: ap-northeast-1
+  timeout: 10
   apiGateway:
     shouldStartNameWithService: true
   endpointType: REGIONAL
@@ -37,6 +38,8 @@ provider:
     RELEASE_VER: ${env:GITHUB_SHA, self:provider.stage}
     SENTRY_DSN: ${env:SENTRY_DSN, ''}
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+
+    GEOLONIA_API_KEY: ${env:GEOLONIA_API_KEY, ''}
 
   layers:
     - arn:aws:lambda:ap-northeast-1:943013980633:layer:SentryNodeServerlessSDK:38
