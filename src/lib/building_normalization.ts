@@ -14,7 +14,8 @@ export const extractBuildingName: (
 
   const { addr: banchiGoOther, exBanchiGo } = normalizedAddr;
   const { banchi_go: ipcBanchiGo, geocoding_level } = geocodedAddr.feature.properties;
-  const banchiGo = exBanchiGo || ipcBanchiGo; // exBanchiGo はベースレジストリ由来。これがある場合はこちらを優先
+
+  const banchiGo = (exBanchiGo && exBanchiGo.length >= ipcBanchiGo.length) ? exBanchiGo : ipcBanchiGo; // exBanchiGo はベースレジストリ由来。これがある場合はこちらを優先
   const ipc_geocoding_level_int = parseInt(geocoding_level, 10);
   const banchiGoPosInAddr = banchiGoOther.indexOf(banchiGo);
 

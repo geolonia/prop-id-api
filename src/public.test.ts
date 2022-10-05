@@ -847,7 +847,6 @@ test('建物名無視オプション: ignore-building === "true" がクエリに
   expect(res_addr.other).toEqual(fakeNumericBuilding)
 })
 
-
 test('should match with base registry result if IPC returns invalid banchi go', async () => {
 
   const event = {
