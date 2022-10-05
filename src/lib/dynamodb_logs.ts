@@ -174,7 +174,7 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult, ignoreBuilding:
     const concatItems = [...items, ...residentials];
 
     concatItems.sort((a, b) => b.SK.length - a.SK.length);
-    for (const item of items) {
+    for (const item of concatItems) {
       if (nja.addr.startsWith(item.SK)) {
         // we have a match
         const narrowedNormal = {
