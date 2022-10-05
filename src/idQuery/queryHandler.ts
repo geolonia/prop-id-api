@@ -68,7 +68,7 @@ export const _queryHandler: PropIdHandler = async (event, context) => {
         city: extracted.city,
         address1: extracted.town,
         address2: extracted.addr,
-        other: estateIdObj.building ? estateIdObj.building : '',
+        other: extracted.building || estateIdObj.building || '',
       },
     };
 

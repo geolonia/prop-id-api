@@ -6,13 +6,16 @@ export const extractBuildingName: (
   normalizedAddr: NormalizeResult,
   geocodedAddr: IncrementPGeocodeResult
 ) => NormalizeResult = ( originalAddr, normalizedAddr, geocodedAddr ) => {
+
   if ('building' in normalizedAddr && typeof normalizedAddr.building !== 'undefined') {
     // この住所のビル名が既に分離されています
     return normalizedAddr;
   }
 
-  const { addr: banchiGoOther } = normalizedAddr;
-  const { banchi_go: banchiGo, geocoding_level } = geocodedAddr.feature.properties;
+  const { addr: banchiGoOther, exBanchiGo } = normalizedAddr;
+  const { banchi_go: ipcBanchiGo, geocoding_level } = geocodedAddr.feature.properties;
+
+  const banchiGo = (exBanchiGo && exBanchiGo.length >= ipcBanchiGo.length) ? exBanchiGo : ipcBanchiGo; // exBanchiGo はベースレジストリ由来。これがある場合はこちらを優先
   const ipc_geocoding_level_int = parseInt(geocoding_level, 10);
   const banchiGoPosInAddr = banchiGoOther.indexOf(banchiGo);
 
