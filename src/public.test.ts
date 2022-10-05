@@ -846,3 +846,20 @@ test('建物名無視オプション: ignore-building === "true" がクエリに
   expect(ign_addr.other).toEqual('')
   expect(res_addr.other).toEqual(fakeNumericBuilding)
 })
+
+
+test('should match with base registry result if IPC returns invalid banchi go', async () => {
+
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '東京都世田谷区北烏山６－２２－２２ＷＥＳＴ　ＶＡＬＬＹ　５',
+    },
+  }
+  // @ts-ignore
+  const lambdaResult1 = await handler(event) as APIGatewayProxyResult
+  const body1 = JSON.parse(lambdaResult1.body)
+
+  expect(body1[0].address.ja.address2).toBe('22-22')
+  expect(body1[0].address.ja.other).toBe('WEST VALLY 5')
+})
