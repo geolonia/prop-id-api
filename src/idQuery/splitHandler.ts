@@ -96,7 +96,7 @@ export const _splitHandler: PropIdHandler = async (event, context) => {
         city: extracted.city,
         address1: extracted.town,
         address2: extracted.addr,
-        other: building,
+        other: extracted.building || building,
       },
     };
 

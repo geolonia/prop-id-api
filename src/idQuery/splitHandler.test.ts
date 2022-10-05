@@ -9,7 +9,7 @@ const context = {
   propIdLogger: { background: [] },
 }
 
-test('should generate new ID from that of existing.', async () => {
+test.only('should generate new ID from that of existing.', async () => {
   // 以下の4ステップで正しく idObject が返却されているかをテストしている
   // 1. ID を発行
   // 2. ID を分割
