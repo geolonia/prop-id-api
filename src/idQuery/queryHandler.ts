@@ -34,6 +34,7 @@ export const _queryHandler: PropIdHandler = async (event, context) => {
     );
   }
 
+  // TODO: public handler と同じように、内部番地号データベースと建物分離のロジックを通さないといけない
   const prenormalizedAddress = await normalize(estateIdObj.rawAddress);
 
   const idOut: IdQueryOut = {
