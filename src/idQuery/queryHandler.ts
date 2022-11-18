@@ -1,11 +1,12 @@
 import { incrementPGeocode } from '../lib';
 import { getEstateId } from '../lib/dynamodb';
 import { errorResponse, json } from '../lib/proxy-response';
-import { normalize } from '../lib/nja';
+import { joinNormalizeResult, normalize, NormalizeResult } from '../lib/nja';
 import { extractBuildingName } from '../lib/building_normalization';
 
 import type { AuthenticatorContext } from '../lib/decorators';
 import type { IdQueryOut } from './';
+import { normalizeBanchiGo } from '../lib/dynamodb_logs';
 
 
 export const _queryHandler: PropIdHandler = async (event, context) => {
@@ -34,12 +35,12 @@ export const _queryHandler: PropIdHandler = async (event, context) => {
     );
   }
 
-  // TODO: public handler と同じように、内部番地号データベースと建物分離のロジックを通さないといけない
-  const prenormalizedAddress = await normalize(estateIdObj.rawAddress);
+  const prenormalized = await normalize(estateIdObj.rawAddress);
+  const internalBGNormalized = await normalizeBanchiGo(prenormalized, false);
 
   const idOut: IdQueryOut = {
     ID: estateIdObj.estateId,
-    normalization_level: prenormalizedAddress.level.toString(),
+    normalization_level: prenormalized.level.toString(),
     status: estateIdObj.status === 'addressPending' ? 'addressPending' : null,
   };
 
@@ -61,7 +62,7 @@ export const _queryHandler: PropIdHandler = async (event, context) => {
       lng: lng.toString(),
     };
 
-    const extracted = extractBuildingName(estateIdObj.address, prenormalizedAddress, ipcResult);
+    const extracted = extractBuildingName(estateIdObj.address, prenormalized, ipcResult);
 
     const addressObject = {
       ja: {
@@ -74,6 +75,7 @@ export const _queryHandler: PropIdHandler = async (event, context) => {
     };
 
     idOut.geocoding_level = geocoding_level.toString(),
+    idOut.normalization_level = internalBGNormalized.level.toString();
     idOut.location = estateIdObj.userLocation ? {
       lat: estateIdObj.userLocation.lat.toString(),
       lng: estateIdObj.userLocation.lng.toString(),

@@ -86,7 +86,7 @@ test('should get estate ID without details if authenticated with a free API key'
 
   const first1 = body1[0]
   expect(first1).toHaveProperty("ID")
-  expect(first1.normalization_level).toStrictEqual('3')
+  expect(first1.normalization_level).toStrictEqual('8')
   expect(first1.geocoding_level).toBeUndefined()
   expect(first1.address).toBeUndefined()
   expect(first1.location).toBeUndefined()
@@ -156,7 +156,7 @@ test('should get estate ID with details if authenticated with a paid API key', a
 
   const first2 = body2[0]
   expect(first2.ID).toBe(first1.ID)
-  expect(first2.normalization_level).toStrictEqual('3')
+  expect(first2.normalization_level).toStrictEqual('8')
   expect(first2.geocoding_level).toStrictEqual('8')
   expect(first2.address.ja.prefecture).toStrictEqual('東京都')
   expect(first2.address.ja.city).toStrictEqual('文京区')
