@@ -541,7 +541,7 @@ describe('banchi-go database', () => {
   ];
 
   for (const [inputAddr, building, expectedNormResult, expectedIdObject] of cases) {
-    test.only(`creates estate ID for ${inputAddr}`, async () => {
+    test(`creates estate ID for ${inputAddr}`, async () => {
       const { apiKey, accessToken } = await dynamodb.createApiKey(`creates estate ID for ${inputAddr}`);
       const event = {
         queryStringParameters: {
