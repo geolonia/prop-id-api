@@ -1,7 +1,7 @@
 import { incrementPGeocode } from '../lib';
 import { getEstateId } from '../lib/dynamodb';
 import { errorResponse, json } from '../lib/proxy-response';
-import { joinNormalizeResult, normalize, NormalizeResult } from '../lib/nja';
+import { normalize } from '../lib/nja';
 import { extractBuildingName } from '../lib/building_normalization';
 
 import type { AuthenticatorContext } from '../lib/decorators';
