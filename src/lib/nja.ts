@@ -8,6 +8,8 @@ import njapkg from '@geolonia/normalize-japanese-addresses/package.json';
 
 export interface NormalizeResult extends NormalizeResultBase {
   exBanchiGo?: string
+  /** 住居番号（号）は文字列処理で推測 */
+  ambiguousGo?: true
   building?: string
 }
 
@@ -37,6 +39,14 @@ export const normalize = async (input: string) => {
       if (result.jyukyo) {
         result.exBanchiGo += `-${result.jyukyo}`;
         delete result.jyukyo;
+      } else {
+        const anyGoMatch = result.addr.match(/^-([0-9]+)/);
+        if (anyGoMatch) {
+          // 街区整備済みだが、住居番号が見つからない場合。数字パートをロジックで抽出して住居番号として扱う
+          result.ambiguousGo = true;
+          result.addr = result.addr.replace(anyGoMatch[0], '');
+          result.exBanchiGo += anyGoMatch[0];
+        }
       }
       result.addr = result.exBanchiGo + result.addr;
     }
