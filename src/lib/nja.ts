@@ -13,10 +13,9 @@ export interface NormalizeResult extends NormalizeResultBase {
   building?: string
 }
 
-// TODO: https://japanese-addresses.geolonia.com を認証付きに置き換える予定があるため、一旦 -dev を使う
-// https://japanese-addresses.geolonia.com を認証付きに変更後、速やかにこちらに戻す予定
+// TODO: japanese-addresses 拡張オブジェクトをバージョニングする
 const japaneseAddressesVersion = 'next';
-NJAConfig.japaneseAddressesApi = `https://japanese-addresses-dev.geolonia.com/${japaneseAddressesVersion}/ja`;
+NJAConfig.japaneseAddressesApi = `https://japanese-addresses.geolonia.com/${japaneseAddressesVersion}/ja`;
 NJAConfig.geoloniaApiKey = process.env.GEOLONIA_API_KEY;
 
 export const joinNormalizeResult = (n: NormalizeResult) => (
