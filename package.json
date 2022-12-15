@@ -51,7 +51,7 @@
     "@geolonia/normalize-japanese-addresses": "^2.7.3",
     "@slack/webhook": "^6.1.0",
     "auth0": "^2.44.0",
-    "axios": "^0.27.2",
+    "axios": "^1.2.1",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.1.4",
     "luxon": "^3.1.1",
