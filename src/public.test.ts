@@ -514,7 +514,8 @@ describe('banchi-go database', () => {
 
       // Corresponds to the 6th test case below.
       // It's normalized internally but not by IPC.
-      { addr: '東京都文京区水道二丁目', bg: '1-9998' },
+      // 内部データベース問い合わせは、住居表示住所整備済みの街区で行う。以下は未整備
+      { addr: '東京都新宿区四谷一丁目', bg: '1-9998' },
     ];
 
     await Promise.all(
@@ -534,14 +535,14 @@ describe('banchi-go database', () => {
     ['東京都町田市木曽東四丁目81-イ22', '',, { status: undefined }],
     ['大阪府大阪市中央区久太郎町三丁目渡辺3小原流ホール', '小原流ホール',, { status: undefined }],
     // TODO: 以下はエラーになるが、https://github.com/geolonia/prop-id-api/issues/383 で解決するため、このコミットでは修正しない
-    ['東京都文京区水道2丁目1-9999マンションGLV5NLV3', 'マンションGLV5NLV3', { geocoding_level: '5', normalization_level: '3' }, { status: 'addressPending' }],
-    ['東京都文京区水道2丁目1-9998マンションGLV5NLV8', 'マンションGLV5NLV8', { geocoding_level: '5', normalization_level: '8' }, { status: undefined }],
+    ['東京都新宿区四谷一丁目1-9999マンションGLV5NLV3', 'マンションGLV5NLV3', { geocoding_level: '5', normalization_level: '3' }, { status: 'addressPending' }],
+    ['東京都新宿区四谷一丁目1-9998マンションGLV5NLV8', 'マンションGLV5NLV8', { geocoding_level: '5', normalization_level: '8' }, { status: undefined }],
     ['大阪府高槻市富田町1-999-888マンションGLV4NLV3', 'マンションGLV4NLV3', { geocoding_level: '4', normalization_level: '3' }, { status: 'addressPending' }],
     ['京都府京都市右京区西院西貝川町100マンションGLV3NLV3', 'マンションGLV3NLV3', { geocoding_level: '3', normalization_level: '3' }, { status: 'addressPending' }],
   ];
 
   for (const [inputAddr, building, expectedNormResult, expectedIdObject] of cases) {
-    test.only(`creates estate ID for ${inputAddr}`, async () => {
+    test(`creates estate ID for ${inputAddr}`, async () => {
       const { apiKey, accessToken } = await dynamodb.createApiKey(`creates estate ID for ${inputAddr}`);
       const event = {
         queryStringParameters: {
@@ -556,7 +557,7 @@ describe('banchi-go database', () => {
       const lambdaResult = await handler(event);
       // @ts-ignore
       const body = JSON.parse(lambdaResult.body);
-      console.log(JSON.stringify(body, null, 2))
+
       expect(body[0].ID).toBeDefined();
       expect(body[0]).toEqual(
         expect.objectContaining({
@@ -804,10 +805,10 @@ describe('addressPending であっても、建物名と番地号が分離でき�
   })
 })
 
-test('建物名無視オプション: ignore-building === "true" がクエリに含まれるとき、ビル名抽出は行わない', async () => {
+test.only('建物名無視オプション: ignore-building === "true" がクエリに含まれるとき、ビル名抽出は行わない', async () => {
   const pref = '東京都'
-  const city = '世田谷区'
-  const town = '北烏山六丁目'
+  const city = '新宿区'
+  const town = '四谷一丁目'
   const addrdbItem = {
     PK: `AddrDB#${pref}${city}${town}`,
     SK: '22-1234',
@@ -819,7 +820,7 @@ test('建物名無視オプション: ignore-building === "true" がクエリに
   }).promise()
 
   const fakeNumericBuilding = '56789'
-  const inputAddr = '東京都世田谷区北烏山6-22-1234' + fakeNumericBuilding
+  const inputAddr = '東京都新宿区四谷1-22-1234' + fakeNumericBuilding
   const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${inputAddr}`);
   const ignoreBuildingEvent = {
     queryStringParameters: { q: inputAddr, 'ignore-building': 'true', 'api-key': apiKey },
@@ -863,4 +864,19 @@ test('should match with base registry result if IPC returns invalid banchi go', 
 
   expect(body1[0].address.ja.address2).toBe('22-22')
   expect(body1[0].address.ja.other).toBe('WEST VALLY 5')
+})
+
+test('should match with base registry result if IPC returns invalid banchi go', async () => {
+
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '東京都文京区春日１ー１６ー１２３４５６７こんにちはビル',
+    },
+  }
+  // @ts-ignore
+  const lambdaResult1 = await handler(event) as APIGatewayProxyResult
+  const body1 = JSON.parse(lambdaResult1.body)
+
+  expect(body1[0].address.ja.other).toBe('こんにちはビル')
 })
