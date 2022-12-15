@@ -116,7 +116,7 @@ export const withLock = async <T = any>(lockId: string, inner: () => Promise<T>)
   }
 };
 
-export const normalizeBanchiGo: (prenormalized: NormalizeResult, ignoreBuilding: boolean) => Promise<NormalizeResult & { int_geocoding_level?: number }>
+export const normalizeBanchiGo: (prenormalized: NormalizeResult, ignoreBuilding: boolean) => Promise<(NormalizeResult & { int_geocoding_level?: number })>
   =
   async (nja: NormalizeResult, ignoreBuilding = false) => {
 
@@ -154,6 +154,17 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult, ignoreBuilding:
       return narrowedNormal;
     }
 
+    if (nja.ambiguousGo && nja.exBanchiGo) {
+      const narrowNormal = {
+        ...nja,
+        addr: nja.exBanchiGo,
+        building: nja.addr.slice(nja.exBanchiGo.length).trim(),
+        int_geocoding_level: 7,
+        level: 7,
+      };
+      return narrowNormal;
+    }
+
     const residentials = (await listResidentials(nja.pref, nja.city, nja.town) as { gaiku: string, jyukyo: string }[]).map((res) => ({
       PK: `AddrDB#${nja.pref}${nja.city}${nja.town}`,
       SK: `${res.gaiku}-${res.jyukyo}`,
@@ -174,7 +185,7 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult, ignoreBuilding:
     const concatItems = [...items, ...residentials];
 
     concatItems.sort((a, b) => b.SK.length - a.SK.length);
-    for (const item of items) {
+    for (const item of concatItems) {
       if (nja.addr.startsWith(item.SK)) {
         // we have a match
         const narrowedNormal = {

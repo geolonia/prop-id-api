@@ -8,13 +8,14 @@ import njapkg from '@geolonia/normalize-japanese-addresses/package.json';
 
 export interface NormalizeResult extends NormalizeResultBase {
   exBanchiGo?: string
+  /** 住居番号（号）は文字列処理で推測 */
+  ambiguousGo?: true
   building?: string
 }
 
-// TODO: https://japanese-addresses.geolonia.com を認証付きに置き換える予定があるため、一旦 -dev を使う
-// https://japanese-addresses.geolonia.com を認証付きに変更後、速やかにこちらに戻す予定
+// TODO: japanese-addresses 拡張オブジェクトをバージョニングする
 const japaneseAddressesVersion = 'next';
-NJAConfig.japaneseAddressesApi = `https://japanese-addresses-dev.geolonia.com/${japaneseAddressesVersion}/ja`;
+NJAConfig.japaneseAddressesApi = `https://japanese-addresses.geolonia.com/${japaneseAddressesVersion}/ja`;
 NJAConfig.geoloniaApiKey = process.env.GEOLONIA_API_KEY;
 
 export const joinNormalizeResult = (n: NormalizeResult) => (
@@ -37,6 +38,14 @@ export const normalize = async (input: string) => {
       if (result.jyukyo) {
         result.exBanchiGo += `-${result.jyukyo}`;
         delete result.jyukyo;
+      } else {
+        const anyGoMatch = result.addr.match(/^-([0-9]+)/);
+        if (anyGoMatch) {
+          // 街区整備済みだが、住居番号が見つからない場合。数字パートをロジックで抽出して住居番号として扱う
+          result.ambiguousGo = true;
+          result.addr = result.addr.replace(anyGoMatch[0], '');
+          result.exBanchiGo += anyGoMatch[0];
+        }
       }
       result.addr = result.exBanchiGo + result.addr;
     }
