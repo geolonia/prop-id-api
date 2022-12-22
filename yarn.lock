@@ -2547,14 +2547,14 @@ atob@^2.1.2:
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.1.2.tgz#6d9517eb9e030d2436666651e86bd9f6f13533c9"
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
-auth0@^2.44.0:
-  version "2.44.0"
-  resolved "https://registry.yarnpkg.com/auth0/-/auth0-2.44.0.tgz#7acbe045b8c9e833ea17b535ab997177fd164f4e"
-  integrity sha512-TowzD2RbBVyhqW/qk0cqV5ibRc86r2gqqc+8CRdoV9/58hh3prjeSjaW+8CpnyVdBYqoCM0ItvbJnCjk/tsUig==
+auth0@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/auth0/-/auth0-3.0.0.tgz#007f795a9f1bd7628a6c521070ba5dd3a5718c06"
+  integrity sha512-Cpn2MPB1KXQtNVBrraFEbX8HFDGE/yhXEJtZAPlp5ykb7wQWV5+TSrMopDUQSVLIubcKNZ7IxfYV8hG7vJlrfA==
   dependencies:
     axios "^0.27.2"
     form-data "^3.0.1"
-    jsonwebtoken "^8.5.1"
+    jsonwebtoken "^9.0.0"
     jwks-rsa "^1.12.1"
     lru-memoizer "^2.1.4"
     rest-facade "^1.16.3"
@@ -6230,6 +6230,16 @@ jsonwebtoken@^8.5.1:
     lodash.once "^4.0.0"
     ms "^2.1.1"
     semver "^5.6.0"
+
+jsonwebtoken@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/jsonwebtoken/-/jsonwebtoken-9.0.0.tgz#d0faf9ba1cc3a56255fe49c0961a67e520c1926d"
+  integrity sha512-tuGfYXxkQGDPnLJ7SibiQgVgeDgfbPq2k2ICcbgqW8WxWLBAxKQM/ZCu/IT8SOSwmaYl4dpTFCW5xZv7YbbWUw==
+  dependencies:
+    jws "^3.2.2"
+    lodash "^4.17.21"
+    ms "^2.1.1"
+    semver "^7.3.8"
 
 "jsx-ast-utils@^2.4.1 || ^3.0.0":
   version "3.2.1"
