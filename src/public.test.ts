@@ -880,3 +880,23 @@ test('should match with base registry result if IPC returns invalid banchi go', 
 
   expect(body1[0].address.ja.other).toBe('こんにちはビル')
 })
+
+test.only('should normalize with whitespace inside banchi-go', async () => {
+  const events = [
+    '港区新橋五丁目  24   番  8  号',
+    '港区新橋五丁目24 番 8 号',
+    '港区新橋５－２４－８',
+  ].map(q => ({
+    isDemoMode: true,
+    queryStringParameters: {
+      q,
+    },
+  }))
+  // @ts-ignore
+  const lambdaResults = (await Promise.all(events.map(event => handler(event)))) as APIGatewayProxyResult[]
+  const bodies = lambdaResults.map(lambdaResult => JSON.parse(lambdaResult.body))
+  const idSet = new Set(bodies.map(body => body[0].ID).filter(x => !!x))
+  const address2Set = new Set(bodies.map(body => body[0].address.ja.address2).filter(x => !!x))
+  expect(idSet.size).toBe(1)
+  expect(address2Set.size).toBe(1)
+})
