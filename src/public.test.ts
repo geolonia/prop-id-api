@@ -881,7 +881,7 @@ test('should match with base registry result if IPC returns invalid banchi go', 
   expect(body1[0].address.ja.other).toBe('こんにちはビル')
 })
 
-test.only('should normalize with whitespace inside banchi-go', async () => {
+test('should normalize with whitespace inside banchi-go', async () => {
   const events = [
     '港区新橋五丁目  24   番  8  号',
     '港区新橋五丁目24 番 8 号',
