@@ -895,6 +895,7 @@ test.only('should normalize with whitespace inside banchi-go', async () => {
   // @ts-ignore
   const lambdaResults = (await Promise.all(events.map(event => handler(event)))) as APIGatewayProxyResult[]
   const bodies = lambdaResults.map(lambdaResult => JSON.parse(lambdaResult.body))
+  console.log({ bodies: JSON.stringify(bodies) })
   const idSet = new Set(bodies.map(body => body[0].ID).filter(x => !!x))
   const address2Set = new Set(bodies.map(body => body[0].address.ja.address2).filter(x => !!x))
   expect(idSet.size).toBe(1)
