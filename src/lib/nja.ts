@@ -29,7 +29,9 @@ export const versions = {
 
 export const normalize = async (input: string) => {
   const result = await _normalize(input) as NormalizeResult;
-  console.log(result); // DEBUG
+  if (result.town === '新橋五丁目') {
+    console.log(result); // DEBUG
+  }
   // NJA は最大レベル8(住居表示、住居番号レベル)までの正規化を行うが、住居表示住所のデータは建物名の分離にのみ利用する
   if (result.level > 3) {
     result.level = 3;
