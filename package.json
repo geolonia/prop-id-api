@@ -48,7 +48,7 @@
     "preset": "ts-jest"
   },
   "dependencies": {
-    "@geolonia/normalize-japanese-addresses": "^2.7.3",
+    "@geolonia/normalize-japanese-addresses": "^2.7.4",
     "@slack/webhook": "^6.1.0",
     "auth0": "^2.44.0",
     "axios": "^0.27.2",
