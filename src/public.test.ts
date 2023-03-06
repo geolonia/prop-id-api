@@ -805,7 +805,7 @@ describe('addressPending であっても、建物名と番地号が分離でき�
   })
 })
 
-test.only('建物名無視オプション: ignore-building === "true" がクエリに含まれるとき、ビル名抽出は行わない', async () => {
+test('建物名無視オプション: ignore-building === "true" がクエリに含まれるとき、ビル名抽出は行わない', async () => {
   const pref = '東京都'
   const city = '新宿区'
   const town = '四谷一丁目'
@@ -881,7 +881,7 @@ test('should match with base registry result if IPC returns invalid banchi go', 
   expect(body1[0].address.ja.other).toBe('こんにちはビル')
 })
 
-test.only('should normalize with whitespace inside banchi-go', async () => {
+test('should normalize with whitespace inside banchi-go', async () => {
   const events = [
     '港区新橋五丁目  24   番  8  号',
     '港区新橋五丁目24 番 8 号',
