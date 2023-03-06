@@ -103,6 +103,7 @@ $ node ./bin/list-api-keys.mjs
 
 ### ログ識別子
 
+- `InsUsr` - prop-id-user-provisioning で発行。ユーザー作成時のログ
 - `normLogsNJA` - NJA 正規化試行のログ
 - `normFailNoTown` - NJA 失敗時のログ
 - `normFailNoIPCGeom` - IPC リクエストに失敗した場合
