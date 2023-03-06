@@ -28,6 +28,9 @@ export const versions = {
 };
 
 export const normalize = async (input: string) => {
+  if (input.startsWith('港区')) {
+    console.log(input);
+  }
   const result = await _normalize(input) as NormalizeResult;
   if (result.town === '新橋五丁目') {
     console.log(result); // DEBUG
