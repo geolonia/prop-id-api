@@ -62,7 +62,7 @@ export const listResidentials = async (pref: string, city: string, town: string)
   } catch (error: any) {
     // TODO: japanese-addresses.geolonia.com が 404 エラーを返さないため403をハンドリングしている。
     // japanese-addresses.geolonia.com を改修後、条件分岐を404に返すように改修する。
-    if (error.response.status === 404 || error.response.status === 403) {
+    if (error && error.response && (error.response.status === 404 || error.response.status === 403)) {
       return [];
     } else {
       throw error;
