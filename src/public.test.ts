@@ -900,3 +900,16 @@ test('should normalize with whitespace inside banchi-go', async () => {
   expect(idSet.size).toBe(1)
   expect(address2Set.size).toBe(1)
 })
+
+test.only('shoud normalize ', async () => {
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '北海道札幌市中央区南五条東二丁目6-2',
+    }
+  }
+  // @ts-ignore
+  const lambdaResult = await handler(event) as APIGatewayProxyResult
+  console.log(lambdaResult)
+  expect(true).toBe(false)
+})
