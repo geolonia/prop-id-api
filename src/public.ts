@@ -205,8 +205,6 @@ export const _handler: PropIdHandler = async (event, context) => {
     return errorResponse(500, 'Internal server error', quotaParams);
   }
 
-  console.log(1, { address, prenormalized, ipcResult });
-
   // ビル名が以前認識されていない(NJAレベルや、内部DBプロセスで)かつ、IPCのレベルが6以上だと `extractBuildingName` で抽出可能となります。
   // また、IPCレベル 3-5の場合、`extractBuildingName` は正規表現で番地号とビル名を抽出します。ただし、存在が保証された番地号に基づかずにロジックのみで処理を行うため、結果の `other` プロパティに含まれるビル名は不正確なものである可能性があります。
   if (typeof finalNormalized.building === 'undefined' && ipc_geocoding_level_int >= 3) {
@@ -215,11 +213,12 @@ export const _handler: PropIdHandler = async (event, context) => {
       prenormalized,
       ipcResult,
     );
+    console.log(3, extractedBuilding);
     if (typeof extractedBuilding.building !== 'undefined') {
       finalNormalized = extractedBuilding;
     }
   }
-  console.log(2, {finalNormalized});
+
   const finalAddress = joinNormalizeResult(finalNormalized);
   const normalizedBuilding = normalizeBuildingName(finalNormalized.building || '');
 
