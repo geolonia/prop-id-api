@@ -22,7 +22,7 @@ export const extractBuildingName: (
   const ipc_geocoding_level_int = parseInt(geocoding_level, 10);
 
   if (ipc_geocoding_level_int <= 5) {
-    const banchiPattern = ipc_geocoding_level_int === 5 ? banchiGo : '[1-9][0-9]+';
+    const banchiPattern = ipc_geocoding_level_int === 5 ? banchiGo : '[1-9][0-9]*';
     const banchiGoRegex = new RegExp(`^${banchiPattern}(-[1-9][0-9]*)?`);
     const match = normalizedAddr.addr.match(banchiGoRegex);
     console.log(3, 30, JSON.stringify({match, normalizedAddr, ptn: `^${banchiPattern}(-[1-9][0-9]*)?`, geocodedAddr}, null, 2));
