@@ -901,7 +901,7 @@ test('should normalize with whitespace inside banchi-go', async () => {
   expect(address2Set.size).toBe(1)
 })
 
-test.only('shoud normalize ', async () => {
+test('should normalize ', async () => {
   const event = {
     isDemoMode: true,
     queryStringParameters: {
@@ -910,6 +910,5 @@ test.only('shoud normalize ', async () => {
   }
   // @ts-ignore
   const lambdaResult = await handler(event) as APIGatewayProxyResult
-  console.log(lambdaResult)
-  expect(true).toBe(false)
+  expect(lambdaResult[0].address.ja.address2).toBe('6-2')
 })
