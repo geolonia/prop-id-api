@@ -16,7 +16,7 @@ export const extractBuildingName: (
   const { banchi_go: ipcBanchiGo, geocoding_level } = geocodedAddr.feature.properties;
 
   // exBanchiGo はベースレジストリ由来。これがある場合はこちらを優先
-  const banchiGo = (exBanchiGo && exBanchiGo.length >= ipcBanchiGo.length) ? exBanchiGo : ipcBanchiGo;
+  const banchiGo = ((exBanchiGo && exBanchiGo.length >= ipcBanchiGo.length) ? exBanchiGo : ipcBanchiGo) || banchiGoOther;
   const banchiGoPosInAddr = banchiGoOther.indexOf(banchiGo);
 
   const ipc_geocoding_level_int = parseInt(geocoding_level, 10);
