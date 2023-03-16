@@ -939,7 +939,7 @@ test.only('shoild normalize 2', async () => {
     // @ts-ignore
   const lambdaResults = (await Promise.all(events.map(event => handler(event)))) as APIGatewayProxyResult[]
   const bodies = lambdaResults.map(lambdaResult => JSON.parse(lambdaResult.body))
-  const address2List =bodies.map(body => body[0].address.ja.address2).filter(x => !!x)
-  console.log(address2List, bodies)
+  const address2List =bodies.map(body => body[0].address.ja.address2)
+  console.log('bodies', JSON.stringify(bodies, null, 2))
   expect(true).toBe(false)
 })
