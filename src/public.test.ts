@@ -901,7 +901,7 @@ test('should normalize with whitespace inside banchi-go', async () => {
   expect(address2Set.size).toBe(1)
 })
 
-test.only('should normalize ', async () => {
+test('should normalize ', async () => {
   const event = {
     isDemoMode: true,
     queryStringParameters: {
