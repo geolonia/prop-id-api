@@ -910,5 +910,6 @@ test.only('should normalize ', async () => {
   }
   // @ts-ignore
   const lambdaResult = await handler(event) as APIGatewayProxyResult
-  expect(lambdaResult[0].address.ja.address2).toBe('6-2')
+  const body = JSON.parse(lambdaResult.body)
+  expect(body[0].address.ja.address2).toBe('6-2')
 })
