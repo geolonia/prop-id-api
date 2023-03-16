@@ -901,7 +901,8 @@ test('should normalize with whitespace inside banchi-go', async () => {
   expect(address2Set.size).toBe(1)
 })
 
-test('番地が一桁でも正規化できる', async () => {
+
+test.only('番地が一桁でも正規化できる', async () => {
   const event = {
     isDemoMode: true,
     queryStringParameters: {
@@ -914,31 +915,15 @@ test('番地が一桁でも正規化できる', async () => {
   expect(body[0].address.ja.address2).toBe('6-2')
 })
 
-test.only('shoild normalize 2', async () => {
-
-  const events = [
-    '東京都渋谷区神泉町1丁目13',
-    '神奈川県川崎市中原区小杉町一丁目9',
-    '長野県上水内郡信濃町大字古間字柳原449-1',
-    '愛知県みよし市三好町油田20',
-    '愛知県名古屋市中川区大山町3',
-    '愛知県名古屋市瑞穂区彌富町月見ヶ岡25-3',
-    '大阪府茨木市下穂積一丁目2-41-2',
-    '愛知県岡崎市橋目町字毘沙門83-1',
-    '愛知県豊田市若林東町宮間22-6',
-    '福岡県福岡市中央区春吉三丁目14-7-2',
-    '福岡県福岡市中央区春吉三丁目14-7-1',
-    '北海道札幌市中央区南五条東二丁目6-2',
-    '大阪府茨木市西中条町9-3-14',
-  ].map(q => ({
+test.only('小字などを挟んでいても正規化できる', async () => {
+  const event = {
     isDemoMode: true,
     queryStringParameters: {
-      q,
-    },
-  }))
-    // @ts-ignore
-  const lambdaResults = (await Promise.all(events.map(event => handler(event)))) as APIGatewayProxyResult[]
-  const bodies = lambdaResults.map(lambdaResult => JSON.parse(lambdaResult.body))
-  console.log('bodies', JSON.stringify(bodies, null, 2))
-  expect(true).toBe(false)
+      q: '愛知県名古屋市瑞穂区彌富町月見ヶ岡25-3',
+    }
+  }
+  // @ts-ignore
+  const lambdaResult = await handler(event) as APIGatewayProxyResult
+  const body = JSON.parse(lambdaResult.body)
+  expect(body[0].address.ja.address2).toBe('月見ヶ岡25-3')
 })
