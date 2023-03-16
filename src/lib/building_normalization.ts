@@ -16,7 +16,7 @@ export const extractBuildingName: (
   const { banchi_go: ipcBanchiGo, geocoding_level } = geocodedAddr.feature.properties;
 
   // exBanchiGo はベースレジストリ由来。これがある場合はこちらを優先
-  const banchiGo = ((exBanchiGo && exBanchiGo.length >= ipcBanchiGo.length) ? exBanchiGo : ipcBanchiGo) || banchiGoOther;
+  const banchiGo = (exBanchiGo && exBanchiGo.length >= ipcBanchiGo.length) ? exBanchiGo : (ipcBanchiGo || banchiGoOther);
   const banchiGoPosInAddr = banchiGoOther.indexOf(banchiGo);
 
   const ipc_geocoding_level_int = parseInt(geocoding_level, 10);
@@ -25,7 +25,7 @@ export const extractBuildingName: (
     const banchiPattern = ipc_geocoding_level_int === 5 ? banchiGo : '[1-9][0-9]+';
     const banchiGoRegex = new RegExp(`^${banchiPattern}(-[1-9][0-9]*)?`);
     const match = normalizedAddr.addr.match(banchiGoRegex);
-    console.log(3, 30, JSON.stringify({match, normalizedAddr, geocodedAddr}, null, 2));
+    console.log(3, 30, JSON.stringify({match, normalizedAddr, ptn: `^${banchiPattern}(-[1-9][0-9]*)?`, geocodedAddr}, null, 2));
     if (match) {
       const foundBanchiGo = match[0];
       const building = normalizedAddr.addr.replace(foundBanchiGo, '');
