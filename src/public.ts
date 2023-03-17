@@ -213,7 +213,6 @@ export const _handler: PropIdHandler = async (event, context) => {
       prenormalized,
       ipcResult,
     );
-
     if (typeof extractedBuilding.building !== 'undefined') {
       finalNormalized = extractedBuilding;
     }
