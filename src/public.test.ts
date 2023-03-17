@@ -954,6 +954,6 @@ test.only('hoge', async () => {
   // @ts-ignore
   const lambdaResults = (await Promise.all(events.map(event => handler(event)))) as APIGatewayProxyResult[]
   const bodies = lambdaResults.map(lambdaResult => JSON.parse(lambdaResult.body))
-  console.log(bodies)
+  console.log(JSON.stringify(bodies, null, 2))
   expect(true).toBe(false)
 })
