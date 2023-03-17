@@ -18,12 +18,13 @@ export const extractBuildingName: (
   // exBanchiGo はベースレジストリ由来。これがある場合はこちらを優先
   const banchiGo = (exBanchiGo && exBanchiGo.length >= ipcBanchiGo.length) ? exBanchiGo : ipcBanchiGo;
   const banchiGoPosInAddr = banchiGoOther.indexOf(banchiGo);
+  const koazaEtc = banchiGoOther.slice(0, banchiGoPosInAddr);
 
   const ipc_geocoding_level_int = parseInt(geocoding_level, 10);
 
   if (ipc_geocoding_level_int <= 5) {
     const banchiPattern = ipc_geocoding_level_int === 5 ? banchiGo : '[1-9][0-9]*';
-    const banchiGoRegex = new RegExp(`^${banchiPattern}(-[1-9][0-9]*)?`);
+    const banchiGoRegex = new RegExp(`^${koazaEtc}${banchiPattern}(-[1-9][0-9]*)?`);
 
     const match = normalizedAddr.addr.match(banchiGoRegex);
 
