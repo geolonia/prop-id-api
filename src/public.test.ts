@@ -930,7 +930,7 @@ test('小字などを挟んでいても正規化できる', async () => {
   expect(body[0].address.ja.other).toBe('おはようビル')
 })
 
-test.only('hoge', () => {
+test.only('hoge', async () => {
   const events = [
 '東京都渋谷区神泉町1丁目13',
 '神奈川県川崎市中原区小杉町一丁目9',
