@@ -902,28 +902,30 @@ test('should normalize with whitespace inside banchi-go', async () => {
 })
 
 
-test.only('番地が一桁でも正規化できる', async () => {
+test('番地が一桁でも正規化できる', async () => {
   const event = {
     isDemoMode: true,
     queryStringParameters: {
-      q: '北海道札幌市中央区南五条東二丁目6-2',
+      q: '北海道札幌市中央区南五条東二丁目6-2こんにちはビル',
     }
   }
   // @ts-ignore
   const lambdaResult = await handler(event) as APIGatewayProxyResult
   const body = JSON.parse(lambdaResult.body)
   expect(body[0].address.ja.address2).toBe('6-2')
+  expect(body[0].address.ja.other).toBe('こんにちはビル')
 })
 
-test.only('小字などを挟んでいても正規化できる', async () => {
+test('小字などを挟んでいても正規化できる', async () => {
   const event = {
     isDemoMode: true,
     queryStringParameters: {
-      q: '愛知県名古屋市瑞穂区彌富町月見ヶ岡25-3',
+      q: '愛知県名古屋市瑞穂区彌富町月見ヶ岡25-3おはようビル',
     }
   }
   // @ts-ignore
   const lambdaResult = await handler(event) as APIGatewayProxyResult
   const body = JSON.parse(lambdaResult.body)
   expect(body[0].address.ja.address2).toBe('月見ヶ岡25-3')
+  expect(body[0].address.ja.other).toBe('おはようビル')
 })
