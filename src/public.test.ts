@@ -929,3 +929,31 @@ test('小字などを挟んでいても正規化できる', async () => {
   expect(body[0].address.ja.address2).toBe('月見ヶ岡25-3')
   expect(body[0].address.ja.other).toBe('おはようビル')
 })
+
+test.only('hoge', () => {
+  const events = [
+'東京都渋谷区神泉町1丁目13',
+'神奈川県川崎市中原区小杉町一丁目9',
+'長野県上水内郡信濃町大字古間字柳原449-1',
+'愛知県みよし市三好町油田20',
+'愛知県名古屋市中川区大山町3',
+'愛知県名古屋市瑞穂区彌富町月見ヶ岡25-3',
+'大阪府茨木市下穂積一丁目2-41-2',
+'愛知県岡崎市橋目町字毘沙門83-1',
+'愛知県豊田市若林東町宮間22-6',
+'福岡県福岡市中央区春吉三丁目14-7-2',
+'福岡県福岡市中央区春吉三丁目14-7-1',
+'北海道札幌市中央区南五条東二丁目6-2',
+'大阪府茨木市西中条町9-3-14',
+  ].map(q => ({
+    isDemoMode: true,
+    queryStringParameters: {
+      q,
+    },
+  }))
+  // @ts-ignore
+  const lambdaResults = (await Promise.all(events.map(event => handler(event)))) as APIGatewayProxyResult[]
+  const bodies = lambdaResults.map(lambdaResult => JSON.parse(lambdaResult.body))
+  console.log(bodies)
+  expect(true).toBe(false)
+})
