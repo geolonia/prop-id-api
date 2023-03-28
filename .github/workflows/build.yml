@@ -32,7 +32,7 @@ jobs:
       - run: yarn
       - run: yarn lint
       - run: yarn build
-      - run: yarn test -- src/public
+      - run: yarn test
         env:
           INCREMENTP_VERIFICATION_API_ENDPOINT: ${{ secrets.INCREMENTP_VERIFICATION_API_ENDPOINT }}
           INCREMENTP_VERIFICATION_API_KEY: ${{ secrets.INCREMENTP_VERIFICATION_API_KEY }}
