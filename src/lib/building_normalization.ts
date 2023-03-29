@@ -6,7 +6,7 @@ export const extractBuildingName: (
   normalizedAddr: NormalizeResult,
   geocodedAddr: IncrementPGeocodeResult
 ) => NormalizeResult = ( originalAddr, normalizedAddr, geocodedAddr ) => {
-  console.log({originalAddr, normalizedAddr, geocodedAddr});
+
   if ('building' in normalizedAddr && typeof normalizedAddr.building !== 'undefined') {
     // この住所のビル名が既に分離されています
     return normalizedAddr;
@@ -26,7 +26,7 @@ export const extractBuildingName: (
     const banchiPattern = ipc_geocoding_level_int === 5 ? banchiGo : '[1-9][0-9]*';
     const banchiGoRegex = new RegExp(`^${koazaEtc}${banchiPattern}(-[1-9][0-9]*)?`);
     const match = normalizedAddr.addr.match(banchiGoRegex);
-    console.log({match});
+
     if (match) {
       const foundBanchiGo = match[0];
       const building = normalizedAddr.addr.replace(foundBanchiGo, '');
@@ -36,6 +36,7 @@ export const extractBuildingName: (
         building,
       };
     } else {
+      console.log(JSON.stringify({normalizedAddr, geocodedAddr}));
       // どうやら normalizedAddr.addr は建物名のようだ
       return {
         ...normalizedAddr,
