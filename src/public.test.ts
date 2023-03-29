@@ -916,7 +916,7 @@ test('番地が一桁でも正規化できる', async () => {
   expect(body[0].address.ja.other).toBe('こんにちはビル')
 })
 
-test('小字などを挟んでいても正規化できる', async () => {
+test('小字などを挟んでいても正規化できる1', async () => {
   const event = {
     isDemoMode: true,
     queryStringParameters: {
@@ -928,4 +928,18 @@ test('小字などを挟んでいても正規化できる', async () => {
   const body = JSON.parse(lambdaResult.body)
   expect(body[0].address.ja.address2).toBe('月見ヶ岡25-3')
   expect(body[0].address.ja.other).toBe('おはようビル')
+})
+
+test.only('小字などを挟んでいても正規化できる2', async () => {
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '愛知県みよし市三好町油田20',
+    }
+  }
+  // @ts-ignore
+  const lambdaResult = await handler(event) as APIGatewayProxyResult
+  const body = JSON.parse(lambdaResult.body)
+  console.log(body)
+  expect(body[0].address.ja.address2).toBe('油田20')
 })
