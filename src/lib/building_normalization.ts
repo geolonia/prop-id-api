@@ -6,7 +6,7 @@ export const extractBuildingName: (
   normalizedAddr: NormalizeResult,
   geocodedAddr: IncrementPGeocodeResult
 ) => NormalizeResult = ( originalAddr, normalizedAddr, geocodedAddr ) => {
-
+  console.log({originalAddr, normalizedAddr, geocodedAddr});
   if ('building' in normalizedAddr && typeof normalizedAddr.building !== 'undefined') {
     // この住所のビル名が既に分離されています
     return normalizedAddr;
