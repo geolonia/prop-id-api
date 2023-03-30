@@ -3,7 +3,7 @@ const { configure } = require('./dynamodb.config')
 
 const client = new AWS.DynamoDB({
   endpoint: 'http://localhost:8000',
-  region: 'local-region',
+  region: 'local-env',
   sslEnabled: false,
   credentials: {
     accessKeyId: 'XXX',

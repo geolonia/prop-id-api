@@ -9,7 +9,7 @@ process.env.AWS_DYNAMODB_LOG_TABLE_NAME = `estate-id-log-${STAGE}`;
 
 const client = new AWS.DynamoDB({
   endpoint: 'http://localhost:8000',
-  region: 'local-region',
+  region: 'local-env',
   sslEnabled: false,
   credentials: {
     accessKeyId: 'XXX',
