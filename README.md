@@ -15,12 +15,8 @@ $ yarn
 テストには Docker が必要です。
 
 ```shell
-# DynamoDB Local のセットアップ
-$ docker run -d -p 8000:8000 --rm --name prop-id-api__dynamodb-local amazon/dynamodb-local
 # テスト実行
 $ yarn test
-# DynamoDB Local の終了
-$ docker stop prop-id-api__dynamodb-local
 ```
 
 ## リリースフロー

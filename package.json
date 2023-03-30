@@ -34,9 +34,11 @@
   },
   "scripts": {
     "preinstall": "npx only-allow yarn",
-    "test": "ZOOM=22 jest",
+    "pretest": "docker rm -f prop-id-api__dynamodb-local &>/dev/null && docker run -d -p 8000:8000 --rm --name prop-id-api__dynamodb-local amazon/dynamodb-local",
+    "test": "jest",
+    "posttest": "prop-id-api__dynamodb-local",
     "test:ipc": "jest ./src/__tests__/ipc.test.ts",
-    "test:addresses": "node ./src/test_download-data.js && ZOOM=22 jest ./src/addresses.test.ts",
+    "test:addresses": "node ./src/test_download-data.js && jest ./src/addresses.test.ts",
     "lint": "eslint --ext .ts --ext .js src --cache",
     "build": "tsc",
     "start": "sls offline --stage=dev --httpPort 3000",
