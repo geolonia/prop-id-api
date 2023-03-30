@@ -1,5 +1,6 @@
 module.exports = {
-  preset: "@shelf/jest-dynamodb",
+  globalSetup: './__test__/dynamodb.setup.js',
+  globalTeardown: './__test__/dynamodb.teardown.js',
   moduleFileExtensions: ["ts", "js"],
   transform: {
     "^.+\\.ts$": "ts-jest"
@@ -11,4 +12,5 @@ module.exports = {
     "ipc.test.ts",
     "addresses.test.ts"
   ],
+  testEnvironment: "node"
 };

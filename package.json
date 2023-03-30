@@ -5,10 +5,8 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "@aws-sdk/client-dynamodb": "^3.218.0",
     "@geolonia/eslint-config": "^0.0.1",
     "@sentry/serverless": "^6.2.3",
-    "@shelf/jest-dynamodb": "^2.2.3",
     "@slack/types": "^2.8.0",
     "@tsconfig/node16": "^1.0.3",
     "@types/auth0": "^2.35.7",
@@ -36,12 +34,14 @@
   },
   "scripts": {
     "preinstall": "npx only-allow yarn",
-    "test": "ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest",
+    "pretest": "docker rm -f prop-id-api__dynamodb-local &>/dev/null && docker run -d -p 8000:8000 --rm --name prop-id-api__dynamodb-local amazon/dynamodb-local",
+    "test": "jest",
+    "posttest": "docker stop prop-id-api__dynamodb-local || true",
     "test:ipc": "jest ./src/__tests__/ipc.test.ts",
-    "test:addresses": "node ./src/test_download-data.js && ZOOM=22 TEST=1 AWS_PROFILE= AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=XXX AWS_REGION=us-west-2 jest ./src/addresses.test.ts",
+    "test:addresses": "node ./src/test_download-data.js && jest ./src/addresses.test.ts",
     "lint": "eslint --ext .ts --ext .js src --cache",
     "build": "tsc",
-    "start": "TEST=1 sls offline --stage=dev --httpPort 3000",
+    "start": "sls offline --stage=dev --httpPort 3000",
     "deploy:dev": "sls deploy --stage=dev",
     "deploy:v1": "sls deploy --stage=v1",
     "deploy:cdn:dev": "sls deploy -c serverless.cdn.yml --stage=dev"
