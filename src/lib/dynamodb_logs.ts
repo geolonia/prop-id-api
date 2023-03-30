@@ -116,101 +116,101 @@ export const withLock = async <T = any>(lockId: string, inner: () => Promise<T>)
   }
 };
 
-export const normalizeBanchiGo: (prenormalized: NormalizeResult, ignoreBuilding: boolean) => Promise<(NormalizeResult & { int_geocoding_level?: number })>
-  =
-  async (nja: NormalizeResult, ignoreBuilding = false) => {
+type NormalizeBanchiGo = (prenormalized: NormalizeResult, ignoreBuilding: boolean) => Promise<(NormalizeResult & { int_geocoding_level?: number })>;
 
-    if (ignoreBuilding) {
-      let item: { SK: string, latLng?: string } | undefined = undefined;
-      if (nja.exBanchiGo) {
-        item = { SK: nja.exBanchiGo };
-      } else {
-        const result = await DB.get({
-          TableName,
-          Key: { PK: `AddrDB#${nja.pref}${nja.city}${nja.town}`, SK: nja.addr },
-        }).promise();
-        item = result.Item as { SK: string };
+export const normalizeBanchiGo: NormalizeBanchiGo = async (nja: NormalizeResult, ignoreBuilding = false) => {
+
+  if (ignoreBuilding) {
+    let item: { SK: string, latLng?: string } | undefined = undefined;
+    if (nja.exBanchiGo) {
+      item = { SK: nja.exBanchiGo };
+    } else {
+      const result = await DB.get({
+        TableName,
+        Key: { PK: `AddrDB#${nja.pref}${nja.city}${nja.town}`, SK: nja.addr },
+      }).promise();
+      item = result.Item as { SK: string };
+    }
+
+    const narrowedNormal = {
+      ...nja,
+      building: '',
+      int_geocoding_level: 0,
+    };
+    if (item) {
+      // 番地号まで認識できた
+      narrowedNormal.level = 8;
+      if (typeof item.latLng !== 'undefined') {
+        narrowedNormal.lat = parseFloat(item.latLng[0]);
+        narrowedNormal.lng = parseFloat(item.latLng[1]);
+        if (!Number.isNaN(narrowedNormal.lat) && !Number.isNaN(narrowedNormal.lng)) {
+          narrowedNormal.int_geocoding_level = 8;
+        }
       }
+    } else {
+      // 号情報がそもそも存在しない
+      narrowedNormal.level = 7;
+    }
+    return narrowedNormal;
+  }
 
+  if (nja.ambiguousGo && nja.exBanchiGo) {
+    const narrowNormal = {
+      ...nja,
+      addr: nja.exBanchiGo,
+      building: nja.addr.slice(nja.exBanchiGo.length).trim(),
+      int_geocoding_level: 7,
+      level: 7,
+    };
+    return narrowNormal;
+  }
+
+  const residentials = (await listResidentials(nja.pref, nja.city, nja.town) as { gaiku: string, jyukyo: string }[]).map((res) => ({
+    PK: `AddrDB#${nja.pref}${nja.city}${nja.town}`,
+    SK: `${res.gaiku}-${res.jyukyo}`,
+  })) as AddressDatabaseRecord[];
+
+  const dbItems = await DB.query({
+    TableName,
+    KeyConditionExpression: '#pk = :pk',
+    ExpressionAttributeNames: {
+      '#pk': 'PK',
+    },
+    ExpressionAttributeValues: {
+      ':pk': `AddrDB#${nja.pref}${nja.city}${nja.town}`,
+    },
+  }).promise();
+
+  const items = (dbItems.Items || []) as AddressDatabaseRecord[];
+  const concatItems = [...items, ...residentials];
+
+  concatItems.sort((a, b) => b.SK.length - a.SK.length);
+  for (const item of concatItems) {
+    if (nja.addr.startsWith(item.SK)) {
+      // we have a match
       const narrowedNormal = {
         ...nja,
-        building: '',
+        addr: item.SK,
+        building: nja.addr.slice(item.SK.length).trim(),
         int_geocoding_level: 0,
       };
-      if (item) {
+      if (item.SK.indexOf('-') > 0) {
         // 番地号まで認識できた
         narrowedNormal.level = 8;
-        if (typeof item.latLng !== 'undefined') {
-          narrowedNormal.lat = parseFloat(item.latLng[0]);
-          narrowedNormal.lng = parseFloat(item.latLng[1]);
-          if (!Number.isNaN(narrowedNormal.lat) && !Number.isNaN(narrowedNormal.lng)) {
-            narrowedNormal.int_geocoding_level = 8;
-          }
-        }
       } else {
         // 号情報がそもそも存在しない
         narrowedNormal.level = 7;
       }
+      if (typeof item.latLng !== 'undefined') {
+        narrowedNormal.lat = parseFloat(item.latLng[0]);
+        narrowedNormal.lng = parseFloat(item.latLng[1]);
+        if (!Number.isNaN(narrowedNormal.lat) && !Number.isNaN(narrowedNormal.lng)) {
+          narrowedNormal.int_geocoding_level = 8;
+        }
+      }
       return narrowedNormal;
     }
+  }
 
-    if (nja.ambiguousGo && nja.exBanchiGo) {
-      const narrowNormal = {
-        ...nja,
-        addr: nja.exBanchiGo,
-        building: nja.addr.slice(nja.exBanchiGo.length).trim(),
-        int_geocoding_level: 7,
-        level: 7,
-      };
-      return narrowNormal;
-    }
-
-    const residentials = (await listResidentials(nja.pref, nja.city, nja.town) as { gaiku: string, jyukyo: string }[]).map((res) => ({
-      PK: `AddrDB#${nja.pref}${nja.city}${nja.town}`,
-      SK: `${res.gaiku}-${res.jyukyo}`,
-    })) as AddressDatabaseRecord[];
-
-    const dbItems = await DB.query({
-      TableName,
-      KeyConditionExpression: '#pk = :pk',
-      ExpressionAttributeNames: {
-        '#pk': 'PK',
-      },
-      ExpressionAttributeValues: {
-        ':pk': `AddrDB#${nja.pref}${nja.city}${nja.town}`,
-      },
-    }).promise();
-
-    const items = (dbItems.Items || []) as AddressDatabaseRecord[];
-    const concatItems = [...items, ...residentials];
-
-    concatItems.sort((a, b) => b.SK.length - a.SK.length);
-    for (const item of concatItems) {
-      if (nja.addr.startsWith(item.SK)) {
-        // we have a match
-        const narrowedNormal = {
-          ...nja,
-          addr: item.SK,
-          building: nja.addr.slice(item.SK.length).trim(),
-          int_geocoding_level: 0,
-        };
-        if (item.SK.indexOf('-') > 0) {
-          // 番地号まで認識できた
-          narrowedNormal.level = 8;
-        } else {
-          // 号情報がそもそも存在しない
-          narrowedNormal.level = 7;
-        }
-        if (typeof item.latLng !== 'undefined') {
-          narrowedNormal.lat = parseFloat(item.latLng[0]);
-          narrowedNormal.lng = parseFloat(item.latLng[1]);
-          if (!Number.isNaN(narrowedNormal.lat) && !Number.isNaN(narrowedNormal.lng)) {
-            narrowedNormal.int_geocoding_level = 8;
-          }
-        }
-        return narrowedNormal;
-      }
-    }
-
-    return nja;
-  };
+  return nja;
+};

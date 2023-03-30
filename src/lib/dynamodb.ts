@@ -6,7 +6,7 @@ const REDIRECT_MAX = 4;
 export const DB = process.env.JEST_WORKER_ID ? (
   new AWS.DynamoDB.DocumentClient({
     endpoint: 'http://localhost:8000',
-    region: 'local-env',
+    region: 'ap-northeast-1',
     sslEnabled: false,
     credentials: {
       accessKeyId: 'XXX',
