@@ -36,7 +36,7 @@
     "preinstall": "npx only-allow yarn",
     "pretest": "docker rm -f prop-id-api__dynamodb-local &>/dev/null && docker run -d -p 8000:8000 --rm --name prop-id-api__dynamodb-local amazon/dynamodb-local",
     "test": "jest",
-    "posttest": "prop-id-api__dynamodb-local",
+    "posttest": "docker stop prop-id-api__dynamodb-local || true",
     "test:ipc": "jest ./src/__tests__/ipc.test.ts",
     "test:addresses": "node ./src/test_download-data.js && jest ./src/addresses.test.ts",
     "lint": "eslint --ext .ts --ext .js src --cache",
