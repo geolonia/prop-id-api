@@ -15,7 +15,7 @@ export interface NormalizeResult extends NormalizeResultBase {
 
 // TODO: japanese-addresses 拡張オブジェクトをバージョニングする
 const japaneseAddressesVersion = 'next';
-NJAConfig.japaneseAddressesApi = `https://japanese-addresses.geolonia.com/${japaneseAddressesVersion}/ja`;
+NJAConfig.japaneseAddressesApi = `https://d1be62a5yyiafm.cloudfront.net/${japaneseAddressesVersion}/ja`;
 NJAConfig.geoloniaApiKey = process.env.GEOLONIA_API_KEY;
 
 export const joinNormalizeResult = (n: NormalizeResult) => (
