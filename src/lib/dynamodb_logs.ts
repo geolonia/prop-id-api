@@ -125,7 +125,6 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult, ignoreBuilding:
       if (nja.exBanchiGo) {
         item = { SK: nja.exBanchiGo };
       } else {
-        // 内部番地号データベースに問い合わせる
         const result = await DB.get({
           TableName,
           Key: { PK: `AddrDB#${nja.pref}${nja.city}${nja.town}`, SK: nja.addr },
@@ -181,8 +180,6 @@ export const normalizeBanchiGo: (prenormalized: NormalizeResult, ignoreBuilding:
         ':pk': `AddrDB#${nja.pref}${nja.city}${nja.town}`,
       },
     }).promise();
-
-    console.log(`AddrDB#${nja.pref}${nja.city}${nja.town}`, dbItems);
 
     const items = (dbItems.Items || []) as AddressDatabaseRecord[];
     const concatItems = [...items, ...residentials];

@@ -98,12 +98,10 @@ export const _handler: PropIdHandler = async (event, context) => {
       400
     );
   }
-  console.log(1, prenormalized);
+
   const internalBGNormalized = await normalizeBanchiGo(prenormalized, ignoreBuilding);
-  console.log(2, internalBGNormalized);
   prenormalizedStr = joinNormalizeResult(internalBGNormalized);
   const ipcResult = await incrementPGeocode(prenormalizedStr);
-  console.log(3, ipcResult);
 
   if (!ipcResult) {
     Sentry.captureException(new Error('IPC result null'));
