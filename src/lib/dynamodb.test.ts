@@ -168,7 +168,7 @@ describe('checkServiceUsageQuota', () => {
   test('it works', async () => {
     const { apiKey } = await dynamodb.createApiKey('should get estate ID with details if authenticated')
     const quotaType = "id-req"
-    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas: {} })
+    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas: {}, plan: 'free' })
 
     expect(res.checkResult).toStrictEqual(true)
   })
@@ -182,7 +182,7 @@ describe('checkServiceUsageQuota', () => {
     // Add 10000 for requested count
     await _updateServiceUsageQuota(usageKey, 10000)
 
-    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas: {} })
+    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas: {}, plan: 'free' })
 
     expect(res.checkResult).toStrictEqual(false)
   })
@@ -196,7 +196,7 @@ describe('checkServiceUsageQuota', () => {
     // Add 10000 for requested count
     await _updateServiceUsageQuota(usageKey, 5000)
 
-    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas: {} })
+    const res = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas: {}, plan: 'free' })
 
     expect(res.checkResult).toStrictEqual(true)
     expect(res.quotaLimit).toStrictEqual(10000)
@@ -226,7 +226,7 @@ describe('getQuotaLimit', () => {
 
     const quotaType = "id-req";
     const customQuotas = {}
-    const quotaLimits = dynamodb.getQuotaLimit( quotaType, customQuotas )
+    const quotaLimits = dynamodb.getQuotaLimit( quotaType, customQuotas, 'free' )
 
     // @ts-ignore
     expect(quotaLimits).toStrictEqual(10000)
@@ -237,7 +237,7 @@ describe('getQuotaLimit', () => {
     const customQuotas = {
       'id-req' : 500_000
     }
-    const quotaLimits = dynamodb.getQuotaLimit( quotaType, customQuotas )
+    const quotaLimits = dynamodb.getQuotaLimit( quotaType, customQuotas, 'free' )
 
     // @ts-ignore
     expect(quotaLimits).toStrictEqual(500000)
@@ -247,10 +247,20 @@ describe('getQuotaLimit', () => {
 
     const quotaType = "xxx";
     const customQuotas = {}
-    const quotaLimits = dynamodb.getQuotaLimit( quotaType, customQuotas )
+    const quotaLimits = dynamodb.getQuotaLimit( quotaType, customQuotas, 'free' )
 
     // @ts-ignore
     expect(quotaLimits).toStrictEqual(0)
+  })
+
+  test('it works with paid plan', () => {
+
+      const quotaType = "id-req";
+      const customQuotas = {}
+      const quotaLimits = dynamodb.getQuotaLimit( quotaType, customQuotas, 'paid' )
+
+      // @ts-ignore
+      expect(quotaLimits).toStrictEqual(50_000)
   })
 
 })

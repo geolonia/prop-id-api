@@ -54,6 +54,7 @@ export const authenticateEvent = async (event: PublicHandlerEvent, quotaType: st
     apiKey,
     quotaType,
     customQuotas,
+    plan,
   });
 
   const quotaParams = {

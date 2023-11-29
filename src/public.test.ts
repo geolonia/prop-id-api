@@ -929,3 +929,26 @@ test('小字などを挟んでいても正規化できる', async () => {
   expect(body[0].address.ja.address2).toBe('月見ヶ岡25-3')
   expect(body[0].address.ja.other).toBe('おはようビル')
 })
+
+test.only('小字などを挟んでいても正規化できる', async () => {
+
+  await dynamodb.DB.put({
+    TableName: process.env.AWS_DYNAMODB_LOG_TABLE_NAME,
+    Item: {
+      PK: `AddrDB#東京都新宿区早稲田鶴巻町`,
+      SK: '503-3',
+    }
+  }).promise()
+
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '東京都新宿区早稲田鶴巻町５０３－３－２０３',
+    }
+  }
+  // @ts-ignore
+  const lambdaResult = await handler(event) as APIGatewayProxyResult
+  console.log(lambdaResult)
+  expect(true).toBe(false)
+})
+

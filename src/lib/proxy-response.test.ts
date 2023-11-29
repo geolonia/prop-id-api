@@ -13,7 +13,7 @@ describe('createHeaders', () => {
     const resetDate = DateTime.now().setZone('Asia/Tokyo').startOf('month').plus({months: 1}).toISO()
     await dynamodb.incrementServiceUsage({ apiKey, quotaType })
 
-    const { quotaLimit, quotaRemaining, quotaResetDate} = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas })
+    const { quotaLimit, quotaRemaining, quotaResetDate} = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas, plan: 'free' })
     const headers = proxyResponse.createHeaders( { quotaLimit, quotaRemaining, quotaResetDate })
 
     const expected = {
@@ -40,7 +40,7 @@ describe('createHeaders', () => {
 
     await dynamodb.incrementServiceUsage({ apiKey, quotaType })
 
-    const { quotaLimit, quotaRemaining, quotaResetDate} = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas })
+    const { quotaLimit, quotaRemaining, quotaResetDate} = await dynamodb.checkServiceUsageQuota({ apiKey, quotaType, customQuotas, plan: 'free' })
     const headers = proxyResponse.createHeaders( { quotaLimit, quotaRemaining, quotaResetDate })
 
     // @ts-ignore
