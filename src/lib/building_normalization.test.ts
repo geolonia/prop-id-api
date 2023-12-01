@@ -92,4 +92,15 @@ describe('normalizeBuildingName', () => {
   test('Should normalize Ｄ’クラディア八日町 to D’クラディア八日町', () => {
     expect(normalizeBuildingName('Ｄ’クラディア八日町')).toStrictEqual('D’クラディア八日町');
   });
+
+  test('() を小字相当部分に含む住所でクラッシュしない', async () => {
+    const addr = '東京都渋谷区神泉町1丁目(仮)'
+    const normalization = await normalize(addr);
+    const geocoding = await incrementPGeocode(joinNormalizeResult(normalization));
+    if (geocoding === false) {
+      throw new Error('geocoding failed')
+    }
+    const normWithoutBuilding = extractBuildingName(addr, normalization, geocoding);
+    const extracted = normWithoutBuilding.building || '';
+  })
 });
