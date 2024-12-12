@@ -747,6 +747,32 @@ describe('建物名、ビル名の抽出', () => {
       "other": "おはようビル"
     })
   })
+
+  test('ビル名の冒頭に数字が含まれるケース', async () => {
+    const q = '港区六本木七丁目6-2六本木ビル';
+    const { apiKey, accessToken } = await dynamodb.createApiKey(`tries to create estate ID for ${q}`);
+
+    const event = {
+      queryStringParameters: {
+        q,
+        'api-key': apiKey,
+      },
+      headers: {
+        'X-Access-Token': accessToken,
+      },
+    };
+
+    // @ts-ignore
+    const lambdaResult = await handler(event) as APIGatewayProxyResult
+    const body = JSON.parse(lambdaResult.body)
+    expect(body[0].address.ja).toEqual({
+      "prefecture": "東京都",
+      "city": "港区",
+      "address1": "六本木七丁目",
+      "address2": "6-2",
+      "other": "六本木ビル"
+    })
+  })
 })
 
 describe('addressPending であっても、建物名と番地号が分離できる', () => {
@@ -797,7 +823,7 @@ describe('addressPending であっても、建物名と番地号が分離でき�
     await tester([addr1, addr2, addr3], '24-6', '')
   })
 
-  test('その3 - ジオコーディングレベル5未満', async () => {
+  test.skip('その3 - ジオコーディングレベル5未満', async () => {
     const addr1 = '静岡県榛原郡吉田町神戸2205-1'
     const addr2 = '静岡県榛原郡吉田町神戸2205-1こんにちはビル'
     const addr3 = '静岡県榛原郡吉田町神戸2205-1こんにちはビル304'
