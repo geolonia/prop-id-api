@@ -10,6 +10,12 @@ $ vim .envrc # fill the values
 $ yarn
 ```
 
+## 過去に発行した不動産オープンIDのCSV作成
+
+```
+$ npx ts-node bin/estate-id-create-list.ts ./out/all-ids.csv
+```
+
 ## テスト実行
 
 テストには Docker が必要です。
