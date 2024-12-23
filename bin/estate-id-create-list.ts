@@ -79,7 +79,7 @@ export async function main(argv: string[]) {
   const idOutputQueue = async.queue<string>(async (id) => {
     const {min_createat, max_createat, cnt} = idStats.get(id)!;
     const {address, rawAddress} = idAttributes.get(id)!;
-    await out.write(`${id},${min_createat},${max_createat},${cnt},${address},${rawAddress}\n`);
+    await out.write(`${id},${min_createat},${max_createat},${cnt},"${address}","${rawAddress}"\n`);
     idStats.delete(id);
     idAttributes.delete(id);
   }, 1)
