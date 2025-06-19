@@ -115,9 +115,8 @@ https://api.propid.jp/v1
     "location": {
       "lat": "緯度",
       "lng": "経度"
-    }
-  },
-  "status": null | "addressPending",
+    },
+    "status": null | "addressPending",
     "query": {
       "input": "東京都千代田区永田町1-7-1 xxxビル",
       "address": {
