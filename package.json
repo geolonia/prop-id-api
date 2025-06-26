@@ -39,7 +39,7 @@
   },
   "scripts": {
     "preinstall": "npx only-allow yarn",
-    "pretest": "docker rm -f prop-id-api__dynamodb-local &>/dev/null && sleep 1 && docker run -d -p 8000:8000 --rm --name prop-id-api__dynamodb-local amazon/dynamodb-local",
+    "pretest": "docker rm -f prop-id-api__dynamodb-local &>/dev/null && docker run -d -p 8000:8000 --rm --name prop-id-api__dynamodb-local amazon/dynamodb-local",
     "test": "jest",
     "posttest": "docker stop prop-id-api__dynamodb-local || true",
     "test:ipc": "jest ./src/__tests__/ipc.test.ts",
