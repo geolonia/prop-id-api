@@ -288,7 +288,6 @@ export const _handler: PropIdHandler = async (event, context) => {
     {
       existing,
       estateIds: rawEstateIds.map((rawEstateId) => rawEstateId.estateId),
-      rawAddress: address,
     },
     { apiKey },
   ));
