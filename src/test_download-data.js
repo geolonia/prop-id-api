@@ -7,7 +7,7 @@ const file = path.join(path.dirname(__filename), '/addresses.csv')
 
 if(!fs.existsSync(file)) {
 
-  https.get('https://raw.githubusercontent.com/geolonia/normalize-japanese-addresses/nja-2.x/test/addresses.csv', response => {
+  https.get('https://raw.githubusercontent.com/geolonia/normalize-japanese-addresses/master/test/addresses.csv', response => {
     response.pipe(fs.createWriteStream(file));
   });
 }
