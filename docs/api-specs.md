@@ -77,7 +77,7 @@ https://api.propid.jp/v1
     <td>ignore-building</td>
     <td>boolean</td>
     <td>query</td>
-    <td>建物名の抽出をしない場合は true を指定 (デフォルト: false)</td>
+    <td>住所 + 建物名によって別のIDを作成したい場合は true を指定 (デフォルト: false)</td>
   </tr>
 </table>
 
