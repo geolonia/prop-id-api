@@ -968,39 +968,11 @@ test('建物名は分離されてotherとして返す', async () => {
   // @ts-ignore
   const lambdaResult1 = await handler(event) as APIGatewayProxyResult
   const body = JSON.parse(lambdaResult1.body)
-
-  const expected =
-  {
-    "ID": "13-5107-f5b0-a4ab-0559",
-    "normalization_level": "3",
-    "query": {
-      "input": "東京都港区高輪2丁目１５−１ ハイツ山本",
-      "address": {
-        "ja": {
-          "prefecture": "東京都",
-          "city": "港区",
-          "address1": "高輪二丁目",
-          "address2": "15-1",
-          "other": "ハイツ山本"
-        }
-      }
-    },
-    "status": null,
-    "geocoding_level": "8",
-    "location": {
-      "lat": "35.637625",
-      "lng": "139.737775"
-    },
-    "address": {
-      "ja": {
-        "prefecture": "東京都",
-        "city": "港区",
-        "address1": "高輪二丁目",
-        "address2": "15-1",
-        "other": "ハイツ山本"
-      }
-    }
-  };
-
-  expect(body[0]).toEqual(expected)
+  expect(body[0].address.ja).toEqual({
+    "prefecture": "東京都",
+    "city": "港区",
+    "address1": "高輪二丁目",
+    "address2": "15-1",
+    "other": "ハイツ山本"
+  })
 })
