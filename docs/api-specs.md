@@ -57,7 +57,7 @@ https://api.propid.jp/v1
 ### リクエスト
 
 ```
-[GET] /?api-key={api-key}&q={address}
+[GET] /?api-key={api-key}&q={address}&ignore-building={true|false}
 ```
 
 <table>
@@ -72,6 +72,12 @@ https://api.propid.jp/v1
     <td>string</td>
     <td>query</td>
     <td>物件の住所</td>
+  </tr>
+  <tr>
+    <td>ignore-building</td>
+    <td>boolean</td>
+    <td>query</td>
+    <td>住所 + 建物名によって別のIDを作成したい場合は true を指定 (デフォルト: false)</td>
   </tr>
 </table>
 
