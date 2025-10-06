@@ -57,7 +57,7 @@ https://api.propid.jp/v1
 ### リクエスト
 
 ```
-[GET] /?api-key={api-key}&q={address}
+[GET] /?api-key={api-key}&q={address}&ignore-building={true|false}
 ```
 
 <table>
@@ -73,6 +73,12 @@ https://api.propid.jp/v1
     <td>query</td>
     <td>物件の住所</td>
   </tr>
+  <tr>
+    <td>ignore-building</td>
+    <td>boolean</td>
+    <td>query</td>
+    <td>建物名の抽出をしない場合は true を指定 (デフォルト: false)</td>
+  </tr>
 </table>
 
 ### レスポンス
@@ -87,16 +93,12 @@ https://api.propid.jp/v1
     "status": null | "addressPending",
     "query": {
       "input": "東京都千代田区永田町1-7-1 xxxビル",
-      "rawAdress": "東京都千代田区永田町1-7-1 xxxビル",
-      "ignore-building": false
     }
   }
 ]
 ```
 
 - `query.input` フィールドは、クエリとして入力した住所文字列をそのまま返却します
-- `query.rawAdress` フィールドは、API が受け取った住所文字列をそのまま返却します（綴りは実際のレスポンスに合わせています）
-- `query["ignore-building"]` フィールドは、クエリパラメーター `ignore-building` の受信値を `true` / `false` で返却します
 - `query.address.ja` フィールドは、クエリ文字列を正規化した結果を返却します
 
 #### 有料プラン
