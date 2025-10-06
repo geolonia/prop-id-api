@@ -126,7 +126,6 @@ https://api.propid.jp/v1
     "query": {
       "input": "東京都千代田区永田町1-7-1 xxxビル",
       "rawAdress": "東京都千代田区永田町1-7-1 xxxビル",
-      "ignore-building": false,
       "address": {
         "ja": {
           "prefecture": "東京都",
