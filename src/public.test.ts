@@ -955,3 +955,24 @@ test('小字などを挟んでいても正規化できる', async () => {
   expect(body[0].address.ja.address2).toBe('月見ヶ岡25-3')
   expect(body[0].address.ja.other).toBe('おはようビル')
 })
+
+
+test('建物名は分離されてotherとして返す', async () => {
+
+  const event = {
+    isDemoMode: true,
+    queryStringParameters: {
+      q: '東京都港区高輪2丁目１５−１ ハイツ山本',
+    },
+  }
+  // @ts-ignore
+  const lambdaResult1 = await handler(event) as APIGatewayProxyResult
+  const body = JSON.parse(lambdaResult1.body)
+  expect(body[0].address.ja).toEqual({
+    "prefecture": "東京都",
+    "city": "港区",
+    "address1": "高輪二丁目",
+    "address2": "15-1",
+    "other": "ハイツ山本"
+  })
+})
