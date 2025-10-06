@@ -57,7 +57,7 @@ describe('IncrementP Verification API', () => {
             },
             "properties": {
               "query": "盛岡市盛岡駅西通町２丁目９番地１号 マリオス10F",
-              "place_name": "岩手県盛岡市盛岡駅西通2丁目 9-1 マリオス10F",
+              "place_name": "岩手県盛岡市盛岡駅西通2丁目9-1 マリオス10F",
               "not_normalized": "",
               "pref": "岩手県",
               "pref_kana": "イワテケン",
