@@ -77,9 +77,23 @@ https://api.propid.jp/v1
     <td>ignore-building</td>
     <td>boolean</td>
     <td>query</td>
-    <td>住所 + 建物名によって別のIDを作成したい場合は true を指定 (デフォルト: false)</td>
+    <td>
+      IDを付与する対象を指定する設定。（デフォルト：false）<br>
+      <ul>
+        <li>
+          <strong>true：</strong>住所＋建物にIDを付与する設定<br>
+          （例：東京都文京区本駒込二丁目28番8号 文京グリーンコートセンターオフィス 22F）
+        </li>
+        <li>
+          <strong>false：</strong>住所にIDを付与する設定（建物名を除く）<br>
+          （例：東京都文京区本駒込二丁目28番8号）
+        </li>
+      </ul>
+    </td>
   </tr>
 </table>
+
+
 
 ### レスポンス
 
