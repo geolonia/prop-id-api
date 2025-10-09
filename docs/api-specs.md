@@ -81,7 +81,7 @@ https://api.propid.jp/v1
       IDを付与する対象を指定する設定。（デフォルト：false）<br>
       <ul>
         <li>
-          <strong>true：</strong>建物にIDを付与する設定<br>
+          <strong>true：</strong>住所＋建物にIDを付与する設定<br>
           （例：東京都文京区本駒込二丁目28番8号 文京グリーンコートセンターオフィス 22F）
         </li>
         <li>
