@@ -28,10 +28,7 @@ export const versions = {
 };
 
 export const normalize = async (input: string) => {
-  // ビル名が数字から始まるケースに対応するために、英数字と漢数字が混在する箇所の間にスペースを追加するようにパッチ
-  const patch = input.replace(/([0-9０-９])([一二三四五六七八九])/g, '$1 $2');
-
-  const result = await _normalize(patch) as NormalizeResult;
+  const result = await _normalize(input) as NormalizeResult;
   // NJA は最大レベル8(住居表示、住居番号レベル)までの正規化を行うが、住居表示住所のデータは建物名の分離にのみ利用する
   if (result.level > 3) {
     result.level = 3;
