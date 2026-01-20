@@ -10,7 +10,8 @@ module.exports = {
     "bin",
     "__tests__",
     "ipc.test.ts",
-    "addresses.test.ts"
+    "addresses.test.ts",
+    "all-ids.test.ts",
   ],
   testEnvironment: "node"
 };
