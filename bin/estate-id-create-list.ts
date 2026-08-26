@@ -96,13 +96,13 @@ export async function main(argv: string[]) {
       },
     });
     const response = await docClient.send(command);
+    // Re-queue unprocessed keys, but still write out the items that were returned in this batch.
     const unprocessedKeys = response.UnprocessedKeys?.['estate-id-v1']?.Keys || [];
     if (unprocessedKeys.length > 0) {
-      console.error("Unprocessed items", unprocessedKeys);
-      idFetchQueue.push(unprocessedKeys);
-      return;
+      console.error(`Unprocessed items (${unprocessedKeys.length}), re-queueing`);
+      idFetchQueue.push(unprocessedKeys as Record<string, string>[]);
     }
-    const items = response.Responses!['estate-id-v1'];
+    const items = response.Responses?.['estate-id-v1'] || [];
     for (const item of items) {
       idAttributes.set(item.estateId, {address: item.address, rawAddress: item.rawAddress});
       idOutputQueue.push(item.estateId);
