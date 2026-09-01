@@ -2,6 +2,8 @@ import {
   createIdFetchQueue,
   computeBackoffDelayMs,
   MAX_BATCH_GET_RETRIES,
+  BATCH_GET_BASE_DELAY_MS,
+  BATCH_GET_MAX_DELAY_MS,
 } from './batch_get_queue'
 
 type Key = { estateId: string }
@@ -33,7 +35,7 @@ const makeMockDocClient = (responder: (keys: Key[], callIndex: number) => {
   return { send, calls }
 }
 
-const runQueue = async (keys: Key[], docClient: { send: jest.Mock }, opts: { maxRetries?: number, sleepFn?: (ms: number) => Promise<void> } = {}) => {
+const runQueue = async (keys: Key[], docClient: { send: jest.Mock }, opts: { maxRetries?: number, sleepFn?: (ms: number) => Promise<void>, randomFn?: () => number } = {}) => {
   const idAttributes: Map<string, { address: string, rawAddress: string }> = new Map()
   const output: string[] = []
   const idOutputQueue = { push: (id: string) => { output.push(id) } }
@@ -54,22 +56,42 @@ const runQueue = async (keys: Key[], docClient: { send: jest.Mock }, opts: { max
 }
 
 describe('computeBackoffDelayMs', () => {
+  // randomFn always returning 1 disables jitter (delay === cap), so the exponential growth
+  // itself can be asserted deterministically.
+  const noJitter = () => 1
+
   it('grows exponentially with the attempt number', () => {
-    expect(computeBackoffDelayMs(1, 100, 5000)).toBe(100)
-    expect(computeBackoffDelayMs(2, 100, 5000)).toBe(200)
-    expect(computeBackoffDelayMs(3, 100, 5000)).toBe(400)
-    expect(computeBackoffDelayMs(4, 100, 5000)).toBe(800)
+    expect(computeBackoffDelayMs(1, 100, 5000, noJitter)).toBe(100)
+    expect(computeBackoffDelayMs(2, 100, 5000, noJitter)).toBe(200)
+    expect(computeBackoffDelayMs(3, 100, 5000, noJitter)).toBe(400)
+    expect(computeBackoffDelayMs(4, 100, 5000, noJitter)).toBe(800)
   })
 
   it('caps the delay at maxDelayMs', () => {
-    expect(computeBackoffDelayMs(10, 100, 5000)).toBe(5000)
+    expect(computeBackoffDelayMs(10, 100, 5000, noJitter)).toBe(5000)
+  })
+
+  it('applies full jitter: scales the cap by randomFn() instead of always returning it', () => {
+    // Attempt 3 with base 100 -> uncapped cap is 400.
+    expect(computeBackoffDelayMs(3, 100, 5000, () => 0)).toBe(0)
+    expect(computeBackoffDelayMs(3, 100, 5000, () => 0.5)).toBe(200)
+    expect(computeBackoffDelayMs(3, 100, 5000, () => 1)).toBe(400)
+  })
+
+  it('defaults to Math.random and always stays within [0, cap]', () => {
+    const cap = Math.min(BATCH_GET_BASE_DELAY_MS * (2 ** 3), BATCH_GET_MAX_DELAY_MS)
+    for (let i = 0; i < 50; i++) {
+      const delay = computeBackoffDelayMs(4)
+      expect(delay).toBeGreaterThanOrEqual(0)
+      expect(delay).toBeLessThanOrEqual(cap)
+    }
   })
 })
 
 describe('createIdFetchQueue', () => {
   it('keeps items returned in a response even when the same response has UnprocessedKeys (regression for #437)', async () => {
     const keys: Key[] = [{ estateId: 'a' }, { estateId: 'b' }, { estateId: 'c' }, { estateId: 'd' }, { estateId: 'e' }, { estateId: 'f' }]
-    const { send } = makeMockDocClient((requested, callIndex) => {
+    const { send, calls } = makeMockDocClient((requested, callIndex) => {
       if (callIndex === 0) {
         // First call: e and f come back unprocessed, a-d succeed.
         const unprocessed = requested.filter((k) => k.estateId === 'e' || k.estateId === 'f')
@@ -149,14 +171,35 @@ describe('createIdFetchQueue', () => {
       return { processed: requested, unprocessed: [] }
     })
     const sleepFn = jest.fn(async (_ms: number) => {})
+    // Fixed randomFn so the exact delay values below are deterministic (no jitter, i.e. cap).
+    const randomFn = () => 1
 
-    const { fetchErrors } = await runQueue(keys, { send }, { sleepFn })
+    const { fetchErrors } = await runQueue(keys, { send }, { sleepFn, randomFn })
 
     expect(fetchErrors).toHaveLength(0)
     expect(sleepFn).toHaveBeenCalledTimes(2)
-    expect(sleepFn).toHaveBeenNthCalledWith(1, computeBackoffDelayMs(1))
-    expect(sleepFn).toHaveBeenNthCalledWith(2, computeBackoffDelayMs(2))
+    expect(sleepFn).toHaveBeenNthCalledWith(1, computeBackoffDelayMs(1, undefined, undefined, randomFn))
+    expect(sleepFn).toHaveBeenNthCalledWith(2, computeBackoffDelayMs(2, undefined, undefined, randomFn))
     expect(sleepFn.mock.calls[1][0]).toBeGreaterThan(sleepFn.mock.calls[0][0])
+  })
+
+  it('passes randomFn through to computeBackoffDelayMs so jitter is applied to the actual sleep', async () => {
+    const keys: Key[] = [{ estateId: 'stuck' }]
+    const { send } = makeMockDocClient((requested, callIndex) => {
+      if (callIndex === 0) {
+        return { processed: [], unprocessed: requested }
+      }
+      return { processed: requested, unprocessed: [] }
+    })
+    const sleepFn = jest.fn(async (_ms: number) => {})
+    const randomFn = () => 0.5
+
+    await runQueue(keys, { send }, { sleepFn, randomFn })
+
+    expect(sleepFn).toHaveBeenCalledTimes(1)
+    // Half of the no-jitter (randomFn -> 1) delay for attempt 1.
+    expect(sleepFn).toHaveBeenCalledWith(computeBackoffDelayMs(1, undefined, undefined, () => 1) / 2)
+    expect(sleepFn).toHaveBeenCalledWith(computeBackoffDelayMs(1, undefined, undefined, randomFn))
   })
 
   it('resets a key\'s attempt counter once it succeeds, so a later reappearance starts at attempt 1 again', async () => {
@@ -181,15 +224,16 @@ describe('createIdFetchQueue', () => {
     const idAttributes: Map<string, { address: string, rawAddress: string }> = new Map()
     const idOutputQueue = { push: (_id: string) => {} }
     const sleepFn = jest.fn(async (_ms: number) => {})
+    const randomFn = () => 1
 
-    const { idFetchQueue } = createIdFetchQueue({ docClient: { send }, idAttributes, idOutputQueue, sleepFn })
-
-    idFetchQueue.push({ estateId: 'repeat' })
-    await idFetchQueue.drain()
-    expect(sleepFn).toHaveBeenNthCalledWith(1, computeBackoffDelayMs(1))
+    const { idFetchQueue } = createIdFetchQueue({ docClient: { send }, idAttributes, idOutputQueue, sleepFn, randomFn })
 
     idFetchQueue.push({ estateId: 'repeat' })
     await idFetchQueue.drain()
-    expect(sleepFn).toHaveBeenNthCalledWith(2, computeBackoffDelayMs(1))
+    expect(sleepFn).toHaveBeenNthCalledWith(1, computeBackoffDelayMs(1, undefined, undefined, randomFn))
+
+    idFetchQueue.push({ estateId: 'repeat' })
+    await idFetchQueue.drain()
+    expect(sleepFn).toHaveBeenNthCalledWith(2, computeBackoffDelayMs(1, undefined, undefined, randomFn))
   })
 })
