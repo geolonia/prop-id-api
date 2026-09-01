@@ -2,7 +2,7 @@ import {
   createIdFetchQueue,
   computeBackoffDelayMs,
   MAX_BATCH_GET_RETRIES,
-} from '../../bin/estate-id-create-list'
+} from './batch_get_queue'
 
 type Key = { estateId: string }
 type Item = { estateId: string, address: string, rawAddress: string }
@@ -23,6 +23,7 @@ const makeMockDocClient = (responder: (keys: Key[], callIndex: number) => {
     const { processed, unprocessed } = responder(keys, callIndex)
     callIndex += 1
     return {
+      $metadata: {},
       Responses: { 'estate-id-v1': processed.map(toItem) },
       UnprocessedKeys: unprocessed.length > 0
         ? { 'estate-id-v1': { Keys: unprocessed } }
@@ -68,7 +69,7 @@ describe('computeBackoffDelayMs', () => {
 describe('createIdFetchQueue', () => {
   it('keeps items returned in a response even when the same response has UnprocessedKeys (regression for #437)', async () => {
     const keys: Key[] = [{ estateId: 'a' }, { estateId: 'b' }, { estateId: 'c' }, { estateId: 'd' }, { estateId: 'e' }, { estateId: 'f' }]
-    const { send, calls } = makeMockDocClient((requested, callIndex) => {
+    const { send } = makeMockDocClient((requested, callIndex) => {
       if (callIndex === 0) {
         // First call: e and f come back unprocessed, a-d succeed.
         const unprocessed = requested.filter((k) => k.estateId === 'e' || k.estateId === 'f')
@@ -156,5 +157,39 @@ describe('createIdFetchQueue', () => {
     expect(sleepFn).toHaveBeenNthCalledWith(1, computeBackoffDelayMs(1))
     expect(sleepFn).toHaveBeenNthCalledWith(2, computeBackoffDelayMs(2))
     expect(sleepFn.mock.calls[1][0]).toBeGreaterThan(sleepFn.mock.calls[0][0])
+  })
+
+  it('resets a key\'s attempt counter once it succeeds, so a later reappearance starts at attempt 1 again', async () => {
+    // 'repeat' is unprocessed on its first appearance (call 0), succeeds on the retry (call 1),
+    // then is pushed again and is unprocessed once more (call 2) before succeeding (call 3). If
+    // the attempt counter were not cleared after the first success, the second round would be
+    // treated as attempt 3 instead of attempt 1.
+    let call = 0
+    const send = jest.fn(async (command: any) => {
+      const keys: Key[] = command.input.RequestItems['estate-id-v1'].Keys
+      const idx = call
+      call += 1
+      const unprocessed = idx === 0 || idx === 2 ? keys : []
+      const processed = idx === 0 || idx === 2 ? [] : keys
+      return {
+        $metadata: {},
+        Responses: { 'estate-id-v1': processed.map(toItem) },
+        UnprocessedKeys: unprocessed.length > 0 ? { 'estate-id-v1': { Keys: unprocessed } } : undefined,
+      }
+    })
+
+    const idAttributes: Map<string, { address: string, rawAddress: string }> = new Map()
+    const idOutputQueue = { push: (_id: string) => {} }
+    const sleepFn = jest.fn(async (_ms: number) => {})
+
+    const { idFetchQueue } = createIdFetchQueue({ docClient: { send }, idAttributes, idOutputQueue, sleepFn })
+
+    idFetchQueue.push({ estateId: 'repeat' })
+    await idFetchQueue.drain()
+    expect(sleepFn).toHaveBeenNthCalledWith(1, computeBackoffDelayMs(1))
+
+    idFetchQueue.push({ estateId: 'repeat' })
+    await idFetchQueue.drain()
+    expect(sleepFn).toHaveBeenNthCalledWith(2, computeBackoffDelayMs(1))
   })
 })
