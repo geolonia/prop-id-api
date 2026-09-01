@@ -9,7 +9,8 @@ import {
   GetQueryResultsCommandInput
 } from '@aws-sdk/client-athena'
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { BatchGetCommand, DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { createIdFetchQueue } from '../src/lib/batch_get_queue'
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -84,30 +85,7 @@ export async function main(argv: string[]) {
     idAttributes.delete(id);
   }, 1)
 
-  const idFetchQueue = async.cargoQueue<Record<string, string>>(async (task) => {
-    const command = new BatchGetCommand({
-      RequestItems: {
-        'estate-id-v1': {
-          // Each entry in Keys is an object that specifies a primary key.
-          Keys: task,
-          // Only return the "Title" and "PageCount" attributes.
-          ProjectionExpression: "estateId, address, rawAddress",
-        },
-      },
-    });
-    const response = await docClient.send(command);
-    // Re-queue unprocessed keys, but still write out the items that were returned in this batch.
-    const unprocessedKeys = response.UnprocessedKeys?.['estate-id-v1']?.Keys || [];
-    if (unprocessedKeys.length > 0) {
-      console.error(`Unprocessed items (${unprocessedKeys.length}), re-queueing`);
-      idFetchQueue.push(unprocessedKeys as Record<string, string>[]);
-    }
-    const items = response.Responses?.['estate-id-v1'] || [];
-    for (const item of items) {
-      idAttributes.set(item.estateId, {address: item.address, rawAddress: item.rawAddress});
-      idOutputQueue.push(item.estateId);
-    }
-  }, 10, 100)
+  const {idFetchQueue, fetchErrors} = createIdFetchQueue({docClient, idAttributes, idOutputQueue})
 
   const querySql = `
     SELECT
@@ -135,15 +113,26 @@ export async function main(argv: string[]) {
   }
 
   await idFetchQueue.drain()
+  // Flush everything we did manage to fetch before failing, so a batch that eventually
+  // exceeds the retry limit doesn't also discard the items that succeeded elsewhere.
   await idOutputQueue.drain()
   await out.close()
+
+  if (fetchErrors.length > 0) {
+    throw new Error(
+      `BatchGet failed for ${fetchErrors.length} batch(es) after retrying:\n${fetchErrors.map((e) => e.message).join('\n')}`
+    )
+  }
 }
 
-main(process.argv.slice(2))
-  .then(() => {
-    process.exit(0)
-  })
-  .catch((error) => {
-    console.error(error)
-    process.exit(1)
-  })
+/* istanbul ignore next -- exercised via manual runs (see README), not unit tests */
+if (require.main === module) {
+  main(process.argv.slice(2))
+    .then(() => {
+      process.exit(0)
+    })
+    .catch((error) => {
+      console.error(error)
+      process.exit(1)
+    })
+}
